@@ -1,0 +1,8 @@
+.DS_Store
+Thumbs.db
+.wrangler/
+.env
+.env.*
+!.env.example
+carddex-backup-*.json
+carddex-with-progress-*.html
