@@ -16,11 +16,62 @@
 @media(max-width:450px){.main{padding:19px 16px 26px}.topbar{margin-bottom:29px}.tool-button{gap:5px}.tool-button span{display:none}.tools{gap:6px}.hero{gap:21px;padding:22px 19px;flex-wrap:wrap}.hero-metrics{gap:23px}.hero-progress{min-width:110px;padding-left:0}.metric small{font-size:9px}.metric strong{font-size:29px}.hero-note{font-size:9px}.progress-caption{font-size:10px;gap:5px}.hero-progress .progress-caption>span{font-size:0}.hero-progress .progress-caption>span:before{content:"Complete";font-size:10px}.hero-metrics{gap:20px}.metric-divider{display:none}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.pokemon-card{min-height:180px;padding:12px}.filters{gap:1px}.filter{padding:9px 11px}.results-meta{font-size:10px}.section-title .gen-tag{font-size:7px;padding:4px}.section-title h2{font-size:15px}.section-head p{font-size:9px}.section-progress svg{display:none}.section-progress{gap:3px}.section-head{align-items:center}.section-title{gap:6px}.intro p{max-width:270px;line-height:1.7}.cards.list{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;scroll-behavior:auto!important}}
 @media print{@page{margin:12mm}body{background:white;font-size:10px}.sidebar,.topbar,.controls,.hero,.intro p,.entry-range,.footer,.toast,.storage-alert,dialog,.have-flag{display:none!important}.main{margin:0;padding:0;max-width:none}h1{font-size:25px;margin-bottom:8px}.intro{margin-bottom:10px}.print-title{display:block;margin:0 0 20px;font-size:10px}.cards,.cards.list{grid-template-columns:repeat(4,minmax(0,1fr));gap:0 12px}.pokemon-card,.cards.list .pokemon-card{break-inside:avoid;min-height:0;height:auto;border:0;border-bottom:1px solid #ddd;border-radius:0;background:white!important;padding:7px 0!important;display:flex;flex-direction:row;align-items:center;gap:6px}.card-top,.cards.list .card-top{width:auto;display:flex;gap:5px;flex:none}.pokemon-card input,.cards.list input{position:static;width:11px;height:11px;appearance:none;border:1px solid #444;order:-1;margin:0}.pokemon-card input:checked:after{content:"✓";font-size:12px;line-height:9px;display:block;color:black}.dex-number{font-size:8px;color:#444}.card-main,.cards.list .card-main{display:block;margin:0}.sprite,.type-list{display:none!important}.pokemon-name,.cards.list .pokemon-name{font-size:9px;margin:0;text-align:left;font-weight:500}.section-head{margin:16px 0 7px;break-after:avoid}.section-title h2{font-size:13px}.section-title .gen-tag{background:none;color:#444;font-size:8px;padding:0}.section-progress{color:#444}.section-progress svg{display:none}.generation-section{break-inside:auto}.empty{padding:20px}.empty button{display:none}}
+/* Keep collection actions and list controls in view. */
+:root{--topbar-height:64px;--controls-height:110px}
+.topbar{position:sticky;top:0;z-index:8;min-height:64px;margin:-29px 0 24px;padding:12px 0;background:#f7f8f3f5;backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.tools{flex:none}
+.tool-button{min-height:40px}
+.share-button{background:var(--ink);color:white;border-color:var(--ink)}
+.share-button:hover{background:var(--green);border-color:var(--green)}
+.controls{top:var(--topbar-height);padding-top:15px;padding-bottom:13px}
+#collection,.generation-section,.empty{scroll-margin-top:calc(var(--topbar-height) + var(--controls-height) + 12px)}
+.mobile-view-button,.menu-panel .mobile-restore{display:none}
+.search-box input{font-size:14px}
+.share-dialog{width:560px;max-width:calc(100vw - 32px);max-height:calc(100dvh - 32px);overflow:auto;padding:25px}
+.dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.dialog-head h2{margin:0}
+.dialog-close{display:grid;place-items:center;width:36px;height:36px;border-radius:7px;flex:none}
+.dialog-close:hover{background:var(--paper)}
+.share-intro{margin:10px 0 17px}
+.share-scope{display:block;font-size:12px;font-weight:650}
+.share-scope select{display:block;width:100%;height:42px;margin-top:7px;padding:8px 11px;border:1px solid #cbd6c2;border-radius:8px;background:white;color:var(--ink);font-size:14px}
+.share-summary{margin:13px 0 8px;font-size:12px;color:var(--muted)}
+.share-text{display:block;width:100%;height:220px;min-height:100px;max-height:32dvh;padding:13px;border:1px solid #d4dfca;border-radius:8px;resize:vertical;font:12px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink);background:var(--paper)}
+.share-text:focus-visible{outline:3px solid #708d52;outline-offset:3px}
+.share-actions{justify-content:flex-start;flex-wrap:wrap;margin-top:17px;gap:8px}
+.share-actions button{min-height:40px}
+.share-actions button:disabled{opacity:.45}
+.share-status{min-height:20px;font-size:12px;line-height:1.6;margin:12px 0 0;color:var(--green)}
+@media(max-width:1190px){.eyebrow{font-size:9px;letter-spacing:1px}}
+@media(min-width:761px) and (max-width:1000px){.view-switch{display:flex}.controls-row{flex-wrap:wrap}.search-box{max-width:none;flex-basis:100%}.filters{margin-left:0}.view-switch{margin-left:auto}}
+@media(max-width:760px){
+  .topbar{margin-top:-22px;margin-bottom:16px;min-height:60px;padding:10px 0}
+  .tools{gap:6px}.tool-button{min-width:40px;min-height:40px;padding:9px}
+  .mobile-brand{font-size:21px;gap:8px;letter-spacing:-.8px}
+  #import-button{display:none}.menu-panel .mobile-restore{display:flex}
+  .intro{margin-bottom:16px}h1{font-size:29px;margin-bottom:6px}.intro p{font-size:12px;line-height:1.55}
+  .hero{display:grid;grid-template-columns:1fr 1fr;gap:11px;min-height:0;padding:15px 18px;border-radius:12px}
+  .hero-metrics{display:contents}.metric-divider{display:none}.metric small{font-size:9px;margin-bottom:6px}.metric strong{font-size:27px}
+  .hero-progress{grid-column:1/-1;min-width:0;width:100%;max-width:none;padding:0}.progress-caption{font-size:10px;margin-bottom:6px}
+  .hero-progress .progress-caption>span{font-size:10px}.hero-progress .progress-caption>span:before{content:none}
+  .progress-track{height:5px}.hero-note{display:none}
+  .controls{padding-top:12px;padding-bottom:10px;margin-bottom:19px}.controls-row{gap:8px;flex-wrap:wrap}
+  .search-box{flex:1 0 100%;max-width:none}.search-box input{font-size:16px;padding-top:11px;padding-bottom:11px}
+  .filters{flex:none;gap:1px;padding:3px;margin:0}.filter{font-size:10px;padding:10px 6px;min-height:36px}.filter span{display:none}
+  .mobile-generation{display:block;flex:1;min-width:90px}.mobile-generation select{height:42px;font-size:10px;padding:9px 18px 9px 7px}
+  .view-switch{display:none}.mobile-view-button{display:grid;place-items:center;flex:none;width:40px;height:42px;padding:8px;border:1px solid #dce3d7;border-radius:8px;background:white}
+  .mobile-view-button svg{width:18px;height:18px}.results-meta{gap:7px;flex-wrap:wrap;padding-top:10px;font-size:10px}
+  .clear-filters{font-size:10px}.cards.list{grid-template-columns:1fr}.cards.list .pokemon-card{min-height:74px}.cards.list .pokemon-name{font-size:13px}
+  .share-dialog{padding:20px}.share-scope select{font-size:16px}.share-text{height:180px}.share-actions button{font-size:11px;padding:10px 12px}
+}
+@media(max-width:450px){.topbar{margin-top:-19px}.tool-button>span{display:none}.tools{gap:5px}.topbar{gap:8px}}
+@media print{.topbar,.controls{display:none!important}.intro{margin-top:0}}
+
 </style>
 </head>
 <body>
 <a class="skip" href="#collection">Skip to the checklist</a>
-<svg aria-hidden="true" style="display:none" xmlns="http://www.w3.org/2000/svg"><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol><symbol id="i-list" viewBox="0 0 24 24"><path d="M9 5h12M9 12h12M9 19h12M3 5h1M3 12h1M3 19h1"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol><symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></symbol><symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4m-5 5 5-5 5 5M4 16v5h16v-5"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol><symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol><symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol><symbol id="i-print" viewBox="0 0 24 24"><path d="M6 8V3h12v5M6 17H3V9h18v8h-3M6 14h12v7H6z"/></symbol><symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H5v20h14V7zM14 2v6h5M8 13h8M8 17h6"/></symbol></svg>
+<svg aria-hidden="true" style="display:none" xmlns="http://www.w3.org/2000/svg"><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol><symbol id="i-list" viewBox="0 0 24 24"><path d="M9 5h12M9 12h12M9 19h12M3 5h1M3 12h1M3 19h1"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol><symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></symbol><symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4m-5 5 5-5 5 5M4 16v5h16v-5"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol><symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol><symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol><symbol id="i-print" viewBox="0 0 24 24"><path d="M6 8V3h12v5M6 17H3V9h18v8h-3M6 14h12v7H6z"/></symbol><symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H5v20h14V7zM14 2v6h5M8 13h8M8 17h6"/></symbol><symbol id="i-share" viewBox="0 0 24 24"><path d="M12 16V3m-4 4 4-4 4 4M5 12v9h14v-9"/></symbol></svg>
 <aside class="sidebar" aria-label="Pokédex generations">
   <div class="brand"><span class="brand-ball" aria-hidden="true"></span>carddex<span style="color:#8c9b80;font-size:23px">.</span></div>
   <div class="brand-sub">ONE CARD. EVERY POKÉMON.</div>
@@ -31,34 +82,45 @@
 <main class="main" id="main">
   <header class="topbar">
     <div class="eyebrow">THE POKÉMON CARD CHECKLIST</div>
-    <div class="brand mobile-brand"><span class="brand-ball" aria-hidden="true"></span>carddex.</div>
+    <div class="brand mobile-brand"><span class="brand-ball" aria-hidden="true"></span><span>carddex.</span></div>
     <div class="tools">
-      <button id="export-button" class="tool-button" title="Download a backup of your checkmarks"><svg aria-hidden="true"><use href="#i-download"/></svg>Back up</button>
+      <button id="share-button" class="tool-button share-button" aria-label="Share missing Pokémon" title="Share missing Pokémon"><svg aria-hidden="true"><use href="#i-share"/></svg><span>Share missing</span></button>
+      <button id="export-button" class="tool-button" aria-label="Back up collection" title="Download a backup of your checkmarks"><svg aria-hidden="true"><use href="#i-download"/></svg><span>Back up</span></button>
       <button id="import-button" class="tool-button" title="Restore checkmarks from a backup"><svg aria-hidden="true"><use href="#i-upload"/></svg><span>Restore</span></button>
-      <details class="file-menu" id="file-menu"><summary class="tool-button" aria-label="More file options" title="More file options"><svg aria-hidden="true"><use href="#i-more"/></svg></summary><div class="menu-panel"><button id="save-html"><svg aria-hidden="true"><use href="#i-file"/></svg>Save HTML with progress</button><button id="print-button"><svg aria-hidden="true"><use href="#i-print"/></svg>Print this view</button></div></details>
+      <details class="file-menu" id="file-menu"><summary class="tool-button" aria-label="More file options" title="More file options"><svg aria-hidden="true"><use href="#i-more"/></svg></summary><div class="menu-panel"><button id="import-menu" class="mobile-restore"><svg aria-hidden="true"><use href="#i-upload"/></svg>Restore backup</button><button id="save-html"><svg aria-hidden="true"><use href="#i-file"/></svg>Save HTML with progress</button><button id="print-button"><svg aria-hidden="true"><use href="#i-print"/></svg>Print this view</button></div></details>
     </div>
   </header>
   <div class="intro"><div><h1>Your collection.</h1><p>Every Pokémon, in Pokédex order.<br>Check one off when you have a card for it.</p></div><span class="entry-range" id="entry-range">NATIONAL DEX · #0001–#1025</span></div>
   <section class="hero" aria-label="Collection progress">
-    <div class="hero-metrics"><div class="metric primary"><small>CARDS COLLECTED</small><strong id="owned-total">0</strong></div><div class="metric-divider"></div><div class="metric"><small>STILL TO FIND</small><strong id="missing-total">1,025</strong></div></div>
+    <div class="hero-metrics"><div class="metric primary"><small>SPECIES COLLECTED</small><strong id="owned-total">0</strong></div><div class="metric-divider"></div><div class="metric"><small>STILL TO FIND</small><strong id="missing-total">1,025</strong></div></div>
     <div class="hero-progress"><div class="progress-caption"><span>Your Pokédex progress</span><strong id="percent-total">0%</strong></div><div class="progress-track" id="progress-track" role="progressbar" aria-label="Pokédex completion" aria-valuemin="0" aria-valuemax="1025" aria-valuenow="0"><div class="progress-fill" id="progress-fill"></div></div><p class="hero-note" id="hero-note">One card is all it takes to start.</p></div>
     <div class="hero-art" id="hero-art" aria-hidden="true"></div>
   </section>
   <div class="storage-alert" id="storage-alert" role="status" hidden>Automatic saving is not available in this browser. Use <strong>Back up</strong> or <strong>Save HTML with progress</strong> before you close this page.</div>
   <div class="controls">
     <div class="controls-row">
-      <div class="search-box"><svg aria-hidden="true"><use href="#i-search"/></svg><input id="search" type="search" placeholder="Search by name or Pokédex number…" aria-label="Search by name or Pokédex number" autocomplete="off" spellcheck="false"><button class="search-clear" id="search-clear" aria-label="Clear search" hidden><svg aria-hidden="true"><use href="#i-close"/></svg></button></div>
+      <div class="search-box"><svg aria-hidden="true"><use href="#i-search"/></svg><input id="search" type="search" placeholder="Name or Pokédex number…" maxlength="100" aria-label="Search by name or Pokédex number" autocomplete="off" spellcheck="false"><button class="search-clear" id="search-clear" aria-label="Clear search" hidden><svg aria-hidden="true"><use href="#i-close"/></svg></button></div>
       <div class="filters" role="group" aria-label="Filter by card ownership"><button class="filter" data-filter="all" aria-pressed="true">All<span id="filter-all">1,025</span></button><button class="filter" data-filter="have" aria-pressed="false">Have<span id="filter-have">0</span></button><button class="filter" data-filter="missing" aria-pressed="false">Missing<span id="filter-missing">1,025</span></button></div>
       <div class="mobile-generation"><label for="mobile-generation" hidden>Generation</label><select id="mobile-generation" aria-label="Filter by generation"></select></div>
       <div class="view-switch" role="group" aria-label="Card layout"><button data-view="grid" aria-pressed="true" aria-label="Grid view" title="Grid view"><svg aria-hidden="true"><use href="#i-grid"/></svg></button><button data-view="list" aria-pressed="false" aria-label="Compact view" title="Compact view"><svg aria-hidden="true"><use href="#i-list"/></svg></button></div>
+      <button class="mobile-view-button" id="mobile-view-toggle" aria-label="Use compact view" title="Use compact view"><svg aria-hidden="true"><use href="#i-list"/></svg></button>
     </div>
-    <div class="results-meta"><span id="results-count" role="status" aria-live="polite"></span><span id="save-status">· Saved automatically</span><button class="clear-filters" id="clear-filters" hidden>Clear filters</button></div>
+    <div class="results-meta"><span id="results-count" role="status" aria-live="polite"></span><span id="save-status">· Saved on this device</span><button class="clear-filters" id="clear-filters" hidden>Clear filters</button></div>
   </div>
   <p class="print-title" id="print-title"></p>
   <div id="collection" tabindex="-1"></div>
   <div class="empty" id="empty" hidden><svg aria-hidden="true"><use href="#i-search"/></svg><h2 id="empty-title">No Pokémon found</h2><p id="empty-text">Try another name or Pokédex number.</p><button class="primary-button" id="empty-clear">Show all Pokémon</button></div>
   <footer class="footer"><div class="scope-note"><p>One checkmark per species. Any card, language, or form can count. This checklist tracks species, not individual card releases.</p><p>Includes National Pokédex #0001–#1025. Newly announced Pokémon without a confirmed number are not included.</p><p>Names, types, and images: <a href="https://pokeapi.co/" target="_blank" rel="noopener noreferrer">PokéAPI</a> · <a href="https://github.com/PokeAPI/pokeapi/tree/master/data/v2/csv" target="_blank" rel="noopener noreferrer">Data source</a> · Data checked 29 October 2026.</p></div><div class="footer-right"><button class="back-top" id="back-top">Back to top ↑</button><p>Made for the joy of collecting.</p><p>Unofficial fan tool. Pokémon © Nintendo / Creatures / GAME FREAK.</p></div></footer>
 </main>
+<dialog class="share-dialog" id="share-dialog" aria-labelledby="share-title" aria-describedby="share-intro">
+  <div class="dialog-head"><h2 id="share-title">Share your missing list</h2><button class="dialog-close" id="share-close" aria-label="Close missing list"><svg aria-hidden="true"><use href="#i-close"/></svg></button></div>
+  <p class="share-intro" id="share-intro">Share the Pokémon you still need. Choose all generations or just one.</p>
+  <label class="share-scope" for="share-generation">Include<select id="share-generation"></select></label>
+  <p class="share-summary" id="share-summary" role="status"></p>
+  <textarea class="share-text" id="share-text" aria-label="Missing Pokémon list" readonly spellcheck="false"></textarea>
+  <div class="dialog-actions share-actions"><button class="primary-button" id="share-copy">Copy list</button><button class="secondary-button" id="share-native" hidden>Share…</button><button class="secondary-button" id="share-download">Download .txt</button></div>
+  <p class="share-status" id="share-status" role="status" aria-live="polite"></p>
+</dialog>
 <input id="import-file" type="file" accept="application/json,.json" hidden>
 <dialog id="restore-dialog" aria-labelledby="restore-title"><h2 id="restore-title">Restore your collection</h2><p id="restore-summary"></p><label class="restore-choice"><input type="radio" name="restore-mode" value="merge" checked>Add these checkmarks to my collection</label><label class="restore-choice"><input type="radio" name="restore-mode" value="replace">Replace my current checkmarks</label><div class="dialog-actions"><button class="secondary-button" id="restore-cancel">Cancel</button><button class="primary-button" id="restore-confirm">Restore</button></div></dialog>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden><span id="toast-text"></span><button id="toast-undo" hidden>Undo</button><button id="toast-close" aria-label="Close message">✕</button></div>
@@ -70,6 +132,7 @@
 const POKEMON=JSON.parse(document.getElementById('pokemon-data').textContent);
 const TOTAL=POKEMON.length;
 const STORAGE_KEY='carddex.national.collection.v1';
+const VIEW_KEY='carddex.national.view.v1';
 const GENERATIONS=[{id:1,name:'Kanto',roman:'I'},{id:2,name:'Johto',roman:'II'},{id:3,name:'Hoenn',roman:'III'},{id:4,name:'Sinnoh',roman:'IV'},{id:5,name:'Unova',roman:'V'},{id:6,name:'Kalos',roman:'VI'},{id:7,name:'Alola',roman:'VII'},{id:8,name:'Galar & Hisui',roman:'VIII'},{id:9,name:'Paldea',roman:'IX'}].map(g=>({...g,pokemon:POKEMON.filter(p=>p.gen===g.id)}));
 const TYPES={Normal:['#eff0e7','#5c6046'],Fire:['#fceee4','#995322'],Water:['#e7eff8','#41668f'],Electric:['#fbf5d9','#77651e'],Grass:['#edf3e1','#526d33'],Ice:['#e7f4f3','#3b7470'],Fighting:['#f7e8e3','#8b503e'],Poison:['#f2e9f4','#80538c'],Ground:['#f4ebdf','#806633'],Flying:['#eeedf8','#6c5f97'],Psychic:['#f9e9ee','#965568'],Bug:['#eff2db','#68722e'],Rock:['#f0ebdf','#786c42'],Ghost:['#eeebf4','#705b8c'],Dragon:['#ece8f8','#6b5494'],Dark:['#ebe8e5','#655a50'],Steel:['#e9eeef','#536a73'],Fairy:['#f8eaf3','#915b7b']};
 const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
@@ -86,7 +149,7 @@ function validateBackup(value){
 function snapshot(){return {app:'carddex',version:1,pokedexMax:TOTAL,owned:[...owned].sort((a,b)=>a-b),updatedAt:lastUpdated};}
 function showStorageState(){
   $('#storage-alert').hidden=storageAvailable;
-  $('#save-status').textContent=storageAvailable?'· Saved automatically':'· Back up before closing';
+  $('#save-status').textContent=storageAvailable?'· Saved on this device':'· Back up before closing';
 }
 function save(){
   lastUpdated=new Date().toISOString();
@@ -104,7 +167,7 @@ function load(){
 }
 function buildNavigation(){
   $('#generation-nav').innerHTML=`<button class="gen-button" data-generation="0" aria-pressed="true"><span class="gen-icon"><svg aria-hidden="true"><use href="#i-grid"/></svg></span><span class="gen-text">All Pokémon<small>All 9 generations</small></span><span class="gen-count" data-gen-count="0"></span></button><div class="nav-divider"></div><div class="nav-label" style="margin-bottom:5px">BY GENERATION</div>`+GENERATIONS.map(g=>`<button class="gen-button" data-generation="${g.id}" aria-pressed="false"><span class="gen-icon">${g.roman}</span><span class="gen-text">${g.name}<small>${dex(g.pokemon[0].id)}–${dex(g.pokemon.at(-1).id)}</small></span><span class="gen-count" data-gen-count="${g.id}"></span></button>`).join('');
-  $('#mobile-generation').innerHTML='<option value="0">All generations</option>'+GENERATIONS.map(g=>`<option value="${g.id}">${g.name} · Gen ${g.roman}</option>`).join('');
+  $('#mobile-generation').innerHTML='<option value="0">All gens</option>'+GENERATIONS.map(g=>`<option value="${g.id}">${g.name} · Gen ${g.roman}</option>`).join('');
   $('#hero-art').innerHTML=[1,4,7].map(id=>`<img src="${POKEMON[id-1].image}" alt="" width="87" height="87">`).join('');
   $('#entry-range').textContent=`NATIONAL DEX · ${dex(1)}–${dex(TOTAL)}`;
   $('#progress-track').setAttribute('aria-valuemax',TOTAL);
@@ -114,15 +177,15 @@ function updateCounters(){
   $('#owned-total').textContent=format(count);$('#missing-total').textContent=format(TOTAL-count);$('#percent-total').textContent=percent+'%';
   $('#progress-fill').style.width=percent+'%';$('#progress-track').setAttribute('aria-valuenow',count);$('#progress-track').setAttribute('aria-valuetext',`${count} of ${TOTAL} Pokémon, ${percent}% complete`);
   $('#hero-note').textContent=count===TOTAL?'Every species. What a collection!':count===0?'One card is all it takes to start.':`${format(count)} species. Each one a little victory.`;
-  $('#filter-all').textContent=format(TOTAL);$('#filter-have').textContent=format(count);$('#filter-missing').textContent=format(TOTAL-count);
+  const scoped=scopedPokemon(),scopedOwned=scoped.filter(p=>owned.has(p.id)).length;
+  $('#filter-all').textContent=format(scoped.length);$('#filter-have').textContent=format(scopedOwned);$('#filter-missing').textContent=format(scoped.length-scopedOwned);
   const counts=new Map(GENERATIONS.map(g=>[g.id,g.pokemon.filter(p=>owned.has(p.id)).length]));
   $$('[data-gen-count]').forEach(el=>{const id=Number(el.dataset.genCount);el.textContent=id?`${counts.get(id)}/${GENERATIONS.find(g=>g.id===id).pokemon.length}`:`${format(count)}/${format(TOTAL)}`;});
   $$('[data-section-count]').forEach(el=>{const id=Number(el.dataset.sectionCount),g=GENERATIONS.find(g=>g.id===id);el.textContent=`${counts.get(id)} / ${g.pokemon.length} collected`;});
   $('#print-title').textContent=`${format(count)} of ${format(TOTAL)} species collected · ${percent}% complete · Printed ${new Date().toLocaleDateString('en-GB')}`;
 }
 function visiblePokemon(){
-  const raw=$('#search').value.trim(),query=normalize(raw),numeric=/^#?\s*\d+$/.test(raw);
-  return POKEMON.filter(p=>(!generation||p.gen===generation)&&(filter==='all'||(filter==='have'?owned.has(p.id):!owned.has(p.id)))&&(!raw||(numeric?p.id===Number(raw.replace(/[\s#]/g,'')):searchNames.get(p.id).includes(query))));
+  return scopedPokemon().filter(p=>filter==='all'||(filter==='have'?owned.has(p.id):!owned.has(p.id)));
 }
 function card(p){
   const badges=p.types.map(t=>`<span class="type-badge" style="--type-bg:${TYPES[t][0]};--type-fg:${TYPES[t][1]}">${t}</span>`).join('');
@@ -135,7 +198,7 @@ function render(){
   if(!visible.length){
     const searching=$('#search').value.trim();
     $('#empty-title').textContent=searching?'No Pokémon found':filter==='have'?'Your first card starts here':filter==='missing'?'This part of your collection is complete!':'No Pokémon in this view';
-    $('#empty-text').textContent=searching?'Try another name or number, or clear your filters.':filter==='have'?'Select “All”, then check a Pokémon when you have a card for it.':filter==='missing'?'There are no missing Pokémon in the selected generation.':'Clear your filters to see all Pokémon.';
+    $('#empty-text').textContent=searching?'Try another name or number, or clear your filters.':filter==='have'?'Select “All”, then check a Pokémon when you have a card for it.':filter==='missing'?'There are no missing Pokémon in this selection.':'Clear your filters to see all Pokémon.';
   }
   $('#results-count').innerHTML=`<strong>${format(visible.length)}</strong> Pokémon ${filter==='missing'?'to find':filter==='have'?'collected':'in view'}`;
   $('#clear-filters').hidden=!generation&&filter==='all'&&!$('#search').value;
@@ -143,9 +206,10 @@ function render(){
   $$('[data-generation]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.generation)===generation)));
   $$('[data-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.filter===filter)));
   $('#mobile-generation').value=generation;
-  updateCounters();
+  updateViewControls();updateCounters();
+  if($('#share-dialog').open)updateShareList();
 }
-function resetFilters(){generation=0;filter='all';$('#search').value='';render();}
+function resetFilters(){generation=0;filter='all';$('#search').value='';saveView();render();scrollToCollection();}
 function toast(message,undo=null){
   clearTimeout(toastTimer);$('#toast-text').textContent=message;$('#toast').hidden=false;undoAction=undo;$('#toast-undo').hidden=!undo;
   if(!undo)toastTimer=setTimeout(()=>{$('#toast').hidden=true;},6000);
@@ -165,16 +229,111 @@ function applyCheck(id,checked,offerUndo=true){
   const p=POKEMON[id-1];
   if(offerUndo)toast(`${p.name} ${checked?'added to':'removed from'} your collection.`,()=>applyCheck(id,!checked,false));
 }
-load();buildNavigation();render();
-$('#generation-nav').addEventListener('click',event=>{const button=event.target.closest('[data-generation]');if(!button)return;generation=Number(button.dataset.generation);render();});
-$('#mobile-generation').addEventListener('change',event=>{generation=Number(event.target.value);render();});
-$$('[data-filter]').forEach(button=>button.addEventListener('click',()=>{filter=button.dataset.filter;render();}));
-$$('[data-view]').forEach(button=>button.addEventListener('click',()=>{view=button.dataset.view;$$('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));$$('.cards').forEach(el=>el.classList.toggle('list',view==='list'));}));
-$('#search').addEventListener('input',render);$('#search-clear').addEventListener('click',()=>{$('#search').value='';render();$('#search').focus();});
+function scopedPokemon(){
+  const raw=$('#search').value.trim(),query=normalize(raw),numeric=/^#?\s*\d+$/.test(raw);
+  return POKEMON.filter(p=>(!generation||p.gen===generation)&&(!raw||(numeric?p.id===Number(raw.replace(/[\s#]/g,'')):query&&searchNames.get(p.id).includes(query))));
+}
+function loadView(){
+  try{
+    const preferences=JSON.parse(localStorage.getItem(VIEW_KEY));
+    if(!preferences||preferences.version!==1)return;
+    if(Number.isInteger(preferences.generation)&&preferences.generation>=0&&preferences.generation<=GENERATIONS.length)generation=preferences.generation;
+    if(['all','have','missing'].includes(preferences.filter))filter=preferences.filter;
+    if(['grid','list'].includes(preferences.view))view=preferences.view;
+    if(typeof preferences.search==='string'&&preferences.search.length<=100)$('#search').value=preferences.search;
+  }catch{/* The checklist also works when preferences cannot be read. */}
+}
+function saveView(){
+  try{localStorage.setItem(VIEW_KEY,JSON.stringify({version:1,generation,filter,view,search:$('#search').value}));}catch{}
+}
+function updateViewControls(){
+  $$('[data-view]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.view===view)));
+  const toggle=$('#mobile-view-toggle'),label=view==='list'?'Use grid view':'Use compact view';
+  toggle.setAttribute('aria-label',label);toggle.title=label;
+  toggle.querySelector('use').setAttribute('href',view==='list'?'#i-grid':'#i-list');
+}
+function updateStickyOffsets(){
+  document.documentElement.style.setProperty('--topbar-height',Math.ceil($('.topbar').getBoundingClientRect().height)+'px');
+  document.documentElement.style.setProperty('--controls-height',Math.ceil($('.controls').getBoundingClientRect().height)+'px');
+}
+function scrollToCollection(){
+  updateStickyOffsets();
+  const stickyHeight=$('.topbar').getBoundingClientRect().height+$('.controls').getBoundingClientRect().height;
+  window.scrollTo({top:Math.max(0,$('#collection').getBoundingClientRect().top+window.scrollY-stickyHeight-14),behavior:'auto'});
+}
+function selectGeneration(next){generation=next;saveView();render();scrollToCollection();}
+function selectLayout(next){
+  view=next;saveView();updateViewControls();
+  $$('.cards').forEach(element=>element.classList.toggle('list',view==='list'));
+  scrollToCollection();
+}
+function missingList(scope){
+  const name=scope?GENERATIONS.find(g=>g.id===scope).name:'All generations';
+  const entries=POKEMON.filter(p=>(!scope||p.gen===scope)&&!owned.has(p.id));
+  const heading=`My missing Pokémon — ${name}\n${format(entries.length)} species to find`;
+  const text=heading+'\n\n'+(entries.length?entries.map(p=>`${dex(p.id)} ${p.name}`).join('\n'):'Nothing missing. This selection is complete!');
+  return {name,entries,text};
+}
+function updateShareList(){
+  const list=missingList(Number($('#share-generation').value));
+  $('#share-text').value=list.text;$('#share-summary').textContent=`${format(list.entries.length)} missing · ${list.name}`;$('#share-status').textContent='';
+  $('#share-copy').disabled=!list.entries.length;$('#share-download').disabled=!list.entries.length;$('#share-native').disabled=!list.entries.length;
+  let canShare=typeof navigator.share==='function';
+  if(canShare&&typeof navigator.canShare==='function'){
+    try{canShare=navigator.canShare({title:'My missing Pokémon',text:list.text});}catch{canShare=false;}
+  }
+  $('#share-native').hidden=!canShare;
+}
+function openShareList(){
+  $('#file-menu').open=false;
+  $('#share-generation').innerHTML='<option value="0">All generations</option>'+GENERATIONS.map(g=>`<option value="${g.id}">${g.name} · Gen ${g.roman}</option>`).join('');
+  $('#share-generation').value=generation;updateShareList();$('#share-dialog').showModal();
+}
+$('#share-button').addEventListener('click',openShareList);
+$('#share-generation').addEventListener('change',updateShareList);
+$('#share-close').addEventListener('click',()=>$('#share-dialog').close());
+$('#share-copy').addEventListener('click',async()=>{
+  try{
+    if(!navigator.clipboard?.writeText)throw new Error('Clipboard is unavailable');
+    await navigator.clipboard.writeText($('#share-text').value);
+    $('#share-status').textContent='Copied. Paste this list into a message.';
+  }catch{
+    $('#share-text').focus();$('#share-text').select();
+    $('#share-status').textContent='The list is selected. Use Copy, or download the text file.';
+  }
+});
+$('#share-download').addEventListener('click',()=>{
+  const scope=Number($('#share-generation').value),list=missingList(scope);
+  const slug=scope?list.name.toLowerCase().replace(/[^a-z0-9]+/g,'-'):'all-generations';
+  download(list.text+'\n','text/plain;charset=utf-8',`carddex-missing-${slug}-${dateSlug()}.txt`);
+  $('#share-status').textContent='Text file download started.';
+});
+$('#share-native').addEventListener('click',async()=>{
+  try{
+    await navigator.share({title:'My missing Pokémon',text:$('#share-text').value});
+    $('#share-status').textContent='The list was passed to the share menu.';
+  }catch(error){
+    if(error.name!=='AbortError')$('#share-status').textContent='Sharing is not available here. Copy the list or download it.';
+  }
+});
+
+load();loadView();buildNavigation();render();updateStickyOffsets();
+if(typeof ResizeObserver==='function'){
+  const stickyObserver=new ResizeObserver(updateStickyOffsets);
+  stickyObserver.observe($('.topbar'));stickyObserver.observe($('.controls'));
+}
+window.addEventListener('resize',updateStickyOffsets);
+$('#generation-nav').addEventListener('click',event=>{const button=event.target.closest('[data-generation]');if(button)selectGeneration(Number(button.dataset.generation));});
+$('#mobile-generation').addEventListener('change',event=>selectGeneration(Number(event.target.value)));
+$$('[data-filter]').forEach(button=>button.addEventListener('click',()=>{filter=button.dataset.filter;saveView();render();scrollToCollection();}));
+$$('[data-view]').forEach(button=>button.addEventListener('click',()=>selectLayout(button.dataset.view)));
+$('#mobile-view-toggle').addEventListener('click',()=>selectLayout(view==='list'?'grid':'list'));
+$('#search').addEventListener('input',()=>{saveView();render();scrollToCollection();});$('#search-clear').addEventListener('click',()=>{$('#search').value='';saveView();render();scrollToCollection();$('#search').focus({preventScroll:true});});
 $('#clear-filters').addEventListener('click',resetFilters);$('#empty-clear').addEventListener('click',resetFilters);
 $('#collection').addEventListener('change',event=>{if(event.target.matches('[data-id]'))applyCheck(Number(event.target.dataset.id),event.target.checked);});
 $('#export-button').addEventListener('click',()=>{download(JSON.stringify({...snapshot(),exportedAt:new Date().toISOString()},null,2),'application/json',`carddex-backup-${dateSlug()}.json`);toast(`Backup download started with ${format(owned.size)} ${owned.size===1?'checkmark':'checkmarks'}.`);});
-$('#import-button').addEventListener('click',()=>{$('#import-file').value='';$('#import-file').click();});
+function chooseBackup(){$('#file-menu').open=false;$('#import-file').value='';$('#import-file').click();}
+$('#import-button').addEventListener('click',chooseBackup);$('#import-menu').addEventListener('click',chooseBackup);
 $('#import-file').addEventListener('change',async event=>{
   const file=event.target.files?.[0];if(!file)return;
   try{
@@ -193,7 +352,7 @@ $('#restore-confirm').addEventListener('click',()=>{
 });
 $('#save-html').addEventListener('click',()=>{
   $('#file-menu').open=false;
-  const copy=document.documentElement.cloneNode(true);copy.querySelector('#collection-seed').textContent=JSON.stringify(snapshot());copy.querySelector('#collection').innerHTML='';copy.querySelector('#hero-art').innerHTML='';copy.querySelector('#generation-nav').innerHTML='';copy.querySelector('#toast').hidden=true;copy.querySelector('#restore-dialog').removeAttribute('open');copy.querySelector('#search').removeAttribute('value');
+  const copy=document.documentElement.cloneNode(true);copy.querySelector('#collection-seed').textContent=JSON.stringify(snapshot());copy.querySelector('#collection').innerHTML='';copy.querySelector('#hero-art').innerHTML='';copy.querySelector('#generation-nav').innerHTML='';copy.querySelector('#toast').hidden=true;copy.querySelectorAll('dialog').forEach(dialog=>dialog.removeAttribute('open'));copy.querySelector('#share-text').value='';copy.querySelector('#share-text').textContent='';copy.querySelector('#share-generation').innerHTML='';copy.querySelector('#share-summary').textContent='';copy.querySelector('#share-status').textContent='';copy.querySelector('#search').removeAttribute('value');
   download('<!doctype html>\n'+copy.outerHTML,'text/html',`carddex-with-progress-${dateSlug()}.html`);toast('HTML download started. It includes your current checkmarks.');
 });
 $('#print-button').addEventListener('click',()=>{$('#file-menu').open=false;window.print();});
