@@ -6,3 +6,13 @@ Thumbs.db
 !.env.example
 carddex-backup-*.json
 carddex-with-progress-*.html
+work/catalogue-sample/
+work/set-reference/
+__pycache__/
+node_modules/
+dist/
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+test-results/
+playwright-report/

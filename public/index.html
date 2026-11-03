@@ -85,8 +85,8 @@
     <div class="brand mobile-brand"><span class="brand-ball" aria-hidden="true"></span><span>carddex.</span></div>
     <div class="tools">
       <button id="share-button" class="tool-button share-button" aria-label="Share missing Pokémon" title="Share missing Pokémon"><svg aria-hidden="true"><use href="#i-share"/></svg><span>Share missing</span></button>
-      <button id="export-button" class="tool-button" aria-label="Back up collection" title="Download a backup of your checkmarks"><svg aria-hidden="true"><use href="#i-download"/></svg><span>Back up</span></button>
-      <button id="import-button" class="tool-button" title="Restore checkmarks from a backup"><svg aria-hidden="true"><use href="#i-upload"/></svg><span>Restore</span></button>
+      <button id="export-button" class="tool-button" aria-label="Back up collection" title="Download a collection backup"><svg aria-hidden="true"><use href="#i-download"/></svg><span>Back up</span></button>
+      <button id="import-button" class="tool-button" title="Restore a Carddex backup"><svg aria-hidden="true"><use href="#i-upload"/></svg><span>Restore</span></button>
       <details class="file-menu" id="file-menu"><summary class="tool-button" aria-label="More file options" title="More file options"><svg aria-hidden="true"><use href="#i-more"/></svg></summary><div class="menu-panel"><button id="import-menu" class="mobile-restore"><svg aria-hidden="true"><use href="#i-upload"/></svg>Restore backup</button><button id="save-html"><svg aria-hidden="true"><use href="#i-file"/></svg>Save HTML with progress</button><button id="print-button"><svg aria-hidden="true"><use href="#i-print"/></svg>Print this view</button></div></details>
     </div>
   </header>
@@ -100,7 +100,7 @@
   <div class="controls">
     <div class="controls-row">
       <div class="search-box"><svg aria-hidden="true"><use href="#i-search"/></svg><input id="search" type="search" placeholder="Name or Pokédex number…" maxlength="100" aria-label="Search by name or Pokédex number" autocomplete="off" spellcheck="false"><button class="search-clear" id="search-clear" aria-label="Clear search" hidden><svg aria-hidden="true"><use href="#i-close"/></svg></button></div>
-      <div class="filters" role="group" aria-label="Filter by card ownership"><button class="filter" data-filter="all" aria-pressed="true">All<span id="filter-all">1,025</span></button><button class="filter" data-filter="have" aria-pressed="false">Have<span id="filter-have">0</span></button><button class="filter" data-filter="missing" aria-pressed="false">Missing<span id="filter-missing">1,025</span></button></div>
+      <div class="filters" role="group" aria-label="Filter by card ownership"><button class="filter" data-filter="all" aria-pressed="true">All<span id="filter-all">1,025</span></button><button class="filter" data-filter="have" aria-pressed="false">Owned<span id="filter-have">0</span></button><button class="filter" data-filter="missing" aria-pressed="false">Missing<span id="filter-missing">1,025</span></button></div>
       <div class="mobile-generation"><label for="mobile-generation" hidden>Generation</label><select id="mobile-generation" aria-label="Filter by generation"></select></div>
       <div class="view-switch" role="group" aria-label="Card layout"><button data-view="grid" aria-pressed="true" aria-label="Grid view" title="Grid view"><svg aria-hidden="true"><use href="#i-grid"/></svg></button><button data-view="list" aria-pressed="false" aria-label="Compact view" title="Compact view"><svg aria-hidden="true"><use href="#i-list"/></svg></button></div>
       <button class="mobile-view-button" id="mobile-view-toggle" aria-label="Use compact view" title="Use compact view"><svg aria-hidden="true"><use href="#i-list"/></svg></button>
@@ -131,7 +131,7 @@
 'use strict';
 const POKEMON=JSON.parse(document.getElementById('pokemon-data').textContent);
 const TOTAL=POKEMON.length;
-const STORAGE_KEY='carddex.national.collection.v1';
+let STORAGE_KEY='carddex.national.collection.v1';
 const VIEW_KEY='carddex.national.view.v1';
 const GENERATIONS=[{id:1,name:'Kanto',roman:'I'},{id:2,name:'Johto',roman:'II'},{id:3,name:'Hoenn',roman:'III'},{id:4,name:'Sinnoh',roman:'IV'},{id:5,name:'Unova',roman:'V'},{id:6,name:'Kalos',roman:'VI'},{id:7,name:'Alola',roman:'VII'},{id:8,name:'Galar & Hisui',roman:'VIII'},{id:9,name:'Paldea',roman:'IX'}].map(g=>({...g,pokemon:POKEMON.filter(p=>p.gen===g.id)}));
 const TYPES={Normal:['#eff0e7','#5c6046'],Fire:['#fceee4','#995322'],Water:['#e7eff8','#41668f'],Electric:['#fbf5d9','#77651e'],Grass:['#edf3e1','#526d33'],Ice:['#e7f4f3','#3b7470'],Fighting:['#f7e8e3','#8b503e'],Poison:['#f2e9f4','#80538c'],Ground:['#f4ebdf','#806633'],Flying:['#eeedf8','#6c5f97'],Psychic:['#f9e9ee','#965568'],Bug:['#eff2db','#68722e'],Rock:['#f0ebdf','#786c42'],Ghost:['#eeebf4','#705b8c'],Dragon:['#ece8f8','#6b5494'],Dark:['#ebe8e5','#655a50'],Steel:['#e9eeef','#536a73'],Fairy:['#f8eaf3','#915b7b']};
@@ -151,12 +151,18 @@ function showStorageState(){
   $('#storage-alert').hidden=storageAvailable;
   $('#save-status').textContent=storageAvailable?'· Saved on this device':'· Back up before closing';
 }
-function save(){
+function save(previousOwned){
   lastUpdated=new Date().toISOString();
   try{localStorage.setItem(STORAGE_KEY,JSON.stringify(snapshot()));storageAvailable=true;}catch{storageAvailable=false;}
   showStorageState();
+  if(window.CARDDEX_CLOUD){
+    const previous=new Set(previousOwned);
+    const changes=[...new Set([...previous,...owned])].filter(id=>previous.has(id)!==owned.has(id)).map(pokemonId=>({pokemonId,owned:owned.has(pokemonId)}));
+    window.dispatchEvent(new CustomEvent('carddex:change',{detail:{changes}}));
+  }
 }
 function load(){
+  if(window.CARDDEX_CLOUD){owned=new Set();showStorageState();return;}
   let initial=validateBackup(JSON.parse($('#collection-seed').textContent));
   try{
     const saved=localStorage.getItem(STORAGE_KEY);
@@ -189,11 +195,42 @@ function visiblePokemon(){
 }
 function card(p){
   const badges=p.types.map(t=>`<span class="type-badge" style="--type-bg:${TYPES[t][0]};--type-fg:${TYPES[t][1]}">${t}</span>`).join('');
-  return `<label class="pokemon-card" data-card="${p.id}"><span class="card-top"><span class="dex-number">${dex(p.id)}</span><input type="checkbox" data-id="${p.id}" aria-label="Have a card for ${escapeHTML(p.name)}, number ${p.id}" ${owned.has(p.id)?'checked':''}></span><span class="have-flag" aria-hidden="true">HAVE IT</span><span class="card-main"><img class="sprite" src="${p.image}" alt="" width="86" height="77" loading="lazy" decoding="async"><span class="card-info"><span class="pokemon-name" style="display:block">${escapeHTML(p.name)}</span><span class="type-list">${badges}</span></span></span></label>`;
+  const cloud=window.CARDDEX_CLOUD,tag=cloud?'div':'label';
+  const name=cloud?`<button class="pokemon-name pokemon-open" data-open-pokemon="${p.id}" aria-label="View cards for ${escapeHTML(p.name)}">${escapeHTML(p.name)}<small data-card-count="${p.id}">${cardCountText(p.id)}</small></button>`:`<span class="pokemon-name" style="display:block">${escapeHTML(p.name)}</span>`;
+  return `<${tag} class="pokemon-card" data-card="${p.id}"><span class="card-top"><span class="dex-number">${dex(p.id)}</span>${cloud?'<label class="species-check">':''}<input type="checkbox" data-id="${p.id}" aria-label="Have a card for ${escapeHTML(p.name)}, number ${p.id}" ${owned.has(p.id)?'checked':''}>${cloud?'</label>':''}</span><span class="have-flag" aria-hidden="true">HAVE IT</span><span class="card-main"><img class="sprite" src="${p.image}" alt="" width="86" height="77" loading="lazy" decoding="async"><span class="card-info">${name}<span class="type-list">${badges}</span></span></span></${tag}>`;
+}
+let cloudDrawKey='',cloudShown=0,cloudLimit=48,cloudMore,cloudObserver,cloudCardCounts=new Map();
+function cardCountText(id){const n=cloudCardCounts.get(id)||0;return n?`${n} ${n===1?'card':'cards'}`:'';}
+function renderCloudPokemon(visible){
+  const root=$('#collection'),key=view+':'+visible.map(p=>p.id).join(',');
+  if(key!==cloudDrawKey){cloudDrawKey=key;cloudShown=0;cloudLimit=48;cloudObserver?.disconnect();root.replaceChildren();cloudMore=null;}
+  const next=visible.slice(cloudShown,cloudLimit);
+  for(const g of GENERATIONS){
+    const entries=next.filter(p=>p.gen===g.id);if(!entries.length)continue;
+    let section=root.querySelector(`[data-cloud-generation="${g.id}"]`);
+    if(!section){
+      section=document.createElement('section');section.className='generation-section';section.dataset.cloudGeneration=g.id;section.setAttribute('aria-labelledby',`heading-gen-${g.id}`);
+      section.innerHTML=`<div class="section-head"><div class="section-title"><h2 id="heading-gen-${g.id}">${g.name}</h2><span class="gen-tag">GEN ${g.roman}</span></div><span class="section-progress" data-section-count="${g.id}"></span></div><div class="cards ${view==='list'?'list':''}"></div>`;
+      root.insertBefore(section,cloudMore||null);
+    }
+    section.querySelector('.cards').insertAdjacentHTML('beforeend',entries.map(card).join(''));
+  }
+  cloudShown=Math.min(cloudLimit,visible.length);
+  for(const input of root.querySelectorAll('[data-id]')){const checked=owned.has(Number(input.dataset.id));if(input.checked!==checked)input.checked=checked;}
+  for(const count of root.querySelectorAll('[data-card-count]')){const text=cardCountText(Number(count.dataset.cardCount));if(count.textContent!==text)count.textContent=text;}
+  if(!cloudMore){
+    cloudMore=document.createElement('button');cloudMore.id='dex-more';cloudMore.className='secondary-button dex-more';
+    cloudMore.onclick=()=>{cloudLimit+=48;render();};root.append(cloudMore);
+    if(typeof IntersectionObserver==='function'){
+      cloudObserver=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)&&!cloudMore.hidden&&document.body.dataset.cloudView==='pokedex'){cloudLimit+=48;render();}},{rootMargin:'400px'});
+      cloudObserver.observe(cloudMore);
+    }
+  }
+  cloudMore.hidden=cloudShown>=visible.length;cloudMore.textContent=`Show more Pokémon · ${format(cloudShown)} of ${format(visible.length)} shown`;
 }
 function render(){
   const visible=visiblePokemon();
-  $('#collection').innerHTML=GENERATIONS.filter(g=>visible.some(p=>p.gen===g.id)).map(g=>`<section class="generation-section" aria-labelledby="heading-gen-${g.id}"><div class="section-head"><div><div class="section-title"><h2 id="heading-gen-${g.id}">${g.name}</h2><span class="gen-tag">GEN ${g.roman}</span></div></div><div class="section-progress"><svg aria-hidden="true"><use href="#i-check"/></svg><span data-section-count="${g.id}"></span></div></div><div class="cards ${view==='list'?'list':''}">${visible.filter(p=>p.gen===g.id).map(card).join('')}</div></section>`).join('');
+  if(window.CARDDEX_CLOUD){if(!document.body.dataset.cloudView||document.body.dataset.cloudView==='pokedex')renderCloudPokemon(visible);}else $('#collection').innerHTML=GENERATIONS.filter(g=>visible.some(p=>p.gen===g.id)).map(g=>`<section class="generation-section" aria-labelledby="heading-gen-${g.id}"><div class="section-head"><div><div class="section-title"><h2 id="heading-gen-${g.id}">${g.name}</h2><span class="gen-tag">GEN ${g.roman}</span></div></div><div class="section-progress"><svg aria-hidden="true"><use href="#i-check"/></svg><span data-section-count="${g.id}"></span></div></div><div class="cards ${view==='list'?'list':''}">${visible.filter(p=>p.gen===g.id).map(card).join('')}</div></section>`).join('');
   $('#empty').hidden=visible.length>0;
   if(!visible.length){
     const searching=$('#search').value.trim();
@@ -212,14 +249,15 @@ function render(){
 function resetFilters(){generation=0;filter='all';$('#search').value='';saveView();render();scrollToCollection();}
 function toast(message,undo=null){
   clearTimeout(toastTimer);$('#toast-text').textContent=message;$('#toast').hidden=false;undoAction=undo;$('#toast-undo').hidden=!undo;
-  if(!undo)toastTimer=setTimeout(()=>{$('#toast').hidden=true;},6000);
+  toastTimer=setTimeout(()=>{$('#toast').hidden=true;undoAction=null;},undo?10000:6000);
 }
 function download(content,type,filename){
   const url=URL.createObjectURL(new Blob([content],{type})),a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
 }
 function dateSlug(){return new Date().toISOString().slice(0,10);}
 function applyCheck(id,checked,offerUndo=true){
-  if(checked)owned.add(id);else owned.delete(id);save();
+  const previous=new Set(owned);
+  if(checked)owned.add(id);else owned.delete(id);save(previous);
   if(filter==='all'){
     const input=$(`[data-id="${id}"]`);if(input)input.checked=checked;updateCounters();
   }else{
@@ -317,7 +355,25 @@ $('#share-native').addEventListener('click',async()=>{
   }
 });
 
+if(window.CARDDEX_CLOUD)document.body.dataset.cloudView=(location.hash.match(/^#\/?([^?]+)/)?.[1]||'pokedex');
 load();loadView();buildNavigation();render();updateStickyOffsets();
+if(window.CARDDEX_CLOUD){
+  let printState;
+  addEventListener('beforeprint',()=>{
+    if(printState)return;
+    const root=$('#collection');
+    printState={nodes:[...root.childNodes],key:cloudDrawKey,shown:cloudShown,limit:cloudLimit,more:cloudMore,observer:cloudObserver,scroll:scrollY};
+    cloudObserver?.disconnect();root.replaceChildren();cloudDrawKey='';cloudMore=null;cloudObserver=null;
+    renderCloudPokemon(visiblePokemon());cloudLimit=Infinity;renderCloudPokemon(visiblePokemon());cloudObserver?.disconnect();updateCounters();
+  });
+  addEventListener('afterprint',()=>{
+    if(!printState)return;
+    cloudObserver?.disconnect();$('#collection').replaceChildren(...printState.nodes);
+    cloudDrawKey=printState.key;cloudShown=printState.shown;cloudLimit=printState.limit;cloudMore=printState.more;cloudObserver=printState.observer;
+    if(cloudMore)cloudObserver?.observe(cloudMore);
+    const scroll=printState.scroll;printState=null;render();scrollTo(0,scroll);
+  });
+}
 if(typeof ResizeObserver==='function'){
   const stickyObserver=new ResizeObserver(updateStickyOffsets);
   stickyObserver.observe($('.topbar'));stickyObserver.observe($('.controls'));
@@ -331,14 +387,16 @@ $('#mobile-view-toggle').addEventListener('click',()=>selectLayout(view==='list'
 $('#search').addEventListener('input',()=>{saveView();render();scrollToCollection();});$('#search-clear').addEventListener('click',()=>{$('#search').value='';saveView();render();scrollToCollection();$('#search').focus({preventScroll:true});});
 $('#clear-filters').addEventListener('click',resetFilters);$('#empty-clear').addEventListener('click',resetFilters);
 $('#collection').addEventListener('change',event=>{if(event.target.matches('[data-id]'))applyCheck(Number(event.target.dataset.id),event.target.checked);});
-$('#export-button').addEventListener('click',()=>{download(JSON.stringify({...snapshot(),exportedAt:new Date().toISOString()},null,2),'application/json',`carddex-backup-${dateSlug()}.json`);toast(`Backup download started with ${format(owned.size)} ${owned.size===1?'checkmark':'checkmarks'}.`);});
+$('#export-button').addEventListener('click',()=>{if(window.CARDDEX_CLOUD){window.dispatchEvent(new CustomEvent('carddex:backup'));return;}download(JSON.stringify({...snapshot(),exportedAt:new Date().toISOString()},null,2),'application/json',`carddex-backup-${dateSlug()}.json`);toast(`Backup download started with ${format(owned.size)} ${owned.size===1?'checkmark':'checkmarks'}.`);});
 function chooseBackup(){$('#file-menu').open=false;$('#import-file').value='';$('#import-file').click();}
 $('#import-button').addEventListener('click',chooseBackup);$('#import-menu').addEventListener('click',chooseBackup);
 $('#import-file').addEventListener('change',async event=>{
   const file=event.target.files?.[0];if(!file)return;
   try{
     if(file.size>1024*1024)throw new Error('This file is too large. Choose a Carddex JSON backup.');
-    pendingImport=validateBackup(JSON.parse(await file.text()));
+    const parsed=JSON.parse(await file.text());
+    if(window.CARDDEX_CLOUD&&parsed?.app==='carddex'&&parsed.version===2){window.dispatchEvent(new CustomEvent('carddex:restore',{detail:parsed}));return;}
+    pendingImport=validateBackup(parsed);
     $('#restore-summary').textContent=`This backup contains ${format(pendingImport.owned.length)} ${pendingImport.owned.length===1?'checkmark':'checkmarks'}. Your current collection has ${format(owned.size)}.`;
     document.querySelector('[name="restore-mode"][value="merge"]').checked=true;$('#restore-dialog').showModal();
   }catch(error){toast(error instanceof SyntaxError?'This file is not valid JSON. Choose a Carddex backup.':error.message);}
@@ -347,13 +405,23 @@ $('#restore-cancel').addEventListener('click',()=>{pendingImport=null;$('#restor
 $('#restore-dialog').addEventListener('cancel',()=>{pendingImport=null;});
 $('#restore-confirm').addEventListener('click',()=>{
   if(!pendingImport)return;const previous=[...owned],mode=document.querySelector('[name="restore-mode"]:checked').value;
-  owned=mode==='replace'?new Set(pendingImport.owned):new Set([...owned,...pendingImport.owned]);save();render();pendingImport=null;$('#restore-dialog').close();
-  toast(`Collection restored. ${format(owned.size)} Pokémon collected.`,()=>{owned=new Set(previous);save();render();});
+  owned=mode==='replace'?new Set(pendingImport.owned):new Set([...owned,...pendingImport.owned]);save(previous);render();pendingImport=null;$('#restore-dialog').close();
+  toast(`Collection restored. ${format(owned.size)} Pokémon collected.`,()=>{const before=new Set(owned);owned=new Set(previous);save(before);render();});
 });
-$('#save-html').addEventListener('click',()=>{
+$('#save-html').addEventListener('click',async()=>{
+  try{
   $('#file-menu').open=false;
-  const copy=document.documentElement.cloneNode(true);copy.querySelector('#collection-seed').textContent=JSON.stringify(snapshot());copy.querySelector('#collection').innerHTML='';copy.querySelector('#hero-art').innerHTML='';copy.querySelector('#generation-nav').innerHTML='';copy.querySelector('#toast').hidden=true;copy.querySelectorAll('dialog').forEach(dialog=>dialog.removeAttribute('open'));copy.querySelector('#share-text').value='';copy.querySelector('#share-text').textContent='';copy.querySelector('#share-generation').innerHTML='';copy.querySelector('#share-summary').textContent='';copy.querySelector('#share-status').textContent='';copy.querySelector('#search').removeAttribute('value');
+  let copy;
+  if(window.CARDDEX_CLOUD){const response=await fetch('/standalone',{credentials:'same-origin',redirect:'manual'});if(!response.ok)throw new Error('Connect to download the complete offline checklist.');const text=await response.text();if(!text.includes('id="pokemon-data"'))throw new Error('Sign in again to download the checklist.');copy=new DOMParser().parseFromString(text,'text/html').documentElement;}else copy=document.documentElement.cloneNode(true);
+  copy.querySelector('#collection-seed').textContent=JSON.stringify(snapshot());copy.querySelector('#collection').innerHTML='';copy.querySelector('#hero-art').innerHTML='';copy.querySelector('#generation-nav').innerHTML='';copy.querySelector('#toast').hidden=true;copy.querySelectorAll('dialog').forEach(dialog=>dialog.removeAttribute('open'));copy.querySelector('#share-text').value='';copy.querySelector('#share-text').textContent='';copy.querySelector('#share-generation').innerHTML='';copy.querySelector('#share-summary').textContent='';copy.querySelector('#share-status').textContent='';copy.querySelector('#search').removeAttribute('value');
+  copy.querySelectorAll('#cloud-mode,[data-cloud-client],[data-cloud-style],[data-cloud-ui],.cloud-panel,#cloud-review').forEach(el=>el.remove());
+  copy.classList.remove('cloud-app');delete copy.querySelector('body').dataset.cloudView;
+  const title=copy.querySelector('title');if(title?.dataset.standaloneTitle){title.textContent=title.dataset.standaloneTitle;delete title.dataset.standaloneTitle;}
+  const description=copy.querySelector('meta[name="description"]');
+  if(description?.dataset.standaloneDescription){description.content=description.dataset.standaloneDescription;delete description.dataset.standaloneDescription;}
+  copy.querySelector('.sidebar-foot').innerHTML='<div class="local-tag"><span class="dot"></span> MADE TO WORK OFFLINE</div>Your collection stays in this browser. Use <strong>Back up</strong> to keep a separate copy.';
   download('<!doctype html>\n'+copy.outerHTML,'text/html',`carddex-with-progress-${dateSlug()}.html`);toast('HTML download started. It includes your current checkmarks.');
+  }catch(error){toast(error.message||'The checklist download failed. Try again.');}
 });
 $('#print-button').addEventListener('click',()=>{$('#file-menu').open=false;window.print();});
 $('#back-top').addEventListener('click',()=>window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'}));
@@ -361,10 +429,33 @@ $('#toast-undo').addEventListener('click',()=>{const action=undoAction;$('#toast
 document.addEventListener('click',event=>{if(!event.target.closest('#file-menu'))$('#file-menu').open=false;});
 document.addEventListener('keydown',event=>{if(event.key==='Escape'){$('#file-menu').open=false;$('#toast').hidden=true;}});
 window.addEventListener('storage',event=>{
+  if(window.CARDDEX_CLOUD)return;
   if(event.key!==STORAGE_KEY)return;
   if(!event.newValue){storageAvailable=false;showStorageState();return;}
   try{const next=validateBackup(JSON.parse(event.newValue));owned=new Set(next.owned);lastUpdated=next.updatedAt;storageAvailable=true;showStorageState();render();toast('Collection updated from another tab.');}catch{toast('Another tab saved an invalid collection. Your current checkmarks are still here.');}
 });
+window.carddex={
+  setScope(id){STORAGE_KEY=`carddex.cloud.collection.v1.${id}`;},
+  legacySnapshot(){try{const value=localStorage.getItem('carddex.national.collection.v1');return value?validateBackup(JSON.parse(value)):null;}catch{return null;}},
+  showPokedex(){render();},
+  showCloudCollection(ids,counts=new Map()){
+    const next=new Set(ids),countsChanged=counts.size!==cloudCardCounts.size||[...counts].some(([id,n])=>cloudCardCounts.get(id)!==n),changed=owned.size!==next.size||[...owned].some(id=>!next.has(id));
+    cloudCardCounts=counts;
+    const focused=document.activeElement?.dataset.id;
+    owned=next;lastUpdated=new Date().toISOString();
+    if(changed)try{localStorage.setItem(STORAGE_KEY,JSON.stringify(snapshot()));storageAvailable=true;}catch{storageAvailable=false;}
+    showStorageState();if(changed||countsChanged){render();if(focused)$(`[data-id="${focused}"]`)?.focus({preventScroll:true});}
+  },
+  pokemonName(id){return POKEMON[id-1]?.name||`Pokémon ${id}`;},
+  pokemonImage(id){return POKEMON[id-1]?.image||'';},
+  findPokemon(name){const value=normalize(name);return POKEMON.find(p=>normalize(p.name)===value||String(p.id)===value)?.id||null;},
+  notify(message){toast(message);},
+  setEditing(enabled){
+    $('#collection').inert=!enabled;
+    for(const id of ['import-button','import-menu','export-button','save-html','share-button','restore-confirm'])$('#'+id).disabled=!enabled;
+  }
+};
+if(window.CARDDEX_CLOUD)window.carddex.setEditing(false);
 </script>
 </body>
 </html>

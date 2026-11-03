@@ -1,0 +1,5 @@
+# Copy this file to .dev.vars for local development.
+# Local sign-in works only on localhost or 127.0.0.1.
+LOCAL_DEV_AUTH="true"
+ADMIN_EMAIL="you@example.com"
+INVITED_EMAILS="friend@example.test"

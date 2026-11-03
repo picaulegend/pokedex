@@ -1,0 +1,14 @@
+{
+  "digitalIds": ["A1"],
+  "en": [
+    {"id":"base1","name":"Base Set","logo":"https://assets.tcgdex.net/en/base/base1/logo","cardCount":{"official":102,"total":102}},
+    {"id":"sv03.5","name":"151","logo":"https://assets.tcgdex.net/en/sv/sv03.5/logo","symbol":"https://assets.tcgdex.net/univ/sv/sv03.5/symbol","cardCount":{"official":165,"total":207}},
+    {"id":"svp","name":"SVP Black Star Promos","cardCount":{"official":0,"total":226}},
+    {"id":"swsh3","name":"Darkness Ablaze","logo":"https://assets.tcgdex.net/en/swsh/swsh3/logo","cardCount":{"official":189,"total":201}},
+    {"id":"A1","name":"Genetic Apex","cardCount":{"official":226,"total":286}}
+  ],
+  "ja": [
+    {"id":"SV2a","name":"ポケモンカード151","cardCount":{"official":165,"total":210}},
+    {"id":"PMCG1","name":"拡張パック","cardCount":{"official":102,"total":102}}
+  ]
+}

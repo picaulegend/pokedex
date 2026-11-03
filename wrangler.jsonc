@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "carddex-preview",
+  "account_id": "de7f1e314a126dcd3e39c30dfe25f58b",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-10-30",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*", "/s/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "carddex-preview",
+      "database_id": "6e6f06ec-b6cd-4319-b933-a3c77d517075",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "vars": {
+    "ACCESS_TEAM_DOMAIN": "https://proud-math-f0a5.cloudflareaccess.com",
+    "ACCESS_AUD": "bfec8a0bb2049847d7d4d4d5c14621bb92aafb53522ee2f145be89beebd73404"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "preview_urls": false
+}

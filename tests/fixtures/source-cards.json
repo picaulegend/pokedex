@@ -1,0 +1,1871 @@
+[
+  {
+    "language": "en",
+    "card": {
+      "attacks": [
+        {
+          "cost": [
+            "Grass",
+            "Colorless"
+          ],
+          "damage": 20,
+          "effect": "Heal 20 damage from this Pokémon.",
+          "name": "Leech Seed"
+        }
+      ],
+      "category": "Pokemon",
+      "description": "While it is young, it uses the nutrients that are stored in the seed on its back in order to grow.",
+      "dexId": [
+        1
+      ],
+      "hp": 70,
+      "id": "sv03.5-001",
+      "illustrator": "Yuu Nishida",
+      "image": "https://assets.tcgdex.net/en/sv/sv03.5/001",
+      "legal": {
+        "expanded": true,
+        "standard": false
+      },
+      "localId": "001",
+      "name": "Bulbasaur",
+      "pricing": {
+        "cardmarket": {
+          "avg": 0.13,
+          "avg-holo": 0.36,
+          "avg1": 0.22,
+          "avg1-holo": 0.51,
+          "avg30": 0.13,
+          "avg30-holo": 0.37,
+          "avg7": 0.13,
+          "avg7-holo": 0.4,
+          "idProduct": 733596,
+          "low": 0.02,
+          "low-holo": 0.02,
+          "trend": 0.15,
+          "trend-holo": 0.36,
+          "unit": "EUR",
+          "updated": "2026-10-31T13:11:38.996Z"
+        },
+        "tcgplayer": null
+      },
+      "rarity": "Common",
+      "regulationMark": "G",
+      "retreat": 2,
+      "set": {
+        "cardCount": {
+          "official": 165,
+          "total": 207
+        },
+        "id": "sv03.5",
+        "logo": "https://assets.tcgdex.net/en/sv/sv03.5/logo",
+        "name": "151",
+        "symbol": "https://assets.tcgdex.net/univ/sv/sv03.5/symbol"
+      },
+      "stage": "Basic",
+      "types": [
+        "Grass"
+      ],
+      "updated": "2026-08-14T19:11:56+01:00",
+      "variants": {
+        "firstEdition": false,
+        "holo": false,
+        "normal": true,
+        "reverse": true,
+        "wPromo": false
+      },
+      "variants_detailed": [
+        {
+          "pricing": {
+            "cardmarket": {
+              "avg": 0.13,
+              "avg-holo": 0.36,
+              "avg1": 0.22,
+              "avg1-holo": 0.51,
+              "avg30": 0.13,
+              "avg30-holo": 0.37,
+              "avg7": 0.13,
+              "avg7-holo": 0.4,
+              "idProduct": 733596,
+              "low": 0.02,
+              "low-holo": 0.02,
+              "trend": 0.15,
+              "trend-holo": 0.36,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:11:38.996Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "thirdParty": {
+            "cardmarket": 733596,
+            "cardtrader": 261065,
+            "tcgplayer": 502552
+          },
+          "type": "normal",
+          "variantId": "endfynwn4n10gzq"
+        },
+        {
+          "pricing": {
+            "cardmarket": {
+              "avg": 0.13,
+              "avg-holo": 0.36,
+              "avg1": 0.22,
+              "avg1-holo": 0.51,
+              "avg30": 0.13,
+              "avg30-holo": 0.37,
+              "avg7": 0.13,
+              "avg7-holo": 0.4,
+              "idProduct": 733596,
+              "low": 0.02,
+              "low-holo": 0.02,
+              "trend": 0.15,
+              "trend-holo": 0.36,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:11:38.996Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "thirdParty": {
+            "cardmarket": 733596,
+            "cardtrader": 261065,
+            "tcgplayer": 502552
+          },
+          "type": "reverse",
+          "variantId": "cm4kqul3x1bwlz1f"
+        },
+        {
+          "pricing": {
+            "cardmarket": {
+              "avg": 67.51,
+              "avg-holo": null,
+              "avg1": 78.99,
+              "avg1-holo": null,
+              "avg30": 108.19,
+              "avg30-holo": null,
+              "avg7": 79.44,
+              "avg7-holo": null,
+              "idProduct": 720365,
+              "low": 60.53,
+              "low-holo": null,
+              "trend": 60.53,
+              "trend-holo": 0,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:11:38.996Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "stamp": [
+            "set-logo"
+          ],
+          "thirdParty": {
+            "cardmarket": 720365
+          },
+          "type": "normal",
+          "variantId": "3takscxpcqodqyjzqnsbuwq6"
+        },
+        {
+          "foil": "cosmos",
+          "pricing": {
+            "cardmarket": {
+              "avg": null,
+              "avg-holo": 10.16,
+              "avg1": null,
+              "avg1-holo": 6,
+              "avg30": null,
+              "avg30-holo": 9.02,
+              "avg7": null,
+              "avg7-holo": 9.94,
+              "idProduct": 794908,
+              "low": 6,
+              "low-holo": 6,
+              "trend": 0,
+              "trend-holo": 9.13,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:11:38.996Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "thirdParty": {
+            "cardmarket": 794908
+          },
+          "type": "reverse",
+          "variantId": "3ts5hd5swdcuwzv63t639rp"
+        }
+      ],
+      "weaknesses": [
+        {
+          "type": "Fire",
+          "value": "×2"
+        }
+      ]
+    }
+  },
+  {
+    "language": "en",
+    "card": {
+      "attacks": [
+        {
+          "cost": [
+            "Fire"
+          ],
+          "effect": "Discard a Stadium in play.",
+          "name": "Blazing Destruction"
+        },
+        {
+          "cost": [
+            "Fire",
+            "Fire"
+          ],
+          "damage": 30,
+          "name": "Steady Firebreathing"
+        }
+      ],
+      "cameoDexIds": [
+        6
+      ],
+      "category": "Pokemon",
+      "description": "From the time it is born, a flame burns at the tip of its tail. Its life would end if the flame were to go out.",
+      "dexId": [
+        4
+      ],
+      "hp": 70,
+      "id": "sv03.5-004",
+      "illustrator": "GIDORA",
+      "image": "https://assets.tcgdex.net/en/sv/sv03.5/004",
+      "legal": {
+        "expanded": true,
+        "standard": false
+      },
+      "localId": "004",
+      "name": "Charmander",
+      "pricing": {
+        "cardmarket": {
+          "avg": 0.12,
+          "avg-holo": 0.43,
+          "avg1": 0.14,
+          "avg1-holo": 0.61,
+          "avg30": 0.12,
+          "avg30-holo": 0.42,
+          "avg7": 0.12,
+          "avg7-holo": 0.47,
+          "idProduct": 733599,
+          "low": 0.02,
+          "low-holo": 0.04,
+          "trend": 0.11,
+          "trend-holo": 0.49,
+          "unit": "EUR",
+          "updated": "2026-10-31T13:08:07.250Z"
+        },
+        "tcgplayer": null
+      },
+      "rarity": "Common",
+      "regulationMark": "G",
+      "retreat": 1,
+      "set": {
+        "cardCount": {
+          "official": 165,
+          "total": 207
+        },
+        "id": "sv03.5",
+        "logo": "https://assets.tcgdex.net/en/sv/sv03.5/logo",
+        "name": "151",
+        "symbol": "https://assets.tcgdex.net/univ/sv/sv03.5/symbol"
+      },
+      "stage": "Basic",
+      "types": [
+        "Fire"
+      ],
+      "updated": "2026-09-06T11:00:03+01:00",
+      "variants": {
+        "firstEdition": false,
+        "holo": true,
+        "normal": true,
+        "reverse": true,
+        "wPromo": false
+      },
+      "variants_detailed": [
+        {
+          "pricing": {
+            "cardmarket": {
+              "avg": 0.12,
+              "avg-holo": 0.43,
+              "avg1": 0.14,
+              "avg1-holo": 0.61,
+              "avg30": 0.12,
+              "avg30-holo": 0.42,
+              "avg7": 0.12,
+              "avg7-holo": 0.47,
+              "idProduct": 733599,
+              "low": 0.02,
+              "low-holo": 0.04,
+              "trend": 0.11,
+              "trend-holo": 0.49,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:08:07.250Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "thirdParty": {
+            "cardmarket": 733599,
+            "cardtrader": 261106,
+            "tcgplayer": 502555
+          },
+          "type": "normal",
+          "variantId": "endfynwn4n10gzq"
+        },
+        {
+          "pricing": {
+            "cardmarket": {
+              "avg": 0.12,
+              "avg-holo": 0.43,
+              "avg1": 0.14,
+              "avg1-holo": 0.61,
+              "avg30": 0.12,
+              "avg30-holo": 0.42,
+              "avg7": 0.12,
+              "avg7-holo": 0.47,
+              "idProduct": 733599,
+              "low": 0.02,
+              "low-holo": 0.04,
+              "trend": 0.11,
+              "trend-holo": 0.49,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:08:07.250Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "thirdParty": {
+            "cardmarket": 733599,
+            "cardtrader": 261106,
+            "tcgplayer": 502555
+          },
+          "type": "reverse",
+          "variantId": "cm4kqul3x1bwlz1f"
+        },
+        {
+          "pricing": {
+            "cardmarket": {
+              "avg": 124.65,
+              "avg-holo": null,
+              "avg1": 74.95,
+              "avg1-holo": null,
+              "avg30": 85.78,
+              "avg30-holo": null,
+              "avg7": 116.56,
+              "avg7-holo": null,
+              "idProduct": 720366,
+              "low": 0.11,
+              "low-holo": null,
+              "trend": 92.65,
+              "trend-holo": 0,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:08:07.250Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "stamp": [
+            "gamestop"
+          ],
+          "thirdParty": {
+            "cardmarket": 720366
+          },
+          "type": "normal",
+          "variantId": "3takscxpcp6jb0dtae8nhh2o"
+        },
+        {
+          "foil": "cosmos",
+          "pricing": {
+            "cardmarket": {
+              "avg": 1.59,
+              "avg-holo": null,
+              "avg1": 1.72,
+              "avg1-holo": null,
+              "avg30": 1.4,
+              "avg30-holo": null,
+              "avg7": 1.38,
+              "avg7-holo": null,
+              "idProduct": 791827,
+              "low": 0.63,
+              "low-holo": null,
+              "trend": 1.42,
+              "trend-holo": 0,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:08:07.250Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "thirdParty": {
+            "cardmarket": 791827
+          },
+          "type": "holo",
+          "variantId": "5zs5af49g93yryvw1ftj"
+        },
+        {
+          "pricing": {
+            "cardmarket": {
+              "avg": null,
+              "avg-holo": 419.29,
+              "avg1": null,
+              "avg1-holo": 330,
+              "avg30": null,
+              "avg30-holo": 396.96,
+              "avg7": null,
+              "avg7-holo": 286.49,
+              "idProduct": 759873,
+              "low": 389,
+              "low-holo": 389,
+              "trend": 0,
+              "trend-holo": 426.93,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:08:07.250Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "stamp": [
+            "eb-games"
+          ],
+          "thirdParty": {
+            "cardmarket": 759873
+          },
+          "type": "reverse",
+          "variantId": "3a83wf50txgusbq74vsoel3h2"
+        },
+        {
+          "foil": "cosmos",
+          "pricing": {
+            "cardmarket": {
+              "avg": null,
+              "avg-holo": 9.25,
+              "avg1": 15,
+              "avg1-holo": 8,
+              "avg30": 15,
+              "avg30-holo": 9.35,
+              "avg7": 15,
+              "avg7-holo": 9.07,
+              "idProduct": 794909,
+              "low": 4.95,
+              "low-holo": 4.95,
+              "trend": 15,
+              "trend-holo": 8.52,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:08:07.250Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "thirdParty": {
+            "cardmarket": 794909
+          },
+          "type": "reverse",
+          "variantId": "3ts5hd5swdcuwzv63t639rp"
+        }
+      ],
+      "weaknesses": [
+        {
+          "type": "Water",
+          "value": "×2"
+        }
+      ]
+    }
+  },
+  {
+    "language": "en",
+    "card": {
+      "attacks": [
+        {
+          "cost": [
+            "Fire"
+          ],
+          "damage": 20,
+          "name": "Combustion"
+        },
+        {
+          "cost": [
+            "Fire",
+            "Fire",
+            "Fire"
+          ],
+          "damage": 90,
+          "effect": "Discard an Energy from this Pokémon.",
+          "name": "Fire Blast"
+        }
+      ],
+      "category": "Pokemon",
+      "description": "If it becomes agitated during battle, it spouts intense flames, incinerating its surroundings.",
+      "dexId": [
+        5
+      ],
+      "evolveFrom": "Charmander",
+      "hp": 100,
+      "id": "sv03.5-005",
+      "illustrator": "GIDORA",
+      "image": "https://assets.tcgdex.net/en/sv/sv03.5/005",
+      "legal": {
+        "expanded": true,
+        "standard": false
+      },
+      "localId": "005",
+      "name": "Charmeleon",
+      "pricing": {
+        "cardmarket": {
+          "avg": 0.12,
+          "avg-holo": 0.4,
+          "avg1": 0.08,
+          "avg1-holo": 0.49,
+          "avg30": 0.11,
+          "avg30-holo": 0.38,
+          "avg7": 0.1,
+          "avg7-holo": 0.39,
+          "idProduct": 733600,
+          "low": 0.02,
+          "low-holo": 0.02,
+          "trend": 0.1,
+          "trend-holo": 0.34,
+          "unit": "EUR",
+          "updated": "2026-10-31T13:11:38.996Z"
+        },
+        "tcgplayer": null
+      },
+      "rarity": "Uncommon",
+      "regulationMark": "G",
+      "retreat": 2,
+      "set": {
+        "cardCount": {
+          "official": 165,
+          "total": 207
+        },
+        "id": "sv03.5",
+        "logo": "https://assets.tcgdex.net/en/sv/sv03.5/logo",
+        "name": "151",
+        "symbol": "https://assets.tcgdex.net/univ/sv/sv03.5/symbol"
+      },
+      "stage": "Stage1",
+      "types": [
+        "Fire"
+      ],
+      "updated": "2026-08-14T19:11:56+01:00",
+      "variants": {
+        "firstEdition": false,
+        "holo": true,
+        "normal": true,
+        "reverse": true,
+        "wPromo": false
+      },
+      "variants_detailed": [
+        {
+          "pricing": {
+            "cardmarket": {
+              "avg": 0.12,
+              "avg-holo": 0.4,
+              "avg1": 0.08,
+              "avg1-holo": 0.49,
+              "avg30": 0.11,
+              "avg30-holo": 0.38,
+              "avg7": 0.1,
+              "avg7-holo": 0.39,
+              "idProduct": 733600,
+              "low": 0.02,
+              "low-holo": 0.02,
+              "trend": 0.1,
+              "trend-holo": 0.34,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:11:38.996Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "thirdParty": {
+            "cardmarket": 733600,
+            "cardtrader": 261162,
+            "tcgplayer": 502557
+          },
+          "type": "normal",
+          "variantId": "endfynwn4n10gzq"
+        },
+        {
+          "pricing": {
+            "cardmarket": {
+              "avg": 0.12,
+              "avg-holo": 0.4,
+              "avg1": 0.08,
+              "avg1-holo": 0.49,
+              "avg30": 0.11,
+              "avg30-holo": 0.38,
+              "avg7": 0.1,
+              "avg7-holo": 0.39,
+              "idProduct": 733600,
+              "low": 0.02,
+              "low-holo": 0.02,
+              "trend": 0.1,
+              "trend-holo": 0.34,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:11:38.996Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "thirdParty": {
+            "cardmarket": 733600,
+            "cardtrader": 261162,
+            "tcgplayer": 502557
+          },
+          "type": "reverse",
+          "variantId": "cm4kqul3x1bwlz1f"
+        },
+        {
+          "foil": "cosmos",
+          "pricing": {
+            "cardmarket": {
+              "avg": 1.35,
+              "avg-holo": null,
+              "avg1": 0.83,
+              "avg1-holo": null,
+              "avg30": 1.24,
+              "avg30-holo": null,
+              "avg7": 1.13,
+              "avg7-holo": null,
+              "idProduct": 791828,
+              "low": 0.5,
+              "low-holo": null,
+              "trend": 1.01,
+              "trend-holo": 0,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:11:38.996Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "thirdParty": {
+            "cardmarket": 791828
+          },
+          "type": "holo",
+          "variantId": "5zs5af49g93yryvw1ftj"
+        }
+      ],
+      "weaknesses": [
+        {
+          "type": "Water",
+          "value": "×2"
+        }
+      ]
+    }
+  },
+  {
+    "language": "en",
+    "card": {
+      "attacks": [
+        {
+          "cost": [
+            "Fire"
+          ],
+          "damage": "60+",
+          "effect": "If this Pokémon has any damage counters on it, this attack does 100 more damage.",
+          "name": "Brave Wing"
+        },
+        {
+          "cost": [
+            "Fire",
+            "Fire",
+            "Fire",
+            "Fire"
+          ],
+          "damage": 330,
+          "effect": "Discard 3 Energy from this Pokémon.",
+          "name": "Explosive Vortex"
+        }
+      ],
+      "category": "Pokemon",
+      "dexId": [
+        6
+      ],
+      "evolveFrom": "Charmeleon",
+      "hp": 330,
+      "id": "sv03.5-006",
+      "illustrator": "PLANETA Mochizuki",
+      "image": "https://assets.tcgdex.net/en/sv/sv03.5/006",
+      "legal": {
+        "expanded": true,
+        "standard": false
+      },
+      "localId": "006",
+      "name": "Charizard ex",
+      "pricing": {
+        "cardmarket": {
+          "avg": 8.27,
+          "avg-holo": null,
+          "avg1": 8.91,
+          "avg1-holo": null,
+          "avg30": 7.76,
+          "avg30-holo": null,
+          "avg7": 8.07,
+          "avg7-holo": null,
+          "idProduct": 733601,
+          "low": 2.99,
+          "low-holo": null,
+          "trend": 8.29,
+          "trend-holo": 0,
+          "unit": "EUR",
+          "updated": "2026-10-31T13:08:07.250Z"
+        },
+        "tcgplayer": null
+      },
+      "rarity": "Double rare",
+      "regulationMark": "G",
+      "retreat": 2,
+      "set": {
+        "cardCount": {
+          "official": 165,
+          "total": 207
+        },
+        "id": "sv03.5",
+        "logo": "https://assets.tcgdex.net/en/sv/sv03.5/logo",
+        "name": "151",
+        "symbol": "https://assets.tcgdex.net/univ/sv/sv03.5/symbol"
+      },
+      "stage": "Stage2",
+      "suffix": "ex",
+      "types": [
+        "Fire"
+      ],
+      "updated": "2026-05-13T16:42:54+01:00",
+      "variants": {
+        "firstEdition": false,
+        "holo": true,
+        "normal": false,
+        "reverse": false,
+        "wPromo": false
+      },
+      "variants_detailed": [
+        {
+          "pricing": {
+            "cardmarket": {
+              "avg": 8.27,
+              "avg-holo": null,
+              "avg1": 8.91,
+              "avg1-holo": null,
+              "avg30": 7.76,
+              "avg30-holo": null,
+              "avg7": 8.07,
+              "avg7-holo": null,
+              "idProduct": 733601,
+              "low": 2.99,
+              "low-holo": null,
+              "trend": 8.29,
+              "trend-holo": 0,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:08:07.250Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "thirdParty": {
+            "cardmarket": 733601,
+            "cardtrader": 261069,
+            "tcgplayer": 502558
+          },
+          "type": "holo",
+          "variantId": "jr7oetx1mqug9"
+        }
+      ],
+      "weaknesses": [
+        {
+          "type": "Water",
+          "value": "×2"
+        }
+      ]
+    }
+  },
+  {
+    "language": "en",
+    "card": {
+      "attacks": [
+        {
+          "cost": [
+            "Water"
+          ],
+          "effect": "Flip a coin. If heads, during your opponent's next turn, prevent all damage done to this Pokémon by attacks.",
+          "name": "Withdraw"
+        },
+        {
+          "cost": [
+            "Water",
+            "Water"
+          ],
+          "damage": 20,
+          "name": "Skull Bash"
+        }
+      ],
+      "category": "Pokemon",
+      "description": "When it feels threatened, it draws its limbs inside its shell and sprays water from its mouth.",
+      "dexId": [
+        7
+      ],
+      "hp": 60,
+      "id": "sv03.5-007",
+      "illustrator": "kantaro",
+      "image": "https://assets.tcgdex.net/en/sv/sv03.5/007",
+      "legal": {
+        "expanded": true,
+        "standard": false
+      },
+      "localId": "007",
+      "name": "Squirtle",
+      "pricing": {
+        "cardmarket": {
+          "avg": 0.13,
+          "avg-holo": 0.41,
+          "avg1": 0.16,
+          "avg1-holo": 0.58,
+          "avg30": 0.15,
+          "avg30-holo": 0.4,
+          "avg7": 0.16,
+          "avg7-holo": 0.47,
+          "idProduct": 733602,
+          "low": 0.02,
+          "low-holo": 0.02,
+          "trend": 0.14,
+          "trend-holo": 0.49,
+          "unit": "EUR",
+          "updated": "2026-10-31T13:11:39.008Z"
+        },
+        "tcgplayer": null
+      },
+      "rarity": "Common",
+      "regulationMark": "G",
+      "retreat": 1,
+      "set": {
+        "cardCount": {
+          "official": 165,
+          "total": 207
+        },
+        "id": "sv03.5",
+        "logo": "https://assets.tcgdex.net/en/sv/sv03.5/logo",
+        "name": "151",
+        "symbol": "https://assets.tcgdex.net/univ/sv/sv03.5/symbol"
+      },
+      "stage": "Basic",
+      "types": [
+        "Water"
+      ],
+      "updated": "2026-08-14T19:11:56+01:00",
+      "variants": {
+        "firstEdition": false,
+        "holo": false,
+        "normal": true,
+        "reverse": true,
+        "wPromo": false
+      },
+      "variants_detailed": [
+        {
+          "pricing": {
+            "cardmarket": {
+              "avg": 0.13,
+              "avg-holo": 0.41,
+              "avg1": 0.16,
+              "avg1-holo": 0.58,
+              "avg30": 0.15,
+              "avg30-holo": 0.4,
+              "avg7": 0.16,
+              "avg7-holo": 0.47,
+              "idProduct": 733602,
+              "low": 0.02,
+              "low-holo": 0.02,
+              "trend": 0.14,
+              "trend-holo": 0.49,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:11:39.008Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "thirdParty": {
+            "cardmarket": 733602,
+            "cardtrader": 261151,
+            "tcgplayer": 502548
+          },
+          "type": "normal",
+          "variantId": "endfynwn4n10gzq"
+        },
+        {
+          "pricing": {
+            "cardmarket": {
+              "avg": 0.13,
+              "avg-holo": 0.41,
+              "avg1": 0.16,
+              "avg1-holo": 0.58,
+              "avg30": 0.15,
+              "avg30-holo": 0.4,
+              "avg7": 0.16,
+              "avg7-holo": 0.47,
+              "idProduct": 733602,
+              "low": 0.02,
+              "low-holo": 0.02,
+              "trend": 0.14,
+              "trend-holo": 0.49,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:11:39.008Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "thirdParty": {
+            "cardmarket": 733602,
+            "cardtrader": 261151,
+            "tcgplayer": 502548
+          },
+          "type": "reverse",
+          "variantId": "cm4kqul3x1bwlz1f"
+        },
+        {
+          "pricing": {
+            "cardmarket": {
+              "avg": 70.38,
+              "avg-holo": null,
+              "avg1": 119.95,
+              "avg1-holo": null,
+              "avg30": 121.92,
+              "avg30-holo": null,
+              "avg7": 60.8,
+              "avg7-holo": null,
+              "idProduct": 721198,
+              "low": 80,
+              "low-holo": null,
+              "trend": 68.46,
+              "trend-holo": 0,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:11:39.008Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "stamp": [
+            "pokemon-center"
+          ],
+          "thirdParty": {
+            "cardmarket": 721198
+          },
+          "type": "normal",
+          "variantId": "1jz5lzkp5fm97q3tz91gh48n0swved"
+        },
+        {
+          "foil": "cosmos",
+          "pricing": {
+            "cardmarket": {
+              "avg": null,
+              "avg-holo": 9.19,
+              "avg1": null,
+              "avg1-holo": 6,
+              "avg30": null,
+              "avg30-holo": 7.22,
+              "avg7": null,
+              "avg7-holo": 6.68,
+              "idProduct": 794910,
+              "low": 3.99,
+              "low-holo": 3.99,
+              "trend": 0,
+              "trend-holo": 7.4,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:11:39.008Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "thirdParty": {
+            "cardmarket": 794910
+          },
+          "type": "reverse",
+          "variantId": "3ts5hd5swdcuwzv63t639rp"
+        }
+      ],
+      "weaknesses": [
+        {
+          "type": "Lightning",
+          "value": "×2"
+        }
+      ]
+    }
+  },
+  {
+    "language": "en",
+    "card": {
+      "attacks": [
+        {
+          "cost": [
+            "Grass",
+            "Colorless"
+          ],
+          "damage": 20,
+          "effect": "Heal 20 damage from this Pokémon.",
+          "name": "Leech Seed"
+        }
+      ],
+      "category": "Pokemon",
+      "description": "While it is young, it uses the nutrients that are stored in the seed on its back in order to grow.",
+      "dexId": [
+        1
+      ],
+      "hp": 70,
+      "id": "sv03.5-166",
+      "illustrator": "Yoriyuki Ikegami",
+      "image": "https://assets.tcgdex.net/en/sv/sv03.5/166",
+      "legal": {
+        "expanded": true,
+        "standard": false
+      },
+      "localId": "166",
+      "name": "Bulbasaur",
+      "pricing": {
+        "cardmarket": {
+          "avg": 69.51,
+          "avg-holo": null,
+          "avg1": 63,
+          "avg1-holo": null,
+          "avg30": 66.95,
+          "avg30-holo": null,
+          "avg7": 68.4,
+          "avg7-holo": null,
+          "idProduct": 733761,
+          "low": 36.98,
+          "low-holo": null,
+          "trend": 66.21,
+          "trend-holo": 0,
+          "unit": "EUR",
+          "updated": "2026-10-31T13:08:07.248Z"
+        },
+        "tcgplayer": null
+      },
+      "rarity": "Illustration rare",
+      "regulationMark": "G",
+      "retreat": 2,
+      "set": {
+        "cardCount": {
+          "official": 165,
+          "total": 207
+        },
+        "id": "sv03.5",
+        "logo": "https://assets.tcgdex.net/en/sv/sv03.5/logo",
+        "name": "151",
+        "symbol": "https://assets.tcgdex.net/univ/sv/sv03.5/symbol"
+      },
+      "stage": "Basic",
+      "types": [
+        "Grass"
+      ],
+      "updated": "2026-08-14T19:11:56+01:00",
+      "variants": {
+        "firstEdition": false,
+        "holo": true,
+        "normal": false,
+        "reverse": false,
+        "wPromo": false
+      },
+      "variants_detailed": [
+        {
+          "pricing": {
+            "cardmarket": {
+              "avg": 69.51,
+              "avg-holo": null,
+              "avg1": 63,
+              "avg1-holo": null,
+              "avg30": 66.95,
+              "avg30-holo": null,
+              "avg7": 68.4,
+              "avg7-holo": null,
+              "idProduct": 733761,
+              "low": 36.98,
+              "low-holo": null,
+              "trend": 66.21,
+              "trend-holo": 0,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:08:07.248Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "thirdParty": {
+            "cardmarket": 733761,
+            "cardtrader": 261291,
+            "tcgplayer": 516997
+          },
+          "type": "holo",
+          "variantId": "jr7oetx1mqug9"
+        }
+      ],
+      "weaknesses": [
+        {
+          "type": "Fire",
+          "value": "×2"
+        }
+      ]
+    }
+  },
+  {
+    "language": "ja",
+    "card": {
+      "attacks": [
+        {
+          "cost": [
+            "Grass",
+            "Colorless"
+          ],
+          "damage": 20,
+          "effect": "このポケモンのHPを「20」回復する。",
+          "name": "やどりぎのタネ"
+        }
+      ],
+      "category": "Pokemon",
+      "description": "生まれて しばらくの あいだ 背中の タネに つまった 栄養を とって 育つ。",
+      "dexId": [
+        1
+      ],
+      "hp": 70,
+      "id": "SV2a-001",
+      "illustrator": "Yuu Nishida",
+      "image": "https://assets.tcgdex.net/ja/SV/SV2a/001",
+      "legal": {
+        "expanded": false,
+        "standard": false
+      },
+      "localId": "001",
+      "name": "フシギダネ",
+      "pricing": {
+        "cardmarket": {
+          "avg": 1.24,
+          "avg-holo": 5.75,
+          "avg1": 0.15,
+          "avg1-holo": 1.45,
+          "avg30": 1.08,
+          "avg30-holo": 6.54,
+          "avg7": 0.21,
+          "avg7-holo": 8.87,
+          "idProduct": 719442,
+          "low": 0.02,
+          "low-holo": 0.1,
+          "trend": 0.02,
+          "trend-holo": 8.33,
+          "unit": "EUR",
+          "updated": "2026-10-31T13:11:38.996Z"
+        },
+        "tcgplayer": null
+      },
+      "rarity": "Common",
+      "regulationMark": "G",
+      "resistances": [],
+      "retreat": 2,
+      "set": {
+        "cardCount": {
+          "official": 165,
+          "total": 210
+        },
+        "id": "SV2a",
+        "name": "ポケモンカード151"
+      },
+      "stage": "Basic",
+      "types": [
+        "Grass"
+      ],
+      "updated": "2026-10-19T09:08:11.979Z",
+      "variants": {
+        "firstEdition": false,
+        "holo": false,
+        "normal": true,
+        "reverse": true,
+        "wPromo": false
+      },
+      "variants_detailed": [
+        {
+          "pricing": {
+            "cardmarket": {
+              "avg": 1.24,
+              "avg-holo": 5.75,
+              "avg1": 0.15,
+              "avg1-holo": 1.45,
+              "avg30": 1.08,
+              "avg30-holo": 6.54,
+              "avg7": 0.21,
+              "avg7-holo": 8.87,
+              "idProduct": 719442,
+              "low": 0.02,
+              "low-holo": 0.1,
+              "trend": 0.02,
+              "trend-holo": 8.33,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:11:38.996Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "thirdParty": {
+            "cardmarket": 719442
+          },
+          "type": "normal",
+          "variantId": "endfynwn4n10gzq"
+        },
+        {
+          "foil": "pokeball",
+          "pricing": {
+            "cardmarket": {
+              "avg": null,
+              "avg-holo": 1.59,
+              "avg1": 0.25,
+              "avg1-holo": 0.3,
+              "avg30": 0.35,
+              "avg30-holo": 1.4,
+              "avg7": 0.35,
+              "avg7-holo": 1.33,
+              "idProduct": 837230,
+              "low": 0.15,
+              "low-holo": 0.15,
+              "trend": 0.25,
+              "trend-holo": 1.54,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:11:38.996Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "thirdParty": {
+            "cardmarket": 837230
+          },
+          "type": "reverse",
+          "variantId": "3739bbtj3i910y5ynn9xc6ryf"
+        },
+        {
+          "foil": "masterball",
+          "pricing": {
+            "cardmarket": {
+              "avg": null,
+              "avg-holo": 34,
+              "avg1": 38.99,
+              "avg1-holo": 42,
+              "avg30": 38.99,
+              "avg30-holo": 57.95,
+              "avg7": 38.99,
+              "avg7-holo": 30,
+              "idProduct": 837231,
+              "low": 9.5,
+              "low-holo": 9.5,
+              "trend": 38.99,
+              "trend-holo": 78.27,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:11:38.996Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "thirdParty": {
+            "cardmarket": 837231
+          },
+          "type": "reverse",
+          "variantId": "2asus05yghmpd1ud1sdmlq3as4e"
+        }
+      ],
+      "weaknesses": [
+        {
+          "type": "Fire",
+          "value": "x2"
+        }
+      ]
+    }
+  },
+  {
+    "language": "en",
+    "card": {
+      "attacks": [
+        {
+          "cost": [
+            "Grass",
+            "Grass"
+          ],
+          "damage": 20,
+          "effect": "Unless all damage from this attack is prevented, you may remove 1 damage counter from Bulbasaur.",
+          "name": "Leech Seed"
+        }
+      ],
+      "category": "Pokemon",
+      "description": "A strange seed was planted on its back at birth. Thus, a plant sprouted and now grows with this Pokémon.",
+      "dexId": [
+        1
+      ],
+      "hp": 40,
+      "id": "base1-44",
+      "illustrator": "Mitsuhiro Arita",
+      "image": "https://assets.tcgdex.net/en/base/base1/44",
+      "legal": {
+        "expanded": false,
+        "standard": false
+      },
+      "localId": "44",
+      "name": "Bulbasaur",
+      "pricing": {
+        "cardmarket": {
+          "avg": 6.23,
+          "avg-holo": null,
+          "avg1": 4.49,
+          "avg1-holo": 1.8,
+          "avg30": 6.87,
+          "avg30-holo": 12.91,
+          "avg7": 7.83,
+          "avg7-holo": 13.07,
+          "idProduct": 273739,
+          "low": 0.02,
+          "low-holo": null,
+          "trend": 11.03,
+          "trend-holo": 15.37,
+          "unit": "EUR",
+          "updated": "2026-10-31T13:08:07.249Z"
+        },
+        "tcgplayer": null
+      },
+      "rarity": "Common",
+      "retreat": 1,
+      "set": {
+        "cardCount": {
+          "official": 102,
+          "total": 102
+        },
+        "id": "base1",
+        "logo": "https://assets.tcgdex.net/en/base/base1/logo",
+        "name": "Base Set"
+      },
+      "stage": "Basic",
+      "types": [
+        "Grass"
+      ],
+      "updated": "2026-08-20T08:25:49+01:00",
+      "variants": {
+        "firstEdition": true,
+        "holo": false,
+        "normal": true,
+        "reverse": false,
+        "wPromo": false
+      },
+      "variants_detailed": [
+        {
+          "pricing": {
+            "cardmarket": {
+              "avg": 6.23,
+              "avg-holo": null,
+              "avg1": 4.49,
+              "avg1-holo": 1.8,
+              "avg30": 6.87,
+              "avg30-holo": 12.91,
+              "avg7": 7.83,
+              "avg7-holo": 13.07,
+              "idProduct": 273739,
+              "low": 0.02,
+              "low-holo": null,
+              "trend": 11.03,
+              "trend-holo": 15.37,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:08:07.249Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "subtype": "unlimited",
+          "thirdParty": {
+            "cardmarket": 273739,
+            "tcgplayer": 42387
+          },
+          "type": "normal",
+          "variantId": "3a83wf50tz7q114spsx7dw6v5"
+        },
+        {
+          "pricing": {
+            "cardmarket": {
+              "avg": 31.92,
+              "avg-holo": null,
+              "avg1": 132.87,
+              "avg1-holo": null,
+              "avg30": 49.81,
+              "avg30-holo": null,
+              "avg7": 81.76,
+              "avg7-holo": null,
+              "idProduct": 660184,
+              "low": 9.9,
+              "low-holo": null,
+              "trend": 148.93,
+              "trend-holo": 0,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:08:07.249Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "stamp": [
+            "1st-edition"
+          ],
+          "subtype": "shadowless",
+          "thirdParty": {
+            "cardmarket": 660184,
+            "tcgplayer": 107041
+          },
+          "type": "normal",
+          "variantId": "gx8bq2hefwadd3utcibq3oc56sjf4jqdz709e"
+        },
+        {
+          "pricing": {
+            "cardmarket": {
+              "avg": 31.92,
+              "avg-holo": null,
+              "avg1": 132.87,
+              "avg1-holo": null,
+              "avg30": 49.81,
+              "avg30-holo": null,
+              "avg7": 81.76,
+              "avg7-holo": null,
+              "idProduct": 660184,
+              "low": 9.9,
+              "low-holo": null,
+              "trend": 148.93,
+              "trend-holo": 0,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:08:07.249Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "subtype": "shadowless",
+          "thirdParty": {
+            "cardmarket": 660184,
+            "tcgplayer": 107041
+          },
+          "type": "normal",
+          "variantId": "2tszcx1bpt4e79y5us0p570b9n"
+        },
+        {
+          "size": "standard",
+          "subtype": "1999-2000-copyright",
+          "type": "normal",
+          "variantId": "qi4g3e7tzbkcyhfflvx7zmvunxwjcq3pvp"
+        },
+        {
+          "pricing": {
+            "cardmarket": {
+              "avg": 7.09,
+              "avg-holo": null,
+              "avg1": 3.99,
+              "avg1-holo": null,
+              "avg30": 6.66,
+              "avg30-holo": null,
+              "avg7": 7.53,
+              "avg7-holo": null,
+              "idProduct": 547236,
+              "low": 2,
+              "low-holo": null,
+              "trend": 7.68,
+              "trend-holo": 0,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:08:07.249Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "jumbo",
+          "stamp": [
+            "pikachu"
+          ],
+          "thirdParty": {
+            "cardmarket": 547236
+          },
+          "type": "normal",
+          "variantId": "6evqma43tikxqlu9ijbj"
+        }
+      ],
+      "weaknesses": [
+        {
+          "type": "Fire",
+          "value": "×2"
+        }
+      ]
+    }
+  },
+  {
+    "language": "en",
+    "card": {
+      "attacks": [
+        {
+          "cost": [
+            "Lightning"
+          ],
+          "effect": "Search your deck for a Pikachu and put it onto your Bench. Then, shuffle your deck.",
+          "name": "Pika-Portrait"
+        }
+      ],
+      "category": "Pokemon",
+      "description": "When it is angered, it immediately discharges the energy stored in the pouches of its cheeks.",
+      "dexId": [
+        25
+      ],
+      "hp": 60,
+      "id": "svp-085",
+      "illustrator": "Naoyo Kimura",
+      "legal": {
+        "expanded": true,
+        "standard": true
+      },
+      "localId": "085",
+      "name": "Pikachu with Grey Felt Hat",
+      "pricing": {
+        "cardmarket": {
+          "avg": 847.89,
+          "avg-holo": null,
+          "avg1": 988.17,
+          "avg1-holo": null,
+          "avg30": 805.28,
+          "avg30-holo": null,
+          "avg7": 802.99,
+          "avg7-holo": null,
+          "idProduct": 735302,
+          "low": 525,
+          "low-holo": null,
+          "trend": 805.08,
+          "trend-holo": 0,
+          "unit": "EUR",
+          "updated": "2026-10-31T13:08:07.249Z"
+        },
+        "tcgplayer": null
+      },
+      "rarity": "Promo",
+      "regulationMark": "H",
+      "retreat": 1,
+      "set": {
+        "cardCount": {
+          "official": 225,
+          "total": 226
+        },
+        "id": "svp",
+        "name": "SVP Black Star Promos"
+      },
+      "stage": "Basic",
+      "types": [
+        "Lightning"
+      ],
+      "updated": "2026-06-17T18:43:13+01:00",
+      "variants": {
+        "firstEdition": false,
+        "holo": false,
+        "normal": true,
+        "reverse": false,
+        "wPromo": false
+      },
+      "variants_detailed": [
+        {
+          "pricing": {
+            "cardmarket": {
+              "avg": 847.89,
+              "avg-holo": null,
+              "avg1": 988.17,
+              "avg1-holo": null,
+              "avg30": 805.28,
+              "avg30-holo": null,
+              "avg7": 802.99,
+              "avg7-holo": null,
+              "idProduct": 735302,
+              "low": 525,
+              "low-holo": null,
+              "trend": 805.08,
+              "trend-holo": 0,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:08:07.249Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "standard",
+          "thirdParty": {
+            "cardmarket": 735302,
+            "tcgplayer": 518861
+          },
+          "type": "normal",
+          "variantId": "endfynwn4n10gzq"
+        }
+      ],
+      "weaknesses": [
+        {
+          "type": "Fighting",
+          "value": "×2"
+        }
+      ]
+    }
+  },
+  {
+    "language": "en",
+    "card": {
+      "attacks": [
+        {
+          "cost": [
+            "Colorless",
+            "Colorless",
+            "Colorless",
+            "Colorless"
+          ],
+          "damage": "100×",
+          "effect": "This attack does 100 damage for each of your Pokémon in play.",
+          "name": "A Grand Adventure with Friends"
+        }
+      ],
+      "category": "Pokemon",
+      "dexId": [
+        1024,
+        25,
+        906,
+        909,
+        912
+      ],
+      "hp": 90,
+      "id": "svp-500",
+      "illustrator": "Yamazaki Rei",
+      "legal": {
+        "expanded": true,
+        "standard": false
+      },
+      "localId": "500",
+      "name": "Terapagos & Friends",
+      "pricing": {
+        "cardmarket": {
+          "avg": 1.45,
+          "avg-holo": null,
+          "avg1": 2.5,
+          "avg1-holo": null,
+          "avg30": 1.45,
+          "avg30-holo": null,
+          "avg7": 1.49,
+          "avg7-holo": null,
+          "idProduct": 784943,
+          "low": 0.3,
+          "low-holo": null,
+          "trend": 1.53,
+          "trend-holo": 0,
+          "unit": "EUR",
+          "updated": "2026-10-31T13:11:38.996Z"
+        },
+        "tcgplayer": null
+      },
+      "rarity": "Promo",
+      "retreat": 2,
+      "set": {
+        "cardCount": {
+          "official": 225,
+          "total": 226
+        },
+        "id": "svp",
+        "name": "SVP Black Star Promos"
+      },
+      "stage": "Basic",
+      "types": [
+        "Colorless"
+      ],
+      "updated": "2026-06-17T18:43:13+01:00",
+      "variants": {
+        "firstEdition": false,
+        "holo": false,
+        "normal": true,
+        "reverse": false,
+        "wPromo": false
+      },
+      "variants_detailed": [
+        {
+          "pricing": {
+            "cardmarket": {
+              "avg": 1.45,
+              "avg-holo": null,
+              "avg1": 2.5,
+              "avg1-holo": null,
+              "avg30": 1.45,
+              "avg30-holo": null,
+              "avg7": 1.49,
+              "avg7-holo": null,
+              "idProduct": 784943,
+              "low": 0.3,
+              "low-holo": null,
+              "trend": 1.53,
+              "trend-holo": 0,
+              "unit": "EUR",
+              "updated": "2026-10-31T13:11:38.996Z"
+            },
+            "tcgplayer": null
+          },
+          "size": "jumbo",
+          "stamp": [
+            "horizons"
+          ],
+          "thirdParty": {
+            "cardmarket": 784943,
+            "tcgplayer": 595035
+          },
+          "type": "normal",
+          "variantId": "5itbx6okokf0d7b7qwghq"
+        }
+      ],
+      "weaknesses": [
+        {
+          "type": "Fighting",
+          "value": "×2"
+        }
+      ]
+    }
+  },
+  {
+    "language": "en",
+    "card": {
+      "category": "Pokemon",
+      "id": "sv03.5-059",
+      "illustrator": "Atsushi Furusawa",
+      "image": "https://assets.tcgdex.net/en/sv/sv03.5/059",
+      "localId": "059",
+      "name": "Arcanine",
+      "rarity": "Uncommon",
+      "set": {
+        "cardCount": {
+          "official": 165,
+          "total": 207
+        },
+        "id": "sv03.5",
+        "logo": "https://assets.tcgdex.net/en/sv/sv03.5/logo",
+        "name": "151",
+        "symbol": "https://assets.tcgdex.net/univ/sv/sv03.5/symbol"
+      },
+      "variants": {
+        "firstEdition": false,
+        "holo": false,
+        "normal": true,
+        "reverse": true,
+        "wPromo": false
+      },
+      "variants_detailed": [
+        {
+          "type": "normal",
+          "size": "standard",
+          "thirdParty": {
+            "cardmarket": 733654,
+            "tcgplayer": 516248,
+            "cardtrader": 261061
+          },
+          "variantId": "endfynwn4n10gzq",
+          "pricing": {
+            "cardmarket": {
+              "updated": "2026-11-01T13:07:54.446Z",
+              "unit": "EUR",
+              "idProduct": 733654,
+              "avg": 0.09,
+              "low": 0.02,
+              "trend": 0.11,
+              "avg1": 0.07,
+              "avg7": 0.1,
+              "avg30": 0.09,
+              "avg-holo": 0.27,
+              "low-holo": 0.02,
+              "trend-holo": 0.3,
+              "avg1-holo": 0.36,
+              "avg7-holo": 0.33,
+              "avg30-holo": 0.28
+            },
+            "tcgplayer": null
+          }
+        },
+        {
+          "type": "reverse",
+          "size": "standard",
+          "thirdParty": {
+            "cardmarket": 733654,
+            "tcgplayer": 516248,
+            "cardtrader": 261061
+          },
+          "variantId": "cm4kqul3x1bwlz1f",
+          "pricing": {
+            "cardmarket": {
+              "updated": "2026-11-01T13:07:54.446Z",
+              "unit": "EUR",
+              "idProduct": 733654,
+              "avg": 0.09,
+              "low": 0.02,
+              "trend": 0.11,
+              "avg1": 0.07,
+              "avg7": 0.1,
+              "avg30": 0.09,
+              "avg-holo": 0.27,
+              "low-holo": 0.02,
+              "trend-holo": 0.3,
+              "avg1-holo": 0.36,
+              "avg7-holo": 0.33,
+              "avg30-holo": 0.28
+            },
+            "tcgplayer": null
+          }
+        }
+      ],
+      "dexId": [
+        59
+      ],
+      "hp": 150,
+      "types": [
+        "Fire"
+      ],
+      "evolveFrom": "Growlithe",
+      "description": "An ancient picture scroll shows that people were captivated by its movement as it ran through prairies.",
+      "stage": "Stage1",
+      "attacks": [
+        {
+          "cost": [
+            "Fire"
+          ],
+          "name": "Torrid Torrent",
+          "effect": "Attach up to 2 Basic {R} Energy cards from your discard pile to this Pokémon.",
+          "damage": 30
+        },
+        {
+          "cost": [
+            "Fire",
+            "Fire",
+            "Colorless",
+            "Colorless"
+          ],
+          "name": "Dynamite Fang",
+          "effect": "Discard 2 {R} Energy from this Pokémon.",
+          "damage": 240
+        }
+      ],
+      "weaknesses": [
+        {
+          "type": "Water",
+          "value": "×2"
+        }
+      ],
+      "retreat": 4,
+      "regulationMark": "G",
+      "legal": {
+        "standard": false,
+        "expanded": true
+      },
+      "updated": "2026-08-14T19:11:56+01:00",
+      "pricing": {
+        "cardmarket": {
+          "updated": "2026-11-01T13:07:54.446Z",
+          "unit": "EUR",
+          "idProduct": 733654,
+          "avg": 0.09,
+          "low": 0.02,
+          "trend": 0.11,
+          "avg1": 0.07,
+          "avg7": 0.1,
+          "avg30": 0.09,
+          "avg-holo": 0.27,
+          "low-holo": 0.02,
+          "trend-holo": 0.3,
+          "avg1-holo": 0.36,
+          "avg7-holo": 0.33,
+          "avg30-holo": 0.28
+        },
+        "tcgplayer": null
+      }
+    }
+  }
+]
