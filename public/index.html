@@ -3,7 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#263e38">
+<meta name="theme-color" content="#233a34">
+<meta name="color-scheme" content="light">
+<meta name="application-name" content="Carddex">
+<meta name="apple-mobile-web-app-title" content="Carddex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20x%3D%220%22%20y%3D%220%22%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23233a34%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2223%22%20fill%3D%22%23e7ee70%22%2F%3E%3Cpath%20d%3D%22M9%2032a23%2023%200%200%200%2046%200Z%22%20fill%3D%22%23f7f8f3%22%2F%3E%3Crect%20x%3D%229%22%20y%3D%2230%22%20width%3D%2246%22%20height%3D%224%22%20fill%3D%22%23233a34%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%228%22%20fill%3D%22%23233a34%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%224.5%22%20fill%3D%22%23f7f8f3%22%2F%3E%3C%2Fsvg%3E">
 <meta name="description" content="An offline Pokémon card checklist in National Pokédex order. Check your cards, find missing Pokémon, and save your progress.">
 <title>Carddex — My Pokémon card checklist</title>
 <style>
@@ -395,7 +399,7 @@ $('#import-file').addEventListener('change',async event=>{
   try{
     if(file.size>1024*1024)throw new Error('This file is too large. Choose a Carddex JSON backup.');
     const parsed=JSON.parse(await file.text());
-    if(window.CARDDEX_CLOUD&&parsed?.app==='carddex'&&parsed.version===2){window.dispatchEvent(new CustomEvent('carddex:restore',{detail:parsed}));return;}
+    if(window.CARDDEX_CLOUD&&parsed?.app==='carddex'&&[2,3].includes(parsed.version)){window.dispatchEvent(new CustomEvent('carddex:restore',{detail:parsed}));return;}
     pendingImport=validateBackup(parsed);
     $('#restore-summary').textContent=`This backup contains ${format(pendingImport.owned.length)} ${pendingImport.owned.length===1?'checkmark':'checkmarks'}. Your current collection has ${format(owned.size)}.`;
     document.querySelector('[name="restore-mode"][value="merge"]').checked=true;$('#restore-dialog').showModal();

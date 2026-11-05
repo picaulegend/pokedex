@@ -1,15 +1,25 @@
 import { json, progressState } from './api.js';
 import { cardStatements } from './card-source.js';
-import { collectionSelect, collectionState, inventorySelect, inventoryState } from './records.js';
+import {
+  collectionSelect,
+  collectionState,
+  inventorySelect,
+  inventoryState,
+  prepareInventoryHistory,
+} from './records.js';
 
 // The receipt, optional catalogue import, inventory, and membership share one transaction.
 export async function addCollectionCard(env, user, body, card) {
+  const history = body.goalOnly
+    ? null
+    : await prepareInventoryHistory(env, user, body.variantId, body);
   const payload = JSON.stringify({
     language: body.language,
     sourceId: body.sourceId,
     variantId: body.variantId,
     quantity: body.quantity,
     wanted: body.wanted,
+    ...(body.history === undefined ? {} : { history }),
     baseRevision: body.baseRevision,
     collectionId: body.collectionId,
     collectionRevision: body.collectionRevision,
@@ -53,14 +63,15 @@ export async function addCollectionCard(env, user, body, card) {
   if (!body.goalOnly)
     statements.push(
       env.DB.prepare(
-        `INSERT INTO inventory(user_id,variant_id,quantity,wanted,revision)
-    SELECT ?,?,?,?,?+1 WHERE ${gate.sql}
-    ON CONFLICT(user_id,variant_id) DO UPDATE SET quantity=excluded.quantity,wanted=excluded.wanted,revision=excluded.revision`,
+        `INSERT INTO inventory(user_id,variant_id,quantity,wanted,history_json,revision)
+    SELECT ?,?,?,?,?,?+1 WHERE ${gate.sql}
+    ON CONFLICT(user_id,variant_id) DO UPDATE SET quantity=excluded.quantity,wanted=excluded.wanted,history_json=excluded.history_json,revision=excluded.revision`,
       ).bind(
         user.id,
         body.variantId,
         body.quantity,
         Number(body.wanted),
+        JSON.stringify(history),
         body.baseRevision,
         ...gate.values,
       ),

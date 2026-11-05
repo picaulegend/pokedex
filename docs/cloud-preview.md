@@ -27,6 +27,20 @@ Workers is on Free, D1 uses the free allowance, and the app has no R2 binding. T
 
 The current scope is English and Japanese physical Pokémon cards. Trainer, Energy, and digital Pocket cards are excluded. Collections based on rules and complete-set checklist goals remain planned work.
 
+## Private card history
+
+Each owned card finish can have entries for bought, pulled, gift, trade, or other. Dates, places or people, amounts paid, currencies, and notes are optional. Wishlist notes can store a target price, shop, link, and notes. **+** keeps the quick add flow. **Add details** describes copies already counted; **Add entry** can also add new copies.
+
+Reducing a quantity opens a copy selector. A later change records sold, traded, given away, lost, other, or details not recorded. The owned count decreases, while the original entry and the later change remain saved. A card can have zero owned copies and a complete private history. The Pokémon gallery keeps its normal owned and wanted view; **Filters → Show → Previously owned** finds saved cards with no copies left. The same filter is available in collection views when relevant. Past copies do not count towards Pokédex progress or collection completion.
+
+Migration `0006_card_history.sql` adds private `history_json` to inventory. It preserves existing quantities, wanted flags, revisions, and progress. History and ownership share one inventory revision and one local queued edit. Old clients and older queued changes that reduce quantities also keep history, with unknown dates and reasons when those details were not supplied. A conflict needs a choice between the device record and the online record, including that record's history and wishlist notes.
+
+Cloud JSON backup version 3 includes history and wishlist notes, including records with zero owned copies. Version 2 cloud backups remain supported. Restore merges entries and later changes by ID and keeps recorded removals from older backups from becoming owned copies again. Shared links remain excluded. The standalone HTML and its exports still contain species checkmarks only.
+
+History starts with six entries and up to six later changes per entry. **Show more** reveals the rest. Filters use the full saved history. Card images and controls stay in place during saves. Shared collection and wishlist pages never include history, prices, people, places, or private notes. No new external service, image storage, or billing plan is required.
+
+Card history was deployed on 5 November 2026. All 88 automated checks passed: 37 unit and API checks and 51 browser checks. A private database backup was saved before migration. Before-and-after checks confirmed that existing records, quantities, revisions, sync positions, and sharing settings were preserved, with no foreign key errors. Live checks confirmed sign-in protection for the app, account routes, and private assets, plus the expected public share responses. No sample records were added to the hosted database.
+
 ## Rendering and saves
 
 The cloud build replaces embedded Pokémon sprites with files that have a content hash in their names. These files use a long browser cache life. The HTML keeps only the small Pokémon reference and starts with 48 cards. More Pokémon appear as the page scrolls. A direct card or search link does not build a hidden Pokémon grid. Card galleries show 48 saved printings at a time, and filters use the full list. Printing still includes the full selected Pokédex.

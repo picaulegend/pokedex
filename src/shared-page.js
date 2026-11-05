@@ -1,7 +1,7 @@
 import { escape, imageUrl, variantName, languageName } from './client/ui.js';
 
 const documentHead = (title, description, image) =>
-  `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer"><title>${escape(title)} · Carddex</title><meta name="description" content="${escape(description)}"><meta property="og:title" content="${escape(title)}"><meta property="og:description" content="${escape(description)}"><meta property="og:type" content="website">${image ? `<meta property="og:image" content="${escape(image)}">` : ''}<link rel="stylesheet" href="/s/assets/share.css"><script defer src="/s/assets/share.js"></script></head>`;
+  `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer"><meta name="theme-color" content="#233a34"><meta name="color-scheme" content="light"><meta name="application-name" content="Carddex"><meta property="og:site_name" content="Carddex"><link rel="icon" href="/s/assets/favicon.ico" sizes="16x16 32x32 48x48"><link rel="icon" href="/s/assets/favicon.svg" type="image/svg+xml" sizes="any"><link rel="apple-touch-icon" href="/s/assets/apple-touch-icon.png" sizes="180x180"><title>${escape(title)} · Carddex</title><meta name="description" content="${escape(description)}"><meta property="og:title" content="${escape(title)}"><meta property="og:description" content="${escape(description)}"><meta property="og:type" content="website">${image ? `<meta property="og:image" content="${escape(image)}">` : ''}<link rel="stylesheet" href="/s/assets/share.css"><script defer src="/s/assets/share.js"></script></head>`;
 export function renderSharedPage(page, url, options = {}) {
   const summary =
     page.scope === 'collection'
@@ -19,7 +19,7 @@ export function renderSharedPage(page, url, options = {}) {
       ? `<img src="${escape(image)}" alt="${escape(card.name)} — ${escape(card.setName)}" width="245" height="342" loading="lazy" referrerpolicy="no-referrer">`
       : '<span class="no-image">Image unavailable</span>';
   };
-  return `${documentHead(page.title, summary, page.cards[0] && imageUrl(page.cards[0], 'high'))}<body><header class="share-header"><a href="${escape(base)}${options.preview ? `?${escape(new URLSearchParams(options.target))}&amp;account=${escape(options.account)}` : ''}" class="brand">Carddex</a><span>Shared ${page.scope === 'collection' ? 'collection' : 'wishlist'}</span></header><main>
+  return `${documentHead(page.title, summary, page.cards[0] && imageUrl(page.cards[0], 'high'))}<body><header class="share-header"><a href="${escape(base)}${options.preview ? `?${escape(new URLSearchParams(options.target))}&amp;account=${escape(options.account)}` : ''}" class="brand"><img src="/s/assets/favicon.svg" width="30" height="30" alt="">Carddex</a><span>Shared ${page.scope === 'collection' ? 'collection' : 'wishlist'}</span></header><main>
     ${options.preview ? '<p class="preview-banner">Private preview. This address is only for your signed-in account.</p>' : ''}
     <section class="share-intro"><h1>${escape(page.title)}</h1><p class="summary">${escape(summary)}</p>${page.scope === 'collection' ? `<progress value="${page.owned}" max="${page.total || 1}" aria-label="Collection progress"></progress>` : ''}<p class="live-note">Read-only. Refresh the page to see the latest changes.</p></section>
     <details class="filters"><summary>Filter cards${page.filters.search || page.filters.language || page.filters.status ? ' · Active' : ''}</summary><form action="${escape(base)}" method="get">${
@@ -44,5 +44,5 @@ export function renderUnavailablePage(status) {
       : status === 400
         ? 'Check the page filters'
         : 'This page could not be loaded';
-  return `${documentHead('Shared page unavailable', heading)}<body><header class="share-header"><span class="brand">Carddex</span></header><main class="empty"><h1>${heading}</h1><p>${status === 404 ? 'The link may have been turned off or replaced. Ask the owner for a current link.' : status === 400 ? 'Use the original link or choose other filters.' : 'Please try again later.'}</p></main></body></html>`;
+  return `${documentHead('Shared page unavailable', heading)}<body><header class="share-header"><span class="brand"><img src="/s/assets/favicon.svg" width="30" height="30" alt="">Carddex</span></header><main class="empty"><h1>${heading}</h1><p>${status === 404 ? 'The link may have been turned off or replaced. Ask the owner for a current link.' : status === 400 ? 'Use the original link or choose other filters.' : 'Please try again later.'}</p></main></body></html>`;
 }

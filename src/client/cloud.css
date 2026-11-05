@@ -11,6 +11,16 @@
   font-size: 16px;
   line-height: 1.5;
 }
+.cloud-app .account-about {
+  margin-top: 24px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+.cloud-app .account-about p {
+  margin: 8px 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
 .cloud-app [hidden] {
   display: none !important;
 }
@@ -1502,5 +1512,462 @@
   }
   .cloud-app .cards {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Private card history uses spacing, without entry frames or timeline lines. */
+.cloud-app .detail-save-state {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+}
+.cloud-app .card-history,
+.cloud-app .card-history-plan {
+  margin: 28px 0;
+}
+.cloud-app .history-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.cloud-app .history-heading h3 {
+  margin: 0;
+  font-size: 19px;
+  letter-spacing: -0.3px;
+}
+.cloud-app .history-heading p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.cloud-app .history-text-button {
+  border: 0;
+  background: none;
+  min-height: 36px;
+  padding: 5px 0;
+  color: var(--green);
+  font-size: 13px;
+  cursor: pointer;
+}
+.cloud-app .history-filters {
+  display: flex;
+  gap: 16px;
+  margin: -5px 0 22px;
+}
+.cloud-app .history-filters button {
+  min-height: 36px;
+  border: 0;
+  background: none;
+  padding: 4px 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.cloud-app .history-filters button[aria-pressed='true'] {
+  color: var(--ink);
+  font-weight: 650;
+}
+.cloud-app .history-list {
+  display: grid;
+  gap: 24px;
+}
+.cloud-app .history-entry {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 13px;
+}
+.cloud-app .history-icon {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+.cloud-app .history-icons {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+.cloud-app .history-method {
+  color: #7a8b6e;
+  padding-top: 3px;
+}
+.cloud-app .history-entry-main {
+  min-width: 0;
+}
+.cloud-app .history-entry-top {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 25px;
+}
+.cloud-app .history-entry-top h4 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 650;
+}
+.cloud-app .history-entry-top > span {
+  color: var(--muted);
+  font-size: 11px;
+}
+.cloud-app .history-amount {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 550;
+  white-space: nowrap;
+}
+.cloud-app .history-edit {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  padding: 5px;
+  margin: -4px -5px -4px 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: #8b9980;
+}
+.cloud-app .history-edit:hover {
+  background: #edf1e6;
+}
+.cloud-app .history-edit .history-icon {
+  width: 14px;
+  height: 14px;
+}
+.cloud-app .history-entry-main p {
+  margin: 5px 0 0;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.cloud-app .history-entry-main small {
+  color: var(--muted);
+  font-size: 11px;
+}
+.cloud-app .history-note {
+  color: var(--muted);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.cloud-app .history-entry-main .history-ownership {
+  margin-top: 10px;
+  color: #8a7662;
+  font-size: 11px;
+}
+.cloud-app .history-change {
+  margin-top: 14px;
+}
+.cloud-app .history-change .history-edit {
+  margin-left: auto;
+}
+.cloud-app .history-change p {
+  color: var(--muted);
+}
+.cloud-app .history-unrecorded {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: 20px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.cloud-app .history-privacy {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: var(--muted);
+  margin: 20px 0;
+}
+.cloud-app .history-privacy .history-icon {
+  width: 12px;
+  height: 12px;
+}
+.cloud-app .past-badge {
+  color: #866f54;
+}
+.cloud-app .card-history-plan p,
+.cloud-app .card-history-plan a {
+  font-size: 13px;
+}
+.cloud-app .history-dialog {
+  width: min(100%, 490px);
+  max-width: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0 0 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: var(--paper);
+}
+.cloud-app .history-dialog::backdrop {
+  background: #23372d4a;
+  backdrop-filter: none;
+}
+.cloud-app body:has(.history-dialog[open]) {
+  overflow: hidden;
+}
+.cloud-app .history-dialog form {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+.cloud-app .history-dialog .sheet-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 26px 28px 5px;
+}
+.cloud-app .history-dialog .sheet-heading h2 {
+  font-size: 23px;
+  margin: 5px 0;
+}
+.cloud-app .history-dialog .sheet-heading p {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.cloud-app .history-dialog .icon-button {
+  border: 0;
+  background: none;
+  min-width: 34px;
+  height: 34px;
+  width: 34px;
+}
+.cloud-app .history-dialog .sheet-body {
+  display: grid;
+  gap: 23px;
+  padding: 20px 28px 24px;
+}
+.cloud-app .history-dialog .mini-card {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+.cloud-app .history-dialog .mini-card img {
+  border-radius: 3px;
+  object-fit: cover;
+}
+.cloud-app .history-dialog .mini-card strong,
+.cloud-app .history-dialog .mini-card div > span {
+  display: block;
+  font-size: 13px;
+}
+.cloud-app .history-dialog .mini-card div > span,
+.cloud-app .history-dialog .mini-finish {
+  font-size: 11px;
+  color: var(--muted);
+}
+.cloud-app .history-dialog .mini-finish {
+  margin-left: auto;
+}
+.cloud-app .history-dialog fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.cloud-app .history-dialog legend {
+  font-size: 12px;
+  margin-bottom: 11px;
+}
+.cloud-app .history-dialog .purpose-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 22px;
+}
+.cloud-app .history-dialog .purpose-options label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  min-height: 30px;
+}
+.cloud-app .history-dialog .purpose-options input,
+.cloud-app .history-dialog .checkbox-label input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--green);
+}
+.cloud-app .history-dialog .purpose-options input:disabled + span {
+  opacity: 0.4;
+}
+.cloud-app .history-dialog .method-options {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+.cloud-app .history-dialog .method-options label {
+  position: relative;
+  display: block;
+  cursor: pointer;
+}
+.cloud-app .history-dialog .method-options input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+}
+.cloud-app .history-dialog .method-options label > span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 65px;
+  padding: 7px 2px;
+  border-radius: 6px;
+  color: #87967a;
+  font-size: 11px;
+}
+.cloud-app .history-dialog .method-options input:checked + span {
+  color: var(--ink);
+  background: #e9eee2;
+}
+.cloud-app .history-dialog .method-options input:focus-visible + span {
+  outline: 3px solid #547840;
+  outline-offset: 3px;
+}
+.cloud-app .history-dialog .form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.cloud-app .history-dialog .date-quantity {
+  grid-template-columns: 1.5fr 1fr;
+}
+.cloud-app .history-dialog .optional {
+  color: #8b9980;
+  font-size: 10px;
+  font-weight: 400;
+}
+.cloud-app .history-dialog textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  resize: vertical;
+  font: inherit;
+  font-size: 16px;
+  color: var(--ink);
+  border: 1px solid #87998a;
+  border-radius: 10px;
+}
+.cloud-app .history-dialog textarea:focus-visible {
+  outline: 3px solid #547840;
+  outline-offset: 3px;
+}
+.cloud-app .history-dialog .money-input {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+.cloud-app .history-dialog .money-input > span {
+  position: absolute;
+  left: 11px;
+  color: var(--muted);
+  font-size: 13px;
+  pointer-events: none;
+}
+.cloud-app .history-dialog .money-input input {
+  padding-left: 31px;
+}
+.cloud-app .history-dialog .field-hint,
+.cloud-app .history-dialog .pull-hint,
+.cloud-app .history-dialog .count-preview {
+  margin: 7px 0 0;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+.cloud-app .history-dialog .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+}
+.cloud-app .history-dialog .sheet-footer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: auto;
+  padding: 16px 28px;
+  background: var(--paper);
+}
+.cloud-app .history-dialog .delete-button {
+  margin-right: auto;
+  border: 0;
+  padding: 5px 0;
+  background: none;
+  font-size: 11px;
+  color: #9c6257;
+}
+.cloud-app .history-error {
+  color: #9d483a;
+  font-size: 13px;
+}
+.cloud-app .history-dialog .removal-card-reference {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.cloud-app .history-dialog .removal-choices {
+  display: grid;
+  gap: 12px;
+}
+.cloud-app .history-dialog .removal-choice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  min-height: 44px;
+}
+.cloud-app .history-dialog .removal-choice > input[type='radio'] {
+  width: 16px;
+  height: 16px;
+  min-height: 0;
+  margin: 0;
+  accent-color: var(--green);
+}
+.cloud-app .history-dialog .removal-choice strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+}
+.cloud-app .history-dialog .removal-choice small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.cloud-app .history-dialog .removal-choice-quantity {
+  justify-content: space-between;
+}
+.cloud-app .history-dialog .removal-choice-quantity input {
+  width: 70px;
+  flex: none;
+  text-align: center;
+}
+@media (max-width: 600px) {
+  .cloud-app .history-entry-top {
+    flex-wrap: wrap;
+    gap: 5px 8px;
+  }
+  .cloud-app .history-entry-top h4 {
+    font-size: 12px;
+  }
+  .cloud-app .history-dialog .sheet-heading,
+  .cloud-app .history-dialog .sheet-body,
+  .cloud-app .history-dialog .sheet-footer {
+    padding-inline: 20px;
   }
 }

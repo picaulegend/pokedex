@@ -36,9 +36,14 @@ export function createShell(app, navigation) {
   signout.id = 'app-signout';
   signout.className = 'secondary-button signout-link';
   signout.href = '/cdn-cgi/access/logout';
-  signout.textContent = 'Sign out of Cloudflare Access';
+  signout.textContent = 'Sign out';
   signout.hidden = true;
   panel.append(signout);
+  const about = document.createElement('div');
+  about.className = 'account-about';
+  about.innerHTML =
+    '<h3>About Carddex</h3><p>Your Pokémon card collection.</p><p>Card data: <a href="https://tcgdex.dev/" target="_blank" rel="noopener noreferrer">TCGdex</a> · <a href="/TCGdex-LICENSE.txt" target="_blank" rel="noopener noreferrer">MIT licence</a>.<br>Pokémon sprites: <a href="https://pokeapi.co/" target="_blank" rel="noopener noreferrer">PokéAPI</a>.</p><p>Unofficial fan app. Pokémon © Nintendo / Creatures / GAME FREAK.</p>';
+  panel.append(about);
   const restore = document.createElement('dialog');
   restore.id = 'restore-review';
   restore.className = 'utility-dialog';

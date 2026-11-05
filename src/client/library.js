@@ -1,6 +1,7 @@
 import { visibleRecords } from './cloud-store.js';
 import { createCardSearch } from './card-search-ui.js';
 import { createCardDetail } from './card-detail.js';
+import { hasHistory } from './card-history-model.js';
 import { createShareControls } from './share-controls.js';
 import {
   escape,
@@ -34,7 +35,7 @@ export function createCardLibrary({
   screen.innerHTML = `<header class="view-heading"><img id="library-sprite" class="library-sprite" data-plain-image alt="" width="96" height="96" hidden><div><span id="library-dex" class="library-dex" hidden></span><h2 id="library-title"></h2><p id="library-summary"></p><div id="collection-progress" class="collection-progress" hidden></div></div><div class="view-actions"><button class="primary-button" id="library-add">Add cards</button><button class="primary-button" id="new-collection" hidden>New collection</button><details id="collection-menu" class="view-menu" hidden><summary class="secondary-button">Manage</summary><div><button id="collection-rename">Rename</button><button id="collection-delete">Delete collection</button></div></details></div></header>
     <p id="library-message" role="status"></p><div id="library-legacy" hidden></div>
     <form id="collection-form" hidden><label>Collection name<input id="collection-name" maxlength="80" required placeholder="For example: Favourite artwork"></label><div class="form-actions"><button class="primary-button" type="submit">Save collection</button><button class="secondary-button" id="collection-cancel" type="button">Cancel</button></div></form>
-    <details id="library-filter-panel" class="filter-panel"><summary>Filters <span id="library-filter-count"></span></summary><div id="library-filters"><label>Language<select id="card-language"><option value="">All languages</option><option value="en">English</option><option value="ja">Japanese</option></select></label><label>Set<select id="card-set"><option value="">All sets</option></select></label><label>Artist<select id="card-artist"><option value="">All artists</option></select></label><label id="wishlist-collection-label" hidden>Collection<select id="wishlist-collection"><option value="">All collections</option></select></label><label id="collection-status-label" hidden>Show<select id="collection-status"><option value="">All cards</option><option value="missing">Missing</option><option value="owned">Owned</option></select></label><button class="secondary-button" id="library-clear-filters">Clear filters</button></div></details>
+    <details id="library-filter-panel" class="filter-panel"><summary>Filters <span id="library-filter-count"></span></summary><div id="library-filters"><label>Language<select id="card-language"><option value="">All languages</option><option value="en">English</option><option value="ja">Japanese</option></select></label><label>Set<select id="card-set"><option value="">All sets</option></select></label><label>Artist<select id="card-artist"><option value="">All artists</option></select></label><label id="wishlist-collection-label" hidden>Collection<select id="wishlist-collection"><option value="">All collections</option></select></label><label id="collection-status-label" hidden>Show<select id="collection-status"><option value="">All cards</option><option value="missing">Missing</option><option value="owned">Owned</option><option value="past">Previously owned</option></select></label><button class="secondary-button" id="library-clear-filters">Clear filters</button></div></details>
     <div id="library-content"></div>${credits}`;
   document.body.append(screen);
   const $ = (id) => screen.querySelector(`#${id}`);
@@ -61,7 +62,7 @@ export function createCardLibrary({
     );
     const personal = new Set(
       Object.values(inventory)
-        .filter((row) => row.quantity || row.wanted)
+        .filter((row) => row.quantity || row.wanted || hasHistory(row))
         .map((row) => row.variantId),
     );
     const wanted = new Set(
@@ -123,6 +124,9 @@ export function createCardLibrary({
       wanted = variants.some((v) => rows[v.id]?.wanted);
     const html =
       (copies ? `<span class="owned-badge">${copies} owned</span>` : '') +
+      (!copies && variants.some((v) => hasHistory(rows[v.id]))
+        ? '<span class="past-badge">Previously owned</span>'
+        : '') +
       (wanted
         ? '<span class="wanted-badge">Wanted</span>'
         : missing && !copies
@@ -331,7 +335,15 @@ export function createCardLibrary({
       'wishlist-collection': isWishlist
         ? groups.filter((g) => g.variantIds.some((id) => wanted.has(id))).length + 1
         : 0,
-      'collection-status': isGoal && goalOwned && goalOwned < goalTotal ? 2 : 0,
+      'collection-status':
+        !isList &&
+        !isWishlist &&
+        (cards.some((card) =>
+          card.variants.some((v) => !rows[v.id]?.quantity && hasHistory(rows[v.id])),
+        ) ||
+          (isGoal && goalOwned && goalOwned < goalTotal))
+          ? 2
+          : 0,
     };
     let anyFilter = false;
     for (const id of filterIds) {
@@ -353,10 +365,19 @@ export function createCardLibrary({
     } else if (isWishlist)
       $('library-summary').textContent =
         `${plural(wantedIds().size, 'card')} · Cards you want, and cards missing from your collections.`;
-    else
-      $('library-summary').textContent = cards.length
-        ? `${plural(cards.length, 'card')} you own or want.`
-        : 'Cards you own or want appear here.';
+    else {
+      const currentCount = cards.filter((card) =>
+        card.variants.some((v) => rows[v.id]?.quantity || wantedIds().has(v.id)),
+      ).length;
+      const past = cards.filter((card) =>
+        card.variants.some((v) => !rows[v.id]?.quantity && hasHistory(rows[v.id])),
+      ).length;
+      $('library-summary').textContent =
+        `${plural(currentCount, 'card')} you own or want.${past ? ` ${plural(past, 'card')} previously owned.` : ''}`;
+    }
+    $('collection-status').querySelector('option[value=""]').textContent = isPokemon
+      ? 'Owned and wanted'
+      : 'All cards';
     const legacy =
       route.screen === 'pokemon' &&
       (getState()
@@ -420,12 +441,15 @@ export function createCardLibrary({
       );
       const entries = visible.flatMap((card) => {
         let variants = card.variants.filter((variant) => allowed.has(variant.id));
-        if (isGoal && $('collection-status').value)
-          variants = variants.filter((variant) =>
-            $('collection-status').value === 'owned'
-              ? rows[variant.id]?.quantity > 0
-              : !rows[variant.id]?.quantity,
-          );
+        if (!isWishlist)
+          variants = variants.filter((variant) => {
+            const row = rows[variant.id];
+            const status = $('collection-status').value;
+            if (status === 'past') return !row?.quantity && hasHistory(row);
+            if (status === 'owned') return row?.quantity > 0;
+            if (status === 'missing') return !row?.quantity && wantedIds().has(variant.id);
+            return !isPokemon || row?.quantity > 0 || wantedIds().has(variant.id);
+          });
         return variants.length ? [{ card, variants }] : [];
       });
       const nextGalleryKey = JSON.stringify([

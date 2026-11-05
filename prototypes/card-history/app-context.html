@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en" class="cloud-app">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Card history in the app · Prototype</title>
+    <link rel="stylesheet" href="/app/base.css" />
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/app/cloud.css" />
+    <link rel="stylesheet" href="/app-context.css" />
+    <script src="/prototype.js" defer></script>
+  </head>
+  <body data-layout="app" data-comparison="proposed">
+    <a class="skip-link" href="#card-title">Skip to card</a>
+    <!-- ICONS -->
+    <header class="app-header">
+      <button class="icon-button" data-shell aria-label="Back">←</button>
+      <h1>Card details</h1>
+      <span class="save-chip">Sample data</span>
+      <button class="icon-button" data-shell aria-label="Account and backups">•••</button>
+    </header>
+    <nav class="app-nav" aria-label="Main navigation">
+      <a class="app-brand" href="#"><span class="brand-ball" aria-hidden="true"></span>Carddex</a>
+      <button data-shell>
+        <span
+          ><svg class="icon"><use href="#i-grid" /></svg></span
+        >Pokédex
+      </button>
+      <button data-shell aria-current="page">
+        <span
+          ><svg class="icon"><use href="#i-folder" /></svg></span
+        >Collections <small>4</small>
+      </button>
+      <button data-shell>
+        <span
+          ><svg class="icon"><use href="#i-heart" /></svg></span
+        >Wishlist <small>12</small>
+      </button>
+      <button data-shell class="nav-add">
+        <span
+          ><svg class="icon"><use href="#i-plus" /></svg></span
+        >Add card
+      </button>
+    </nav>
+    <main id="card-detail" class="app-screen">
+      <div class="context-controls" aria-label="Prototype controls">
+        <div class="context-comparison" role="group" aria-label="Compare layouts">
+          <button data-comparison="current" aria-pressed="false">Current app</button>
+          <button data-comparison="proposed" aria-pressed="true">With history</button>
+        </div>
+        <span class="context-label">Prototype · Sample data</span>
+        <button id="reset-demo" class="text-button">Reset demo</button>
+      </div>
+      <div class="scenario-bar">
+        <div class="scenario-options" role="group" aria-label="Sample card">
+          <button data-scenario="owned" aria-pressed="true">Owned card</button>
+          <button data-scenario="wanted" aria-pressed="false">Wanted card</button>
+          <button data-scenario="empty" aria-pressed="false">No details yet</button>
+          <button data-scenario="past" aria-pressed="false">Previously owned</button>
+        </div>
+      </div>
+      <div class="card-detail-layout">
+        <div class="detail-art">
+          <button class="image-open" id="context-enlarge" aria-label="Enlarge card image">
+            <span class="tcg-picture">
+              <img id="card-image" width="300" height="419" alt="" />
+              <span id="image-fallback" hidden>Card image unavailable</span>
+            </span>
+          </button>
+        </div>
+        <section class="detail-info" aria-labelledby="card-title">
+          <h2 id="card-title" tabindex="-1">Bulbasaur</h2>
+          <p class="detail-set" id="card-subtitle"></p>
+          <p class="muted">Illustrator: <span id="card-artist"></span></p>
+          <label class="finish-field"
+            >Finish<select id="context-finish">
+              <option>Holo</option>
+            </select></label
+          >
+          <div class="detail-actions">
+            <div class="detail-owned">
+              <span class="field-label">Owned</span>
+              <div class="quantity-stepper">
+                <button id="context-minus" class="icon-button" aria-label="Remove one owned copy">
+                  −
+                </button>
+                <input
+                  id="context-quantity"
+                  type="number"
+                  inputmode="numeric"
+                  min="0"
+                  max="999"
+                  step="1"
+                  value="3"
+                  aria-label="Owned copies"
+                />
+                <button id="context-plus" class="icon-button" aria-label="Add one owned copy">
+                  ＋
+                </button>
+              </div>
+            </div>
+            <button id="wishlist-toggle" class="secondary-button want-button" aria-pressed="false">
+              Add to wishlist
+            </button>
+          </div>
+          <div id="context-save-message" class="context-save-message" role="status" hidden>
+            <span id="context-save-text"></span>
+            <button id="context-add-details" class="text-button" hidden>Add details</button>
+          </div>
+          <!-- HISTORY -->
+          <!-- WISHLIST NOTES -->
+          <details class="filter-panel" id="context-collections">
+            <summary>Collections <span id="context-memberships">1</span></summary>
+            <div class="membership-list">
+              <label
+                ><input id="context-member" type="checkbox" checked /><span
+                  >Kanto favourites</span
+                ></label
+              >
+            </div>
+          </details>
+          <details class="card-source-details">
+            <summary>Card reference</summary>
+            <p id="context-source-reference"></p>
+          </details>
+          <p class="privacy-note" data-proposed>
+            <svg class="icon"><use href="#i-lock" /></svg>Prices, places, people, and notes stay
+            private.
+          </p>
+        </section>
+      </div>
+      <footer class="library-footer">
+        Card data:
+        <a href="https://tcgdex.dev/" target="_blank" rel="noopener noreferrer">TCGdex</a>. Pokémon
+        artwork belongs to its rights holders.
+      </footer>
+      <div hidden>
+        <span id="reference-number"></span><span id="card-finish"></span>
+        <span id="owned-pill"
+          ><svg class="icon"><use href="#i-check" /></svg><span id="owned-count"></span
+        ></span>
+        <button id="add-copy"><span>Add a copy</span></button
+        ><button id="remove-copy">Remove a copy</button><span id="collection-status"></span>
+      </div>
+    </main>
+    <!-- ENTRY FORM -->
+    <!-- REMOVAL FORM -->
+    <dialog id="context-image-dialog" class="image-dialog" aria-label="Card image">
+      <button class="icon-button" id="context-image-close" aria-label="Close card image">×</button>
+      <img id="context-full-image" alt="" />
+    </dialog>
+    <!-- TOAST -->
+  </body>
+</html>

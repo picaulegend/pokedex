@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Card history · Carddex prototype</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="prototype.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#card-title">Skip to card</a>
+    <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <symbol id="i-grid" viewBox="0 0 24 24">
+        <rect x="3" y="3" width="7" height="7" rx="2" />
+        <rect x="14" y="3" width="7" height="7" rx="2" />
+        <rect x="3" y="14" width="7" height="7" rx="2" />
+        <rect x="14" y="14" width="7" height="7" rx="2" />
+      </symbol>
+      <symbol id="i-folder" viewBox="0 0 24 24">
+        <path d="M3 7a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v9H3z" />
+      </symbol>
+      <symbol id="i-heart" viewBox="0 0 24 24">
+        <path d="M20 5a5 5 0 0 0-7 0l-1 1-1-1a5 5 0 0 0-7 7l8 8 8-8a5 5 0 0 0 0-7z" />
+      </symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></symbol>
+      <symbol id="i-arrow" viewBox="0 0 24 24"><path d="m14 6-6 6 6 6M8 12h13" /></symbol>
+      <symbol id="i-bought" viewBox="0 0 24 24">
+        <path d="M5 8h14l1 12H4zM8 8V6a4 4 0 0 1 8 0v2" />
+      </symbol>
+      <symbol id="i-pulled" viewBox="0 0 24 24">
+        <path d="m12 2 2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z" />
+      </symbol>
+      <symbol id="i-gift" viewBox="0 0 24 24">
+        <path
+          d="M3 10h18v4H3zM5 14v7h14v-7M12 10v11M12 10S4 10 5 5c1-4 7 0 7 5Zm0 0s8 0 7-5c-1-4-7 0-7 5Z"
+        />
+      </symbol>
+      <symbol id="i-trade" viewBox="0 0 24 24">
+        <path d="M4 7h15l-4-4M20 17H5l4 4M19 7l-4 4M5 17l4-4" />
+      </symbol>
+      <symbol id="i-other" viewBox="0 0 24 24">
+        <circle cx="5" cy="12" r="1" />
+        <circle cx="12" cy="12" r="1" />
+        <circle cx="19" cy="12" r="1" />
+      </symbol>
+      <symbol id="i-edit" viewBox="0 0 24 24">
+        <path d="m15 5 4 4M4 20l1-5L16 4a3 3 0 0 1 4 4L9 19z" />
+      </symbol>
+      <symbol id="i-lock" viewBox="0 0 24 24">
+        <rect x="5" y="10" width="14" height="11" rx="3" />
+        <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" />
+      </symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></symbol>
+      <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6" /></symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v6l4 2" />
+      </symbol>
+    </svg>
+
+    <aside class="sidebar" aria-label="App context">
+      <a class="brand" href="#"><span class="brand-ball" aria-hidden="true"></span>Carddex</a>
+      <div class="nav-items">
+        <span class="nav-item"
+          ><svg class="icon"><use href="#i-grid" /></svg>Pokédex</span
+        >
+        <span class="nav-item selected"
+          ><svg class="icon"><use href="#i-folder" /></svg>Collections<span class="nav-count"
+            >4</span
+          ></span
+        >
+        <span class="nav-item"
+          ><svg class="icon"><use href="#i-heart" /></svg>Wishlist<span class="nav-count"
+            >12</span
+          ></span
+        >
+      </div>
+      <div class="profile">
+        <span class="avatar">C</span>
+        <div><strong>My collection</strong><small>Private space</small></div>
+        <svg class="icon"><use href="#i-lock" /></svg>
+      </div>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <div class="breadcrumb">
+          <span>My collection</span><span class="slash">/</span><strong>Card details</strong>
+        </div>
+        <span class="private-label"
+          ><svg class="icon"><use href="#i-lock" /></svg>Only you</span
+        >
+      </header>
+      <div class="prototype-bar" aria-label="Prototype controls">
+        <div>
+          <span class="prototype-tag">Prototype</span
+          ><span class="prototype-description">Card history</span>
+        </div>
+        <p>Sample data · Changes reset on reload</p>
+        <button class="text-button" id="reset-demo">
+          Reset demo <span aria-hidden="true">↺</span>
+        </button>
+      </div>
+
+      <main>
+        <div class="scenario-bar">
+          <div class="scenario-options" role="group" aria-label="Sample card">
+            <button data-scenario="owned" aria-pressed="true">Owned card</button
+            ><button data-scenario="wanted" aria-pressed="false">Wanted card</button
+            ><button data-scenario="empty" aria-pressed="false">No details yet</button
+            ><button data-scenario="past" aria-pressed="false">Previously owned</button>
+          </div>
+        </div>
+
+        <div class="card-layout">
+          <section class="card-column" aria-label="Card image and reference">
+            <div class="card-image-wrap">
+              <img id="card-image" width="300" height="419" alt="" />
+              <div id="image-fallback" hidden>Card image unavailable</div>
+            </div>
+            <div class="reference-card">
+              <p>
+                <span id="card-finish">Holo</span> · English · <span id="reference-number"></span>
+              </p>
+              <p>Illustrator: <span id="card-artist"></span></p>
+            </div>
+            <p class="image-credit">
+              Card images:
+              <a href="https://tcgdex.dev/" target="_blank" rel="noopener noreferrer">TCGdex</a> ·
+              Pokémon artwork © its owners.
+            </p>
+          </section>
+
+          <section class="card-content" aria-labelledby="card-title">
+            <div class="card-heading">
+              <div>
+                <h1 id="card-title" tabindex="-1">Bulbasaur</h1>
+                <p class="card-subtitle" id="card-subtitle"></p>
+              </div>
+              <button
+                class="icon-button wishlist-toggle"
+                id="wishlist-toggle"
+                aria-label="Add to wishlist"
+                aria-pressed="false"
+              >
+                <svg class="icon"><use href="#i-heart" /></svg>
+              </button>
+            </div>
+            <div class="ownership-row">
+              <span class="owned-pill" id="owned-pill"
+                ><svg class="icon"><use href="#i-check" /></svg
+                ><span id="owned-count">3 copies owned</span></span
+              ><button class="button secondary" id="add-copy">
+                <svg class="icon"><use href="#i-plus" /></svg><span>Add a copy</span></button
+              ><button id="remove-copy" class="text-button">Remove a copy</button>
+            </div>
+            <div class="collection-row">
+              <svg class="icon"><use href="#i-folder" /></svg
+              ><span id="collection-name">Kanto favourites</span
+              ><span class="collection-dot">·</span
+              ><span id="collection-status">In your collection</span>
+            </div>
+
+            <section id="history-section" class="story-section" aria-labelledby="history-title">
+              <div class="section-heading">
+                <div>
+                  <h2 id="history-title">Card history</h2>
+                  <p id="history-summary"></p>
+                </div>
+                <button class="button secondary compact" id="add-entry">
+                  <svg class="icon"><use href="#i-plus" /></svg>Add entry
+                </button>
+              </div>
+              <div
+                id="history-filters"
+                class="history-filters"
+                role="group"
+                aria-label="History filter"
+                hidden
+              >
+                <button data-history-filter="all" aria-pressed="true">All</button>
+                <button data-history-filter="owned" aria-pressed="false">Still owned</button>
+                <button data-history-filter="past" aria-pressed="false">Previously owned</button>
+              </div>
+              <div id="history-list" class="history-list"></div>
+              <p id="history-no-match" class="history-no-match" hidden>
+                No copies match this filter.
+              </p>
+              <div id="unrecorded" class="unrecorded" hidden>
+                <span class="unrecorded-icon"
+                  ><svg class="icon"><use href="#i-clock" /></svg
+                ></span>
+                <div>
+                  <strong id="unrecorded-title"></strong>
+                  <p>Add details when you have them.</p>
+                </div>
+                <button class="text-button" id="describe-existing">
+                  Add details <span aria-hidden="true">↗</span>
+                </button>
+              </div>
+              <div id="empty-history" class="empty-history" hidden>
+                <h3>No details yet</h3>
+                <p>Add what you remember. All details are optional.</p>
+                <button class="button primary" id="first-entry">
+                  <svg class="icon"><use href="#i-plus" /></svg>Add the first entry</button
+                ><small id="empty-copy-note"></small>
+              </div>
+            </section>
+
+            <section
+              id="wanted-section"
+              class="wanted-section"
+              aria-labelledby="wanted-title"
+              hidden
+            >
+              <div class="section-heading">
+                <div>
+                  <h2 id="wanted-title">Wishlist notes</h2>
+                </div>
+              </div>
+              <form id="wanted-form">
+                <div class="form-grid">
+                  <label
+                    ><span>Target price <span class="optional">optional</span></span
+                    ><span class="money-input"
+                      ><span id="target-currency-label">€</span
+                      ><input
+                        id="target-price"
+                        type="number"
+                        min="0"
+                        max="9999999"
+                        step="0.01"
+                        placeholder="0.00"
+                        inputmode="decimal" /></span></label
+                  ><label
+                    >Currency<select id="target-currency">
+                      <option value="EUR">EUR — Euro</option>
+                      <option value="USD">USD — US dollar</option>
+                      <option value="GBP">GBP — Pound</option>
+                      <option value="JPY">JPY — Yen</option>
+                    </select></label
+                  >
+                </div>
+                <label
+                  ><span>Shop or seller <span class="optional">optional</span></span
+                  ><input
+                    id="target-shop"
+                    maxlength="160"
+                    placeholder="Where have you seen it?" /></label
+                ><label
+                  ><span>Link <span class="optional">optional</span></span
+                  ><input
+                    id="target-link"
+                    type="url"
+                    maxlength="1000"
+                    placeholder="https://…" /></label
+                ><label
+                  ><span>Notes <span class="optional">optional</span></span
+                  ><textarea
+                    id="target-notes"
+                    maxlength="1000"
+                    rows="3"
+                    placeholder="The finish, condition, or price you are looking for…"
+                  ></textarea>
+                </label>
+                <div class="plan-footer">
+                  <span id="plan-status" role="status"></span
+                  ><button class="button secondary" type="submit">Save notes</button>
+                </div>
+              </form>
+            </section>
+
+            <p class="privacy-note">
+              <svg class="icon"><use href="#i-lock" /></svg>Prices, places, people, and notes stay
+              private.
+            </p>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <dialog
+      id="entry-dialog"
+      class="entry-dialog"
+      aria-labelledby="entry-title"
+      aria-describedby="entry-description"
+    >
+      <form id="entry-form">
+        <header class="sheet-heading">
+          <div>
+            <h2 id="entry-title">Add entry</h2>
+            <p id="entry-description">Record how you got this card.</p>
+          </div>
+          <button class="icon-button" id="close-entry" type="button" aria-label="Close entry form">
+            <svg class="icon"><use href="#i-close" /></svg>
+          </button>
+        </header>
+        <div class="sheet-body">
+          <div class="mini-card">
+            <img id="entry-card-image" width="38" height="53" alt="" />
+            <div><strong id="entry-card-name"></strong><span id="entry-card-reference"></span></div>
+            <span class="mini-finish" id="entry-card-finish"></span>
+          </div>
+          <fieldset id="entry-purpose">
+            <legend>This entry is for</legend>
+            <div class="purpose-options">
+              <label
+                ><input name="purpose" type="radio" value="new" checked /><span
+                  >New copies</span
+                ></label
+              ><label id="existing-purpose-label"
+                ><input name="purpose" type="radio" value="existing" /><span
+                  >Copies I already own</span
+                ></label
+              >
+            </div>
+          </fieldset>
+          <fieldset class="method-field">
+            <legend>How did you get it?</legend>
+            <div class="method-options">
+              <label
+                ><input name="method" value="bought" type="radio" checked /><span
+                  ><svg class="icon"><use href="#i-bought" /></svg>Bought</span
+                ></label
+              ><label
+                ><input name="method" value="pulled" type="radio" /><span
+                  ><svg class="icon"><use href="#i-pulled" /></svg>Pulled</span
+                ></label
+              ><label
+                ><input name="method" value="gift" type="radio" /><span
+                  ><svg class="icon"><use href="#i-gift" /></svg>Gift</span
+                ></label
+              ><label
+                ><input name="method" value="trade" type="radio" /><span
+                  ><svg class="icon"><use href="#i-trade" /></svg>Trade</span
+                ></label
+              ><label
+                ><input name="method" value="other" type="radio" /><span
+                  ><svg class="icon"><use href="#i-other" /></svg>Other</span
+                ></label
+              >
+            </div>
+          </fieldset>
+          <div class="form-grid date-quantity">
+            <label
+              ><span>Date <span class="optional">optional</span></span
+              ><input id="entry-date" type="date" /></label
+            ><label
+              >Copies<input
+                id="entry-quantity"
+                type="number"
+                min="1"
+                max="999"
+                step="1"
+                value="1"
+                required
+                inputmode="numeric"
+            /></label>
+          </div>
+          <label
+            ><span
+              ><span id="source-label">Shop or seller</span>
+              <span class="optional">optional</span></span
+            ><input id="entry-source" maxlength="160" placeholder="e.g. a card shop or card show"
+          /></label>
+          <div id="price-fields">
+            <div class="form-grid">
+              <label
+                ><span
+                  ><span id="price-label">Total paid</span>
+                  <span class="optional">optional</span></span
+                ><span class="money-input"
+                  ><span id="entry-currency-label">€</span
+                  ><input
+                    id="entry-price"
+                    type="number"
+                    min="0"
+                    max="9999999"
+                    step="0.01"
+                    inputmode="decimal"
+                    placeholder="0.00" /></span></label
+              ><label
+                >Currency<select id="entry-currency">
+                  <option value="EUR">EUR — Euro</option>
+                  <option value="USD">USD — US dollar</option>
+                  <option value="GBP">GBP — Pound</option>
+                  <option value="JPY">JPY — Yen</option>
+                </select></label
+              >
+            </div>
+            <p class="field-hint">
+              The total for the copies in this entry, including any delivery cost you want to
+              record.
+            </p>
+          </div>
+          <p id="pull-hint" class="pull-hint" hidden>
+            Opened a pack or box? You can record it above. Leave the pack price in your notes.
+          </p>
+          <label
+            ><span>Notes <span class="optional">optional</span></span
+            ><textarea
+              id="entry-notes"
+              maxlength="1000"
+              rows="3"
+              placeholder="Anything you would like to remember…"
+            ></textarea>
+          </label>
+          <label class="checkbox-label" id="remove-wanted-label" hidden
+            ><input id="remove-wanted" type="checkbox" checked /><span
+              >Remove this card from my wishlist</span
+            ></label
+          >
+          <div id="count-preview" class="count-preview" aria-live="polite"></div>
+          <p class="form-error" id="entry-error" role="alert" hidden></p>
+        </div>
+        <footer class="sheet-footer">
+          <button type="button" id="delete-entry" class="text-button delete-button" hidden>
+            Delete details</button
+          ><button class="button secondary" id="cancel-entry" type="button">Cancel</button
+          ><button class="button primary" id="save-entry" type="submit">
+            <svg class="icon"><use href="#i-check" /></svg><span>Save entry</span>
+          </button>
+        </footer>
+      </form>
+    </dialog>
+    <dialog
+      id="removal-dialog"
+      class="entry-dialog"
+      aria-labelledby="removal-title"
+      aria-describedby="removal-description"
+    >
+      <form id="removal-form">
+        <header class="sheet-heading">
+          <div>
+            <h2 id="removal-title">Remove a copy</h2>
+            <p id="removal-description">The card and its history will stay saved.</p>
+          </div>
+          <button
+            id="close-removal"
+            class="icon-button"
+            type="button"
+            aria-label="Close removal form"
+          >
+            <svg class="icon"><use href="#i-close" /></svg>
+          </button>
+        </header>
+        <div class="sheet-body">
+          <p id="removal-card-reference" class="removal-card-reference"></p>
+          <fieldset id="removal-picker">
+            <legend id="removal-picker-label">Which copy?</legend>
+            <div id="removal-choices" class="removal-choices"></div>
+          </fieldset>
+          <label
+            >What happened?<select id="removal-reason">
+              <option value="removed">Removed · Details not recorded</option>
+              <option value="sold">Sold</option>
+              <option value="traded">Traded</option>
+              <option value="given">Given away</option>
+              <option value="lost">Lost</option>
+              <option value="other">Other</option>
+            </select></label
+          >
+          <label
+            ><span>Date <span class="optional">optional</span></span
+            ><input id="removal-date" type="date"
+          /></label>
+          <label
+            ><span
+              ><span id="removal-person-label">Person or place</span>
+              <span class="optional">optional</span></span
+            ><input
+              id="removal-person"
+              maxlength="160"
+              placeholder="Who received it, or where it happened"
+          /></label>
+          <div id="removal-price-fields" hidden>
+            <div class="form-grid">
+              <label
+                ><span>Total received <span class="optional">optional</span></span
+                ><span class="money-input"
+                  ><span id="removal-currency-label">€</span
+                  ><input
+                    id="removal-price"
+                    type="number"
+                    min="0"
+                    max="9999999"
+                    step="0.01"
+                    inputmode="decimal"
+                    placeholder="0.00" /></span
+              ></label>
+              <label
+                >Currency<select id="removal-currency">
+                  <option value="EUR">EUR — Euro</option>
+                  <option value="USD">USD — US dollar</option>
+                  <option value="GBP">GBP — Pound</option>
+                  <option value="JPY">JPY — Yen</option>
+                </select></label
+              >
+            </div>
+            <p class="field-hint">The total received for the copies in this change.</p>
+          </div>
+          <label
+            ><span>Notes <span class="optional">optional</span></span
+            ><textarea
+              id="removal-notes"
+              maxlength="1000"
+              rows="3"
+              placeholder="Anything else you want to keep in the history"
+            ></textarea>
+          </label>
+          <p id="removal-count-preview" class="count-preview" aria-live="polite"></p>
+        </div>
+        <footer class="sheet-footer">
+          <button id="cancel-removal" class="button secondary" type="button">Cancel</button
+          ><button id="save-removal" class="button primary" type="submit">Remove from owned</button>
+        </footer>
+      </form>
+    </dialog>
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden>
+      <svg class="icon"><use href="#i-check" /></svg><span></span>
+    </div>
+  </body>
+</html>

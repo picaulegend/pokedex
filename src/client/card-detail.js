@@ -8,6 +8,8 @@ import {
   updateMarkup,
   credits,
 } from './ui.js';
+import { createCardHistory } from './card-history-ui.js';
+import { hasHistory, unrecordedCount } from './card-history-model.js';
 
 export function createCardDetail({
   app,
@@ -44,6 +46,18 @@ export function createCardDetail({
     draft,
     activeAction,
     pendingAction;
+  const historyControls = createCardHistory({
+    getContext: () => ({
+      card: record.card,
+      variantId: selected,
+      variant: variantName(currentVariant()),
+      own: inventory(),
+      image: imageUrl(record.card),
+    }),
+    canEdit: () => canEdit() && !busy,
+    commit: (data) => action(() => saveInventory(data), 'Card history saved.'),
+    refresh: () => render(),
+  });
   const currentVariant = () => record?.card.variants.find((v) => v.id === selected);
   const inventory = () => getInventory()[selected] || { quantity: 0, wanted: false };
   const goal = () => getCollections().find((c) => c.id === route?.collection);
@@ -85,7 +99,7 @@ export function createCardDetail({
     await save(changes);
   }
   async function action(work, success, pending = {}) {
-    if (!canEdit() || busy) return;
+    if (!canEdit() || busy) return false;
     const key = `${route.language}:${route.sourceId}:${selected}`;
     const focus = document.activeElement?.id;
     let finish;
@@ -100,9 +114,11 @@ export function createCardDetail({
     try {
       await work();
       if (key === `${route.language}:${route.sourceId}:${selected}`) message = success;
+      return true;
     } catch (error) {
       message = error.message || 'This change could not be saved. Try again.';
       messageError = true;
+      return false;
     } finally {
       busy = false;
       pendingAction = null;
@@ -136,13 +152,15 @@ export function createCardDetail({
       <label class="finish-field">Finish<select id="detail-finish" ${disabled ? 'disabled' : ''}>${card.variants.map((v) => `<option value="${v.id}" ${v.id === selected ? 'selected' : ''}>${escape(variantName(v))}</option>`).join('')}</select></label>
       ${linkedGoal ? `<div class="goal-context"><button id="detail-add-goal" class="primary-button" aria-pressed="${linkedGoal.variantIds.includes(selected)}" aria-disabled="${disabled || linkedGoal.variantIds.includes(selected)}" aria-busy="${busy && pendingAction.control === 'detail-add-goal'}">${busy && pendingAction.control === 'detail-add-goal' ? 'Adding…' : linkedGoal.variantIds.includes(selected) ? `In ${escape(linkedGoal.name)}` : `Add to ${escape(linkedGoal.name)}`}</button></div>` : ''}
       <div class="detail-actions"><div class="detail-owned"><span class="field-label" id="detail-owned-label">Owned</span><div class="quantity-stepper"><button id="detail-minus" class="icon-button" aria-label="Remove one owned copy" ${disabled || !own.quantity ? 'disabled' : ''}>−</button><input id="detail-quantity" data-quantity="${selected}" aria-label="Owned copies of ${escape(card.name)}" type="number" inputmode="numeric" min="0" max="999" step="1" value="${escape(draft ?? own.quantity)}" ${disabled || !record.saved ? 'disabled' : ''}><button id="detail-plus" class="icon-button" aria-label="Add one owned copy" aria-busy="${busy && pendingAction.control === 'detail-plus'}" ${disabled || own.quantity >= 999 ? 'disabled' : ''}>＋</button></div></div><button id="detail-want" class="secondary-button want-button" data-want="${selected}" aria-pressed="${own.wanted}" ${disabled ? 'disabled' : ''}>${busy && pendingAction.control === 'detail-want' ? 'Saving…' : own.wanted ? 'On wishlist' : 'Add to wishlist'}</button></div>
-      <p id="detail-message" role="status" class="${messageError ? 'is-error' : ''}">${escape(message)}</p>
+      <div class="detail-save-state"><p id="detail-message" role="status" class="${messageError ? 'is-error' : ''}">${escape(message)}</p>${message && !messageError && own.quantity && unrecordedCount(own) > 0 ? `<button id="detail-record-history" class="history-text-button" ${disabled ? 'disabled' : ''}>Add details</button>` : ''}</div>
+      ${historyControls.markup(own, record.saved)}
       <details id="detail-collections" class="filter-panel"><summary>Collections <span>${groups.filter((g) => g.variantIds.includes(selected)).length}</span></summary><div class="membership-list">${groups.length ? groups.map((group) => `<label><input id="member-${group.id}" type="checkbox" data-membership="${group.id}" ${(busy && pendingAction.membership?.id === group.id ? pendingAction.membership.included : group.variantIds.includes(selected)) ? 'checked' : ''} ${disabled ? 'disabled' : ''}><span>${escape(group.name)}</span></label>`).join('') : '<p>Create a collection to give these cards a goal.</p>'}</div></details>
       <details id="detail-reference" class="card-source-details"><summary>Card reference</summary><p>${escape(card.sourceId)} · ${escape(variantName(currentVariant()))}</p></details></section></div>${credits}`,
     );
     bindImages(screen);
     const $ = (id) => screen.querySelector(`#${id}`);
     $('detail-finish').onchange = (event) => {
+      historyControls.close();
       draft = undefined;
       const { screen: ignored, ...params } = route;
       navigation.go('card', { ...params, variant: event.target.value }, { replace: true });
@@ -184,9 +202,14 @@ export function createCardDetail({
         }
         const quantity = Number(input.value);
         draft = undefined;
+        if (quantity < own.quantity) {
+          input.value = own.quantity;
+          historyControls.remove(own.quantity - quantity);
+          return;
+        }
         void changeQuantity(quantity);
       };
-      $('detail-minus').onclick = () => void changeQuantity(Math.max(0, own.quantity - 1));
+      $('detail-minus').onclick = () => historyControls.remove(1);
     }
     $('detail-plus').onclick = () =>
       record.saved
@@ -230,10 +253,12 @@ export function createCardDetail({
           membership: { id: group.id, included },
         });
       };
+    historyControls.bind(screen);
   }
   return {
     screen,
     async show(next) {
+      historyControls.close();
       if (activeAction) await activeAction;
       if (
         navigation.route.screen !== 'card' ||
@@ -269,6 +294,7 @@ export function createCardDetail({
       if (!busy) render();
     },
     leave() {
+      historyControls.close();
       loading++;
       if (zoom.open) zoom.close();
     },
@@ -277,6 +303,8 @@ export function createCardDetail({
     return card.variants.some((v) => v.id === id)
       ? id
       : card.variants.find((v) => getInventory()[v.id]?.quantity || getInventory()[v.id]?.wanted)
-          ?.id || card.variants[0].id;
+          ?.id ||
+          card.variants.find((v) => hasHistory(getInventory()[v.id]))?.id ||
+          card.variants[0].id;
   }
 }

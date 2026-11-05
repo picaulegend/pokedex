@@ -9,7 +9,7 @@ export const shareHeaders = {
   'X-Robots-Tag': 'noindex, nofollow, noarchive',
   'X-Content-Type-Options': 'nosniff',
   'Content-Security-Policy':
-    "default-src 'none'; style-src 'self'; script-src 'self'; img-src https://assets.tcgdex.net; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
+    "default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' https://assets.tcgdex.net; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
 };
 export function shareTarget(scope, targetId = '') {
   if (
@@ -262,6 +262,9 @@ export async function publicShare(request, env, url) {
       headers: { ...shareHeaders, Allow: 'GET, HEAD' },
     });
   const assets = {
+    '/s/assets/favicon.svg': '/favicon.svg',
+    '/s/assets/favicon.ico': '/favicon.ico',
+    '/s/assets/apple-touch-icon.png': '/apple-touch-icon.png',
     '/s/assets/share.css': '/share.css',
     '/s/assets/share.js': '/share.js',
     '/s/assets/TCGdex-LICENSE.txt': '/TCGdex-LICENSE.txt',

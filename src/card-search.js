@@ -130,7 +130,7 @@ export async function resolveSources(env, url) {
 }
 
 export async function addCard(request, env, user) {
-  const body = await readBody(request);
+  const body = await readBody(request, 1000000);
   if (
     !body ||
     Object.keys(body).some(
@@ -141,6 +141,7 @@ export async function addCard(request, env, user) {
           'variantId',
           'quantity',
           'wanted',
+          'history',
           'baseRevision',
           'mutationId',
           'collectionId',
@@ -154,9 +155,10 @@ export async function addCard(request, env, user) {
     body.quantity < 0 ||
     body.quantity > 999 ||
     typeof body.wanted !== 'boolean' ||
-    (!body.quantity && !body.wanted && !body.goalOnly) ||
+    (!body.quantity && !body.wanted && !body.goalOnly && !body.history?.entries?.length) ||
     (body.goalOnly !== undefined && typeof body.goalOnly !== 'boolean') ||
     (body.goalOnly && (!body.collectionId || body.quantity || body.wanted)) ||
+    (body.goalOnly && body.history !== undefined) ||
     (body.collectionId !== undefined &&
       (!isId(body.collectionId) ||
         !Number.isSafeInteger(body.collectionRevision) ||
@@ -202,6 +204,7 @@ export async function addCard(request, env, user) {
     body: JSON.stringify({
       quantity: body.quantity,
       wanted: body.wanted,
+      ...(body.history === undefined ? {} : { history: body.history }),
       baseRevision: body.baseRevision,
       mutationId: body.mutationId,
     }),

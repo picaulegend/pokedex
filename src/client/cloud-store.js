@@ -1,3 +1,5 @@
+import { inventoryChange, reconcileQuantity, emptyHistory } from './card-history-model.js';
+
 const database = new Promise((resolve, reject) => {
   const request = indexedDB.open('carddex-cloud-v1', 1);
   request.onupgradeneeded = () => request.result.createObjectStore('accounts');
@@ -69,22 +71,36 @@ export function mergeSync(state, body) {
 
 export function visibleRecords(state, kind) {
   const rows = { ...state[kind === 'inventory' ? 'inventory' : 'collections'] };
+  const value = (item) =>
+    kind === 'inventory' && item.data.history === undefined
+      ? {
+          ...item.data,
+          history: reconcileQuantity(
+            rows[item.id] || { quantity: 0, history: emptyHistory() },
+            item.data.quantity,
+            item.mutationId,
+          ),
+        }
+      : item.data;
   for (const item of state.recordPending)
     if (item.kind === kind)
-      rows[item.id] = { ...rows[item.id], ...item.data, id: item.id, variantId: item.id };
+      rows[item.id] = { ...rows[item.id], ...value(item), id: item.id, variantId: item.id };
   for (const item of Object.values(state.recordConflicts))
     if (item.kind === kind)
-      rows[item.id] = { ...rows[item.id], ...item.data, id: item.id, variantId: item.id };
+      rows[item.id] = { ...rows[item.id], ...value(item), id: item.id, variantId: item.id };
   return rows;
 }
 
 export function queueRecord(state, kind, id, data) {
+  const mutationId = crypto.randomUUID();
+  if (kind === 'inventory')
+    data = inventoryChange(visibleRecords(state, kind)[id], data, mutationId);
   const previous = state.recordPending
     .filter((item) => item.kind === kind && item.id === id)
     .at(-1);
   const rows = state[kind === 'inventory' ? 'inventory' : 'collections'];
   const baseRevision = previous ? previous.baseRevision + 1 : rows[id]?.revision || 0;
-  state.recordPending.push({ kind, id, data, baseRevision, mutationId: crypto.randomUUID() });
+  state.recordPending.push({ kind, id, data, baseRevision, mutationId });
   delete state.recordConflicts[`${kind}:${id}`];
 }
 

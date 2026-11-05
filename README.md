@@ -7,12 +7,14 @@ The [cloud preview](https://carddex-preview.pohon.workers.dev) uses Cloudflare W
 ## Cloud app
 
 - Track exact cards, quantities, and wanted cards for each Pokémon.
+- Record when and where you bought, pulled, received, or traded for a card, with optional prices and private notes.
+- Keep card history after selling, trading, giving away, or losing a copy. Use **Previously owned** in the Pokémon card filters to find cards with no copies left.
 - Create named collections and select their cards by hand. One owned card can count towards several collections.
 - Search shared saved cards first. Use **Search TCGdex** for an explicit external search.
 - Select English or Japanese physical sets from saved set details. Search sets by name, source reference, or printed card count.
 - Keep old checkmarks when the exact card is not yet recorded.
 - Sync private records between devices. After online sign-in, changes made during a lost connection stay on the device until sync succeeds.
-- Back up and restore cards, quantities, wanted flags, collections, and old checkmarks as JSON.
+- Back up and restore cards, history, wishlist notes, quantities, wanted flags, collections, and old checkmarks as JSON.
 
 The shared card catalogue starts empty. A card is saved when someone owns it, wants it, or selects it for a collection goal. Search results and previews are temporary. Set details are saved separately, without card lists. Images use source URLs.
 
@@ -22,13 +24,19 @@ The app has a $0 monthly operating budget. It uses Workers Free and D1 Free. It 
 
 Use the main navigation for **Pokédex**, **Collections**, and **Wishlist**. **Add card** starts a search. Open a card image for its details, finish, quantity, and collection membership. The Back button returns to the previous view. Account, save status, and backup tools are in the header menu.
 
+In card details, **+** adds a copy quickly. **Add details** records how you got copies already counted. **Add entry** can also record new copies. **−** lets you choose the copy and record what happened; it lowers the owned count and keeps its history. Each finish has separate quantities, history, and wishlist notes. Dates, places, people, prices, and notes are optional and stay private on shared pages.
+
+Cloud JSON backups use version 3 and include zero-owned cards with saved history. Version 2 cloud backups are still accepted. Restoring an older backup keeps saved later changes and does not count those past copies as owned again.
+
 The cloud page starts with 48 Pokémon and adds more as you scroll. Card galleries show 48 cards at a time, with **Show more cards**. Filters use the full saved list. Saves keep existing images and controls in place. Search details stay in the URL for reloads, and card results appear before set details finish loading.
+
+The cloud build includes browser icons, Apple and Android home screen icons, and a web app manifest. Icon shapes are in `scripts/lib/app-icons.mjs`; generated image files stay in `dist/`. Shared pages use the same icons through `/s/assets/`. The standalone checklist keeps an embedded icon so its downloaded HTML needs no extra files.
 
 ## Read-only sharing
 
 Open a collection or the wishlist and select **Share**. Use **Preview page** to check the saved online view. **Create link** creates a public link that needs no visitor account. **Stop sharing** blocks future visits. Re-enabling creates a new link.
 
-Shared pages show the latest saved online cards, with filters and image enlargement. They hide email addresses, exact copy quantities, and other collection names. A shared wishlist includes wanted cards and missing cards from collection goals.
+Shared pages show the latest saved online cards, with filters and image enlargement. They hide email addresses, exact copy quantities, card history, prices, private notes, and other collection names. A shared wishlist includes wanted cards and missing cards from collection goals.
 
 ## Local cloud preview
 

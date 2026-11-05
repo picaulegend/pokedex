@@ -1,6 +1,7 @@
 import { HttpError } from './auth.js';
 import { isId, json, progressState, readBody } from './api.js';
 import { cardDetails, cardStatements } from './card-source.js';
+import { emptyHistory, inventoryChange, validateHistory } from './client/card-history-model.js';
 
 export const collectionSelect = `SELECT c.*,COALESCE((SELECT json_group_array(variant_id) FROM
   (SELECT variant_id FROM collection_cards WHERE user_id=c.user_id AND collection_id=c.id ORDER BY variant_id)),'[]') AS variant_ids FROM collections c`;
@@ -15,11 +16,12 @@ export const inventoryState = (row, variantId) =>
         variantId: row.variant_id,
         quantity: row.quantity,
         wanted: Boolean(row.wanted),
+        history: JSON.parse(row.history_json || JSON.stringify(emptyHistory())),
         revision: row.revision,
         pokemonIds: JSON.parse(row.pokemon_ids || '[]'),
         source: { language: row.source_language, sourceId: row.source_card_id },
       }
-    : { variantId, quantity: 0, wanted: false, revision: 0 };
+    : { variantId, quantity: 0, wanted: false, history: emptyHistory(), revision: 0 };
 export const collectionState = (row) =>
   row
     ? {
@@ -114,7 +116,7 @@ export async function catalogue(env, url, user) {
     )
       throw new HttpError(400, 'Choose a Pokémon to read your saved cards.');
     condition += ` AND c.id IN (SELECT v.card_id FROM catalogue_variants v WHERE v.id IN (
-      SELECT variant_id FROM inventory WHERE user_id=? AND (quantity>0 OR wanted=1)
+      SELECT variant_id FROM inventory WHERE user_id=? AND (quantity>0 OR wanted=1 OR json_array_length(history_json,'$.entries')>0)
       UNION SELECT m.variant_id FROM collection_cards m JOIN collections g ON g.user_id=m.user_id AND g.id=m.collection_id AND g.deleted=0 WHERE m.user_id=?))`;
     parameters.push(user.id, user.id);
   }
@@ -206,12 +208,46 @@ export async function catalogue(env, url, user) {
   });
 }
 
+export async function prepareInventoryHistory(env, user, id, body) {
+  const current = await env.DB.prepare(
+    'SELECT quantity,wanted,history_json,revision FROM inventory WHERE user_id=? AND variant_id=?',
+  )
+    .bind(user.id, id)
+    .first();
+  const row = current
+    ? {
+        quantity: current.quantity,
+        wanted: Boolean(current.wanted),
+        history: JSON.parse(current.history_json),
+      }
+    : undefined;
+  try {
+    // The write gate reports stale revisions. Do not treat a conflict as a bad edit.
+    if ((current?.revision || 0) !== body.baseRevision)
+      return body.history === undefined
+        ? row?.history || emptyHistory()
+        : validateHistory(body.history, body.quantity);
+    return inventoryChange(
+      row,
+      {
+        quantity: body.quantity,
+        wanted: body.wanted,
+        ...(body.history === undefined ? {} : { history: body.history }),
+        historyChoice: body.historyChoice,
+      },
+      body.mutationId,
+    ).history;
+  } catch (error) {
+    throw new HttpError(400, error.message);
+  }
+}
+
 export async function saveRecord(request, env, user, kind, id, preparedCard) {
   if (!isId(id)) throw new HttpError(400, 'Choose a valid record.');
-  const body = await readBody(request, kind === 'collection' ? 90000 : 4096);
+  const body = await readBody(request, kind === 'collection' ? 90000 : 1000000);
   const fields =
     kind === 'inventory'
-      ? ['quantity', 'wanted', 'baseRevision', 'mutationId']
+      ? ['quantity', 'wanted', 'history', 'historyChoice', 'baseRevision', 'mutationId']
       : ['name', 'variantIds', 'deleted', 'baseRevision', 'mutationId'];
   if (
     !body ||
@@ -221,13 +257,15 @@ export async function saveRecord(request, env, user, kind, id, preparedCard) {
     body.baseRevision < 0
   )
     throw new HttpError(400, 'Send a valid change.');
-  let data;
+  let data, history;
   if (kind === 'inventory') {
     if (
       !Number.isInteger(body.quantity) ||
       body.quantity < 0 ||
       body.quantity > 999 ||
-      typeof body.wanted !== 'boolean'
+      typeof body.wanted !== 'boolean' ||
+      (body.historyChoice !== undefined &&
+        (typeof body.historyChoice !== 'boolean' || body.history === undefined))
     )
       throw new HttpError(400, 'Choose a quantity from 0 to 999 and a wanted status.');
     if (
@@ -251,6 +289,9 @@ export async function saveRecord(request, env, user, kind, id, preparedCard) {
         'This source variant changed. Find the card and select its finish again.',
       );
     data = { quantity: body.quantity, wanted: body.wanted };
+    history = await prepareInventoryHistory(env, user, id, body);
+    if (body.history !== undefined) data.history = history;
+    if (body.historyChoice !== undefined) data.historyChoice = body.historyChoice;
   } else {
     if (
       typeof body.name !== 'string' ||
@@ -283,15 +324,16 @@ export async function saveRecord(request, env, user, kind, id, preparedCard) {
   if (kind === 'inventory') {
     statements.push(
       env.DB.prepare(
-        `INSERT INTO inventory(user_id,variant_id,quantity,wanted,revision)
-      SELECT ?,?,?,?,?+1 WHERE ${eligible} AND (?=0 OR EXISTS(SELECT 1 FROM inventory WHERE user_id=? AND variant_id=? AND revision=?))
-      ON CONFLICT(user_id,variant_id) DO UPDATE SET quantity=excluded.quantity,wanted=excluded.wanted,revision=excluded.revision
+        `INSERT INTO inventory(user_id,variant_id,quantity,wanted,history_json,revision)
+      SELECT ?,?,?,?,?,?+1 WHERE ${eligible} AND (?=0 OR EXISTS(SELECT 1 FROM inventory WHERE user_id=? AND variant_id=? AND revision=?))
+      ON CONFLICT(user_id,variant_id) DO UPDATE SET quantity=excluded.quantity,wanted=excluded.wanted,history_json=excluded.history_json,revision=excluded.revision
       WHERE inventory.revision=?`,
       ).bind(
         user.id,
         id,
         data.quantity,
         Number(data.wanted),
+        JSON.stringify(history),
         body.baseRevision,
         user.id,
         body.mutationId,

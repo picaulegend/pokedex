@@ -12,6 +12,13 @@ import { createCardLibrary } from './library.js';
 import { plural } from './ui.js';
 import { createNavigation } from './navigation.js';
 import { createShell } from './shell.js';
+import {
+  hasDetails,
+  historyOf,
+  validateHistory,
+  mergeInventory,
+  pastCount,
+} from './card-history-model.js';
 
 const app = window.carddex;
 const navigation = createNavigation();
@@ -455,7 +462,7 @@ $('cloud-conflicts').onclick = () => {
     const remote = saved[item.kind === 'inventory' ? 'inventory' : 'collections'][item.id];
     detail.textContent =
       item.kind === 'inventory'
-        ? `This device: ${item.data.quantity} owned, ${item.data.wanted ? 'wanted' : 'not wanted'}. Online: ${remote?.quantity || 0} owned, ${remote?.wanted ? 'wanted' : 'not wanted'}.`
+        ? `This device: ${item.data.quantity} owned, ${item.data.wanted ? 'wanted' : 'not wanted'}, ${pastCount(historyOf(item.data))} past copies. Online: ${remote?.quantity || 0} owned, ${remote?.wanted ? 'wanted' : 'not wanted'}, ${pastCount(historyOf(remote))} past copies. The selected record keeps its card history and notes.`
         : `This device: ${plural(item.data.variantIds.length, 'card')}${item.data.deleted ? ', deleted' : ''}. Online: ${plural(remote?.variantIds.length || 0, 'card')}${remote?.deleted ? ', deleted' : ''}.`;
     section.append(title, detail);
     for (const [label, keepLocal] of [
@@ -467,7 +474,11 @@ $('cloud-conflicts').onclick = () => {
       button.textContent = label;
       button.onclick = async () => {
         const next = await updateAccount(user.id, (state) => {
-          if (keepLocal) queueRecord(state, item.kind, item.id, item.data);
+          if (keepLocal)
+            queueRecord(state, item.kind, item.id, {
+              ...item.data,
+              ...(item.kind === 'inventory' && item.data.history ? { historyChoice: true } : {}),
+            });
           else delete state.recordConflicts[`${item.kind}:${item.id}`];
         });
         show(next);
@@ -496,13 +507,18 @@ window.addEventListener('carddex:backup', async () => {
     row.wanted ? legacy.add(row.pokemonId) : legacy.delete(row.pokemonId);
   const content = {
     app: 'carddex',
-    version: 2,
+    version: 3,
     exportedAt: new Date().toISOString(),
     owned: visibleOwned(current),
     legacyOwned: [...legacy],
     inventory: Object.values(visibleRecords(current, 'inventory'))
-      .filter((r) => r.quantity || r.wanted)
-      .map((r) => ({ variantId: r.variantId, quantity: r.quantity, wanted: r.wanted })),
+      .filter((r) => r.quantity || r.wanted || hasDetails(r))
+      .map((r) => ({
+        variantId: r.variantId,
+        quantity: r.quantity,
+        wanted: r.wanted,
+        history: historyOf(r),
+      })),
     collections: Object.values(visibleRecords(current, 'collection'))
       .filter((c) => !c.deleted)
       .map((c) => ({ id: c.id, name: c.name, variantIds: c.variantIds })),
@@ -585,7 +601,11 @@ window.addEventListener('carddex:restore', async (event) => {
           )))
     )
       throw new Error('Choose a valid Carddex backup.');
-    data.inventory = data.inventory.filter((r) => r.quantity || r.wanted);
+    data.inventory = data.inventory
+      .map((row) => ({ ...row, history: validateHistory(historyOf(row), row.quantity) }))
+      .filter((r) => r.quantity || r.wanted || hasDetails(r));
+    if (new Set(data.inventory.map((r) => r.variantId)).size !== data.inventory.length)
+      throw new Error('This backup has duplicate card records.');
     const ids = [
       ...new Set([
         ...data.inventory.map((r) => r.variantId),
@@ -636,6 +656,7 @@ window.addEventListener('carddex:restore', async (event) => {
           variantId,
           quantity: record?.quantity || 0,
           wanted: Boolean(record?.wanted || !record?.quantity),
+          ...(record ? { wanted: record.wanted, history: record.history } : {}),
           baseRevision: 0,
           mutationId: crypto.randomUUID(),
         }),
@@ -653,10 +674,7 @@ window.addEventListener('carddex:restore', async (event) => {
       for (const variantId of goalOnly)
         queueRecord(state, 'inventory', variantId, { quantity: 0, wanted: false });
       for (const row of data.inventory)
-        queueRecord(state, 'inventory', row.variantId, {
-          quantity: Math.max(own[row.variantId]?.quantity || 0, row.quantity),
-          wanted: Boolean(own[row.variantId]?.wanted || row.wanted),
-        });
+        queueRecord(state, 'inventory', row.variantId, mergeInventory(own[row.variantId], row));
       for (const group of data.collections) {
         const existing = groups[group.id];
         const variantIds = [...new Set([...(existing?.variantIds || []), ...group.variantIds])];

@@ -336,7 +336,7 @@ test('backups include exact cards and collections and can be restored into a sep
   await page.locator('#app-backup').click();
   const downloaded = await downloadPromise;
   const data = JSON.parse(await readFile(await downloaded.path(), 'utf8'));
-  expect(data.version).toBe(2);
+  expect(data.version).toBe(3);
   expect(data.inventory.find((r) => r.variantId === id).quantity).toBe(5);
   expect(data.collections.find((c) => c.id === group).variantIds).toEqual([id]);
   await context.setExtraHTTPHeaders(friend);

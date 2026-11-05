@@ -44,16 +44,23 @@ summary {
   padding: 18px 24px;
   border-bottom: 1px solid #dce3da;
 }
-.share-header > span {
+.share-header > span:not(.brand) {
   font-size: 13px;
   color: #586c60;
 }
 .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   text-decoration: none;
   font-size: 23px;
   font-weight: 800;
   letter-spacing: -0.8px;
   color: #233a34;
+}
+.brand img {
+  width: 30px;
+  height: 30px;
 }
 main {
   max-width: 1160px;

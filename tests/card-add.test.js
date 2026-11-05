@@ -29,7 +29,7 @@ async function fixture() {
       prepare(sql) {
         return {
           bind(...values) {
-            return { sql, values };
+            return { sql, values, first: async () => db.prepare(sql).get(...values) || null };
           },
         };
       },

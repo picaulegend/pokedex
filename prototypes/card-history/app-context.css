@@ -1,0 +1,150 @@
+/* The existing shell and card controls use /app/cloud.css without edits. */
+.cloud-app .context-controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+  color: var(--muted);
+}
+.context-comparison {
+  display: inline-flex;
+  gap: 4px;
+}
+.context-comparison button {
+  min-height: 36px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  font-size: 12px;
+}
+.context-comparison button[aria-pressed='true'] {
+  background: #e7eddf;
+  color: var(--ink);
+}
+.context-label {
+  font-size: 11px;
+  margin-left: auto;
+}
+.cloud-app .scenario-bar {
+  margin-bottom: 27px;
+}
+.cloud-app .detail-info .story-section,
+.cloud-app .detail-info .wanted-section {
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+.cloud-app .detail-info .section-heading h2 {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.4;
+  letter-spacing: -0.3px;
+}
+.cloud-app .history-list {
+  gap: 23px;
+}
+.cloud-app .entry-note {
+  font-size: 13px;
+}
+.cloud-app .entry-source {
+  font-size: 13px;
+}
+.cloud-app .context-save-message {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px 16px;
+  font-size: 13px;
+  margin-top: 12px;
+}
+.cloud-app .context-save-message .text-button {
+  min-height: 30px;
+  color: var(--green);
+}
+.cloud-app .detail-info > .filter-panel {
+  margin-top: 22px;
+}
+.cloud-app .detail-info .privacy-note {
+  margin-top: 20px;
+}
+.cloud-app [data-comparison='current'] #history-section,
+.cloud-app [data-comparison='current'] #wanted-section,
+.cloud-app [data-comparison='current'] [data-proposed],
+.cloud-app [data-comparison='current'] #context-add-details {
+  display: none !important;
+}
+.cloud-app .entry-dialog {
+  border-radius: 0;
+  max-width: 100%;
+}
+.cloud-app .entry-dialog .purpose-options label {
+  display: inline-flex;
+  flex-direction: row;
+  gap: 7px;
+}
+.cloud-app .entry-dialog .method-options label {
+  display: block;
+}
+.cloud-app .entry-dialog .icon-button {
+  border: 0;
+  background: none;
+  min-width: 34px;
+}
+.cloud-app .entry-dialog .money-input input {
+  padding-left: 31px;
+}
+.cloud-app .entry-dialog textarea {
+  border-color: #87998a;
+  border-radius: 10px;
+}
+.cloud-app .entry-dialog .sheet-heading h2 {
+  margin: 5px 0;
+}
+.cloud-app .entry-dialog .sheet-heading p {
+  margin-top: 6px;
+}
+.cloud-app .entry-dialog .checkbox-label {
+  display: flex;
+}
+.cloud-app .entry-dialog .removal-choice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cloud-app .entry-dialog .removal-choice-quantity > input {
+  width: 70px;
+}
+.cloud-app #context-image-close {
+  position: absolute;
+  right: 12px;
+  top: 10px;
+}
+.cloud-app .toast {
+  left: calc(50% + var(--app-nav) / 2);
+}
+@media (max-width: 900px) {
+  .cloud-app .context-label {
+    display: none;
+  }
+  .cloud-app .context-controls #reset-demo {
+    margin-left: auto;
+  }
+  .cloud-app .toast {
+    bottom: 160px;
+  }
+}
+@media (max-width: 600px) {
+  .cloud-app .context-controls {
+    gap: 5px;
+  }
+  .cloud-app .context-comparison button {
+    font-size: 11px;
+    padding-inline: 9px;
+  }
+  .cloud-app .context-controls #reset-demo {
+    font-size: 11px;
+  }
+  .cloud-app .scenario-bar {
+    margin-bottom: 24px;
+  }
+}
