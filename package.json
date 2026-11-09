@@ -18,17 +18,15 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "node --test tests/*.test.js && playwright test",
-    "access:plan": "node scripts/setup-access.mjs",
-    "access:apply": "node scripts/setup-access.mjs --apply",
-    "sharing:plan": "node scripts/setup-sharing-access.mjs",
-    "sharing:apply": "node scripts/setup-sharing-access.mjs --apply",
     "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
-    "jose": "6.2.14"
+    "@better-auth/passkey": "1.7.18",
+    "better-auth": "1.7.18"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",
+    "esbuild": "0.28.2",
     "prettier": "3.9.10",
     "wrangler": "4.156.0"
   }

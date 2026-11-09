@@ -361,7 +361,7 @@ async function start() {
     app.setScope(user.id);
     saved = await updateAccount(user.id);
     $('cloud-account').textContent =
-      `${user.email}${user.role === 'admin' ? ' · Administrator' : ''}${user.development ? ' · Local preview' : ''}`;
+      `${user.email}${user.role === 'admin' ? ' · Owner' : ''}${user.development ? ' · Local preview' : ''}`;
     document.querySelector('.sidebar-foot').innerHTML =
       '<div class="local-tag"><span class="dot"></span> YOUR PRIVATE COLLECTION</div>Changes sync between your devices. Use <strong>Back up</strong> to keep a separate copy.';
     channel =
@@ -407,7 +407,23 @@ window.addEventListener('carddex:change', async (event) => {
 });
 
 $('cloud-retry').onclick = () => (user ? void flush() : void start());
-$('cloud-signin').onclick = () => location.reload();
+$('cloud-signin').onclick = () => location.assign('/login' + location.hash);
+$('app-signout').onclick = async () => {
+  const button = $('app-signout');
+  button.disabled = true;
+  try {
+    await api('/api/auth/sign-out', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    });
+    location.replace('/login');
+  } catch (error) {
+    message = error.message;
+    status();
+    button.disabled = false;
+  }
+};
 $('cloud-import').onclick = async () => {
   const legacy = app.legacySnapshot();
   if (!legacy?.owned.length) return;

@@ -2,7 +2,7 @@
 
 A private Pokémon card collection built around the National Pokédex. The checklist has 1,025 species, from Bulbasaur to Pecharunt. Owning at least one card of a Pokémon completes its Pokédex entry.
 
-The [cloud preview](https://carddex-preview.pohon.workers.dev) uses Cloudflare Workers, D1, and Access. Each invited person has separate collection records. The [original Pages app](https://pokedex-1gj.pages.dev) remains a standalone checklist.
+The [cloud preview](https://carddex-preview.pohon.workers.dev) uses Cloudflare Workers and D1. The passkey setup keeps the existing owner account and its collection records. The [original Pages app](https://pokedex-1gj.pages.dev) remains a standalone checklist.
 
 ## Cloud app
 
@@ -47,13 +47,13 @@ npm ci
 cp .dev.vars.example .dev.vars
 ```
 
-Set `ADMIN_EMAIL` in `.dev.vars`, then run:
+Set `ADMIN_EMAIL` in `.dev.vars`. Generate a different random value for each of `BETTER_AUTH_SECRET` and `OWNER_SETUP_TOKEN` with `openssl rand -hex 32`. Then run:
 
 ```sh
 npm run dev
 ```
 
-Open <http://127.0.0.1:8787>. The command builds the cloud assets and applies migrations to a local database. Local sign-in is enabled only on loopback addresses. Local settings and data are excluded from Git.
+Open <http://localhost:8787/setup> and enter the setup code from `.dev.vars`. The command builds the cloud assets and applies migrations to a local database. Local settings and data stay out of Git.
 
 To fetch and load the local set reference, run `npm run sets:local` after local migrations. Use `npm run sets:prepare` to prepare the data without a database change. The card catalogue stays empty until cards are added. See the cloud guide before a hosted update.
 
@@ -64,7 +64,7 @@ npm run format:check
 npm test
 ```
 
-Install a test browser with `npx playwright install chromium`, or use an installed Chrome with `PLAYWRIGHT_CHANNEL=chrome npm test`. Browser tests use an isolated database on port 8788. They do not reset local preview data.
+Install a test browser with `npx playwright install chromium`, or use an installed Chrome with `PLAYWRIGHT_CHANNEL=chrome npm test`. Browser tests use isolated databases on ports 8788 and 8789.
 
 Use `npm run format` to format supported source and documentation files. Embedded checklist data, applied migrations, audit results, and test fixtures are excluded.
 
@@ -101,7 +101,7 @@ This publishes the standalone checklist. See the [Cloudflare static HTML guide](
 - `public/index.html`: standalone checklist, with embedded Pokémon data and sprites.
 - `src/`: Worker API, card source handling, and cloud client.
 - `migrations/`: database schema changes, applied in order.
-- `scripts/`: cloud build, Access setup, set reference, and isolated catalogue audit.
+- `scripts/`: cloud build, set reference, and isolated catalogue audit.
 - `tests/`: unit and browser tests, with isolated fixtures.
 - `docs/cloud-preview.md`: current cloud status, setup, and operation.
 - `docs/catalogue-sample-audit.md`: historical source audit and its limits.

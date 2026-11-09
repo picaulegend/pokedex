@@ -56,7 +56,7 @@ test('Back returns through search and the set picker without stacked dialogs or 
   await expect(page.locator('#collection')).toBeFocused();
 });
 
-test('search changes grey out old results and failed searches offer a working retry', async ({
+test('filter edits return to saved cards and failed TCGdex searches offer a working retry', async ({
   page,
 }) => {
   await page.goto('/');
@@ -64,10 +64,11 @@ test('search changes grey out old results and failed searches offer a working re
   await page.locator('#open-card-search').click();
   await page.locator('#card-search-name').fill('Bulbasaur');
   await page.locator('#search-external').click();
+  await expect(page.locator('#search-scope')).toHaveText('TCGdex results');
   await expect(page.locator('.search-card').first()).toContainText('Bulbasaur');
   await page.locator('#card-search-name').fill('Squirtle');
-  await expect(page.locator('#card-search-results')).toHaveClass(/is-stale/);
-  await expect(page.locator('.search-card').first()).toContainText('Bulbasaur');
+  await expect(page.locator('#search-scope')).toHaveText('Saved cards');
+  await expect(page.locator('.search-card').filter({ hasText: 'Bulbasaur' })).toHaveCount(0);
   await page.route('**/api/cards/search?**', (route) =>
     route.fulfill({
       status: 503,

@@ -353,9 +353,7 @@ export function createCardLibrary({
     }
     $('library-filter-panel').hidden = !anyFilter;
     $('collection-progress').hidden = !isGoal || !goalTotal;
-    if (isList)
-      $('library-summary').textContent =
-        'Lists of cards to complete. Each one tracks what you own and what is missing.';
+    if (isList) $('library-summary').textContent = '';
     else if (isGoal) {
       $('library-summary').textContent = goalTotal ? `${goalOwned} / ${goalTotal} owned` : '';
       updateMarkup(
@@ -363,8 +361,7 @@ export function createCardLibrary({
         `<progress aria-label="Collection progress" value="${goalOwned}" max="${goalTotal || 1}"></progress>`,
       );
     } else if (isWishlist)
-      $('library-summary').textContent =
-        `${plural(wantedIds().size, 'card')} · Cards you want, and cards missing from your collections.`;
+      $('library-summary').textContent = plural(wantedIds().size, 'wanted card');
     else {
       const currentCount = cards.filter((card) =>
         card.variants.some((v) => rows[v.id]?.quantity || wantedIds().has(v.id)),
@@ -470,7 +467,7 @@ export function createCardLibrary({
           const memberships = groups.filter(
             (g) => g !== current && variants.some((v) => g.variantIds.includes(v.id)),
           );
-          return `<article class="tcg-card" data-card-id="${card.id}"><button id="card-${card.id}" class="card-open" data-open-card="${card.language}:${card.sourceId}" data-variant="${selected}">${picture(card)}<span class="card-caption"><strong>${escape(card.name)}</strong><span>${escape(card.setName)}</span><span>${escape(card.number)}${card.officialCount ? `/${escape(card.officialCount)}` : ''} · <span class="tcg-language">${languageName(card.language)}</span></span>${badges(variants, true)}</span></button>${memberships.length ? `<p class="tcg-members">${memberships.map((c) => escape(c.name)).join(' · ')}</p>` : ''}${isWishlist ? `<button id="acquire-${selected}" data-acquire="${selected}" class="secondary-button" ${locked || (rows[selected]?.quantity || 0) >= 999 ? 'disabled' : ''}>${rows[selected]?.quantity ? 'Add one copy' : 'Mark as owned'}</button>` : ''}</article>`;
+          return `<article class="tcg-card" data-card-id="${card.id}"><button id="card-${card.id}" class="card-open" data-open-card="${card.language}:${card.sourceId}" data-variant="${selected}">${picture(card)}<span class="card-caption"><strong>${escape(card.name)}</strong><span>${escape(card.setName)}</span><span data-card-number>${escape(card.number)}${card.officialCount ? `/${escape(card.officialCount)}` : ''} · <span class="tcg-language">${languageName(card.language)}</span></span>${badges(variants, true)}</span></button>${memberships.length ? `<p class="tcg-members">${memberships.map((c) => escape(c.name)).join(' · ')}</p>` : ''}${isWishlist ? `<button id="acquire-${selected}" data-acquire="${selected}" class="secondary-button" ${locked || (rows[selected]?.quantity || 0) >= 999 ? 'disabled' : ''}>${rows[selected]?.quantity ? 'Add one copy' : 'Mark as owned'}</button>` : ''}</article>`;
         })
         .join('');
       updateMarkup(

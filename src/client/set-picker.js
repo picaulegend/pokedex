@@ -29,7 +29,7 @@ export function createSetPicker(api, navigation, shell) {
   dialog.dataset.cloudUi = '';
   dialog.setAttribute('aria-labelledby', 'set-picker-title');
   dialog.innerHTML = `<label class="set-picker-search"><span id="set-picker-title"></span><input id="set-picker-query" type="search" maxlength="100" placeholder="Set name, code, or printed total (165)" autocomplete="off"></label>
-    <div class="set-picker-list"><button class="set-any" id="set-picker-any"><span class="set-art" aria-hidden="true">✱</span><span class="set-choice-text"><strong>Any set</strong><span>Search all sets</span></span></button><div id="set-picker-results" class="set-picker-results"></div></div><p id="set-picker-status" role="status"></p><button class="secondary-button" id="set-picker-more" hidden>Show more sets</button>`;
+    <div class="set-picker-list"><button class="set-any" id="set-picker-any"><span class="set-art" aria-hidden="true">✱</span><span class="set-choice-text"><strong>Any set</strong><span>Clear the set filter</span></span></button><div id="set-picker-results" class="set-picker-results"></div></div><p id="set-picker-status" role="status"></p><button class="secondary-button" id="set-picker-more" hidden>Show more sets</button>`;
   document.body.append(dialog);
   const $ = (id) => dialog.querySelector(`#${id}`),
     cache = new Map(),

@@ -1,30 +1,15 @@
 export function createShell(app, navigation) {
   const shell = document.createElement('div');
   shell.dataset.cloudUi = '';
-  shell.innerHTML = `<header class="app-header"><button id="app-back" class="icon-button" aria-label="Back" hidden>←</button><h1 id="app-title" tabindex="-1">Pokédex</h1><button id="app-save-state" class="save-chip" aria-label="Account and save status">Connecting…</button><button id="app-account" class="icon-button" aria-label="Account and backups">•••</button></header>
-    <nav class="app-nav" aria-label="Main navigation"><a class="app-brand" href="#/pokedex"><span class="brand-ball" aria-hidden="true"></span>Carddex</a><button id="open-pokedex" data-destination="pokedex"><span aria-hidden="true">▦</span>Pokédex</button><button id="open-collections" data-destination="collections"><span aria-hidden="true">▤</span>Collections <small id="collections-count">0</small></button><button id="open-wishlist" data-destination="wishlist"><span aria-hidden="true">♡</span>Wishlist <small id="wishlist-count">0</small></button><button id="open-card-search" class="nav-add" data-destination="search"><span aria-hidden="true">＋</span>Add card</button></nav>`;
+  const icon = (path) =>
+    `<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="${path}"/></svg>`;
+  shell.innerHTML = `<header class="app-header"><a class="app-brand" href="#/pokedex">CARDDEX</a><button id="app-back" class="icon-button" aria-label="Back" hidden>${icon('M19 12H5m7-7-7 7 7 7')}</button><h1 id="app-title" tabindex="-1">Pokédex</h1><button id="app-save-state" class="save-chip" aria-label="Account and save status">Connecting…</button><button id="app-account" class="icon-button" aria-label="Account and backups"><svg aria-hidden="true"><use href="#i-more"/></svg></button></header>
+    <nav class="app-nav" aria-label="Main navigation"><button id="open-pokedex" data-destination="pokedex"><svg aria-hidden="true"><use href="#i-grid"/></svg>Pokédex</button><button id="open-collections" data-destination="collections">${icon('M3 7h18v13H3zM3 4h18m-12 7h6')}Collections <small id="collections-count">0</small></button><button id="open-wishlist" data-destination="wishlist">${icon('M20 5a4.5 4.5 0 0 0-6.4 0L12 6.6 10.4 5A4.5 4.5 0 0 0 4 11.4l8 8 8-8A4.5 4.5 0 0 0 20 5Z')}Wishlist <small id="wishlist-count">0</small></button><button id="open-card-search" class="nav-add" data-destination="search">${icon('M12 5v14M5 12h14')}Add card</button></nav>`;
   document.body.prepend(shell);
-  const mark = document.createElement('span');
-  mark.className = 'app-mark';
-  mark.setAttribute('aria-hidden', 'true');
-  mark.innerHTML =
-    '<svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="12" fill="#e6ed8c" stroke="currentColor" stroke-width="2"/><path d="M2 14h24a12 12 0 0 1-24 0" fill="#f7f8f3" stroke="currentColor" stroke-width="2"/><circle cx="14" cy="14" r="4" fill="#f7f8f3" stroke="currentColor" stroke-width="2"/></svg>';
-  shell.querySelector('#app-title').before(mark);
   document.querySelector('.skip').addEventListener('click', (event) => {
     event.preventDefault();
     navigation.go('pokedex', {}, { focus: 'collection' });
   });
-  const paths = {
-    pokedex:
-      '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
-    collections: '<path d="M4 6h6l2 2h8v12H4zM7 3h13v3"/>',
-    wishlist:
-      '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"/>',
-    search: '<path d="M12 4v16M4 12h16"/>',
-  };
-  for (const button of shell.querySelectorAll('[data-destination]'))
-    button.querySelector('span').innerHTML =
-      `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${paths[button.dataset.destination]}</svg>`;
   const panel = document.createElement('dialog');
   panel.id = 'account-panel';
   panel.dataset.cloudUi = '';
@@ -32,10 +17,21 @@ export function createShell(app, navigation) {
   panel.setAttribute('aria-labelledby', 'account-title');
   panel.innerHTML = `<div class="dialog-head"><h2 id="account-title">Account</h2><button id="account-close" class="icon-button" aria-label="Close account menu">×</button></div><p id="cloud-account">Connecting your account…</p><p id="cloud-status" role="status" aria-live="polite"></p><div class="account-actions"><button class="secondary-button" id="cloud-import" hidden>Import old checkmarks</button><button class="primary-button" id="cloud-conflicts" hidden>Review changes</button><button class="secondary-button" id="cloud-retry">Sync now</button><button class="secondary-button" id="cloud-signin" hidden>Sign in again</button></div><h3>Files</h3><div class="account-tools"><button id="app-backup">Download backup <small>All cards, quantities, and collections</small></button><button id="app-restore">Restore from backup</button><button id="app-checklist">Download offline checklist <small>Pokédex ticks only</small></button><button id="app-share">List missing Pokémon</button><button id="app-print">Print Pokédex</button></div>`;
   document.body.append(panel);
-  const signout = document.createElement('a');
+  const passkeys = document.createElement('a');
+  passkeys.href = '/passkeys';
+  passkeys.textContent = 'Manage passkeys';
+  passkeys.className = 'secondary-button signout-link';
+  passkeys.hidden = true;
+  panel.append(passkeys);
+  const invite = document.createElement('a');
+  invite.href = '/passkeys#invite';
+  invite.textContent = 'Invite someone';
+  invite.className = 'secondary-button signout-link';
+  invite.hidden = true;
+  panel.append(invite);
+  const signout = document.createElement('button');
   signout.id = 'app-signout';
   signout.className = 'secondary-button signout-link';
-  signout.href = '/cdn-cgi/access/logout';
   signout.textContent = 'Sign out';
   signout.hidden = true;
   panel.append(signout);
@@ -67,6 +63,8 @@ export function createShell(app, navigation) {
     resolve?.(false);
   });
   const $ = (id) => document.getElementById(id);
+  $('search').setAttribute('aria-label', 'Filter by name or Pokédex number');
+  $('search').placeholder = 'Filter by name or number';
   const progress = document.createElement('p');
   progress.className = 'dex-progress-text';
   progress.append(
@@ -123,6 +121,8 @@ export function createShell(app, navigation) {
     panel,
     account(user) {
       signout.hidden = user.development;
+      passkeys.hidden = user.development;
+      invite.hidden = user.development || user.role !== 'admin';
     },
     confirmRestore(data, email) {
       restore.querySelector('#restore-account').textContent = `Account: ${email}`;
@@ -140,6 +140,7 @@ export function createShell(app, navigation) {
     status(text, kind) {
       if ($('app-save-state').textContent !== text) $('app-save-state').textContent = text;
       if ($('app-save-state').dataset.state !== kind) $('app-save-state').dataset.state = kind;
+      if ($('app-save-state').title !== text) $('app-save-state').title = text;
     },
     lock(value) {
       $('open-card-search').disabled = value;

@@ -87,6 +87,44 @@ test('the cloud page loads a small Pokémon grid and keeps existing cards when m
   expect((await request.get(sprite)).headers()['cache-control']).toContain('immutable');
 });
 
+test('the private page loads the stylesheet and all modules from one version', async ({ page }) => {
+  const assets = [];
+  page.on('response', (response) => {
+    const url = new URL(response.url());
+    if (url.hostname === '127.0.0.1' && /\.(js|css)$/.test(url.pathname)) assets.push(url.pathname);
+  });
+  const document = await page.goto('/');
+  await expect(page.locator('.app-header .app-brand')).toHaveText('CARDDEX');
+  await expect(page.locator('#app-save-state')).toHaveText('Saved');
+  expect(document.headers()['cache-control']).toContain('no-store');
+  const [assetPath] = new Set(assets.map((asset) => asset.slice(0, asset.lastIndexOf('/'))));
+  expect(assetPath).toMatch(/^\/app\/[a-f0-9]{16}$/);
+  expect(assets).toContain(`${assetPath}/cloud.css`);
+  expect(assets).toContain(`${assetPath}/cloud.js`);
+  expect(assets).toContain(`${assetPath}/shell.js`);
+  expect(assets.every((asset) => asset.startsWith(`${assetPath}/`))).toBe(true);
+});
+
+test('a saved compact Pokédex view fits the number, card and checkbox on one row', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await expect(page.locator('#app-save-state')).toHaveText('Saved');
+  await page.getByRole('button', { name: 'Use compact view' }).click();
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Use grid view' })).toBeVisible();
+  for (const width of [1280, 320]) {
+    await page.setViewportSize({ width, height: 800 });
+    const row = page.locator('.cards.list [data-card="1"]');
+    const bounds = await row.boundingBox();
+    expect(bounds.height).toBeLessThan(64);
+    const name = await row.locator('.pokemon-open').boundingBox();
+    const check = await row.getByRole('checkbox').boundingBox();
+    expect(name.x + name.width).toBeLessThan(check.x);
+    expect(Math.abs(check.y + check.height / 2 - (bounds.y + bounds.height / 2))).toBeLessThan(2);
+  }
+});
+
 test('printing includes all selected Pokémon and returns to the existing grid', async ({
   page,
 }) => {
@@ -105,8 +143,12 @@ test('printing includes all selected Pokémon and returns to the existing grid',
   ).toBe(true);
 });
 
-test('card results appear while set details are still loading', async ({ page }) => {
-  let release;
+test('saved results update as you type while set details are still loading', async ({ page }) => {
+  let release,
+    externalCalls = 0;
+  page.on('request', (request) => {
+    if (new URL(request.url()).pathname === '/api/cards/search') externalCalls++;
+  });
   const held = new Promise((resolve) => {
     release = resolve;
   });
@@ -117,10 +159,10 @@ test('card results appear while set details are still loading', async ({ page })
   try {
     await page.goto('/#/search');
     await expect(page.locator('#app-save-state')).toHaveText('Saved');
-    await page.locator('#card-search-name').fill('Bulbasaur');
-    await page.locator('#card-search-form [type="submit"]').click();
-    await expect(page.locator('.search-card').first()).toBeVisible();
+    await page.getByRole('searchbox', { name: 'Filter saved cards' }).fill('Bulbasaur');
+    await expect(page.locator('.search-card').first()).toContainText('Bulbasaur');
     await expect(page.locator('#card-search')).not.toHaveAttribute('aria-busy', 'true');
+    expect(externalCalls).toBe(0);
   } finally {
     release();
   }

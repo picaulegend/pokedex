@@ -1,12 +1,12 @@
 # Cloud preview guide
 
-The cloud app uses Workers Static Assets, a Worker API, D1, and Cloudflare Access. Use this guide for setup and operation. [AGENTS.md](../AGENTS.md) holds the cost and catalogue rules.
+The cloud app uses Workers Static Assets, a Worker API, D1, and Better Auth passkeys. Use this guide for setup and operation. [AGENTS.md](../AGENTS.md) holds the cost and catalogue rules.
 
 ## Current state
 
 The private cloud app is at [carddex-preview.pohon.workers.dev](https://carddex-preview.pohon.workers.dev). It has separate accounts, Pokédex sync, exact card quantities, wanted cards, manual collections, and explicit card search. The original [Pages app](https://pokedex-1gj.pages.dev) remains a standalone checklist with separate browser storage.
 
-The administrator email is a Worker secret. Access uses email code sign-in and currently allows only the administrator. Version preview URLs are disabled. The separate `/s/*` path serves explicitly enabled read-only share pages without sign-in. The API also verifies signed Access tokens and the app's approved email list.
+The owner signs in with a passkey. The first passkey attaches to the existing administrator account. The account ID stays the same, so the app can read its collections and pending edits. Version preview URLs are disabled. The `/s/*` path serves enabled read-only share pages without sign-in.
 
 The owner confirmed email code sign-in and Pokédex sync between devices on 1 November 2026. Automated checks cover the card, collection, search, and set picker flows. Live English and Japanese source card details were checked without saving them. The owner confirmed that external Arcanine search works. The new layout and full card and collection flows still need a real phone check by the owner.
 
@@ -75,7 +75,7 @@ Collection pages show selected cards and owned/missing progress. Wishlist pages 
 
 The private controls use `/api/shares`. The owner preview at `/api/shares/preview` requires a verified account matching its `account` query value. Other private API routes retain the account-header check. Public pages and their small asset allowlist use `/s/*` before private authentication. Only GET and HEAD are allowed there. A token selects one account and view; public query parameters cannot change that scope.
 
-Migration `0005_share_links.sql` adds the link table and a collection-deletion trigger. Take a private database backup before applying it remotely. After deploying the share handler, run `npm run sharing:plan`, then `npm run sharing:apply` to create or verify a separate Access application for `carddex-preview.pohon.workers.dev/s/*` with one Bypass policy. This command verifies the original administrator-only application and leaves it in place. Check anonymous `/s/*` requests and signed-in `/api/*` protection after setup. No billing plan or image storage change is required.
+Migration `0005_share_links.sql` adds the link table and a collection-deletion trigger. The Worker handles `/s/*` before it checks the account session. Check an anonymous share link and the signed-in private preview after a deployment.
 
 Shared links are not included in collection JSON backups. Restoring a backup must not enable public sharing. Sharing controls need a connection; queued collection edits appear on shared pages after they are saved online.
 
@@ -112,55 +112,33 @@ The historical card samples remain isolated audit data. The [README](../README.m
 
 ## Local development and checks
 
-Use Node.js 22.13 or later. Run `npm ci`, copy `.dev.vars.example` to `.dev.vars`, and set `ADMIN_EMAIL`. Local settings are excluded from Git.
+Use Node.js 22.13 or later. Run `npm ci`, then copy `.dev.vars.example` to `.dev.vars`. Set `ADMIN_EMAIL` and use a different random value for each of `BETTER_AUTH_SECRET` and `OWNER_SETUP_TOKEN`. Use `openssl rand -hex 32` to generate each value. Remove `LOCAL_DEV_AUTH=true` from an older local configuration to test sign-in with a passkey.
 
-`npm run dev` builds assets and applies local migrations. Open <http://127.0.0.1:8787>. It uses `.wrangler/preview-state`. Local sign-in requires `LOCAL_DEV_AUTH=true` and a loopback address. `X-Carddex-Dev-Email` can select a test identity listed in `INVITED_EMAILS`; it cannot authenticate a public request.
+`npm run dev` builds assets and applies local migrations to `.wrangler/preview-state`. Open <http://localhost:8787/setup> and enter `OWNER_SETUP_TOKEN`. Use the same hostname each time. The browser ties the passkey to this hostname.
 
 `public/index.html` is the standalone checklist. The build creates cloud assets in `dist/`. A normal build excludes source test fixtures.
 
 Run `npm run format:check` and `npm test`. Install a browser with `npx playwright install chromium`, or use `PLAYWRIGHT_CHANNEL=chrome npm test`. `npm run format` applies the shared format. It excludes embedded checklist data, migrations, audit results, and test fixtures.
 
-Browser tests run `scripts/test-server.mjs`. It rebuilds test assets, resets only `.wrangler/test-state`, and starts the loopback server on port 8788. Test identities and source replies are isolated from the manual preview. Checks cover signed identities, refused accounts, account separation, retries, stale changes, offline edits, backups, catalogue growth, collections, set selection, and standalone HTML export.
+Browser tests run `scripts/test-server.mjs`. It rebuilds test assets and starts loopback servers on ports 8788 and 8789. Each server resets only its own test database. The passkey server uses a virtual authenticator and an existing owner fixture. The other server uses local test identities and saved source replies. Checks cover signed identities, refused accounts, account separation, retries, stale changes, offline edits, backups, catalogue growth, collections, set selection, and standalone HTML export.
 
 For source request changes, also check a live search and card preview from Cloudflare. Local tests with saved replies and direct requests from Node do not check the hosted connection. Workers support `redirect: 'manual'` or `redirect: 'follow'`; the app uses `manual` and refuses redirects. Using `redirect: 'error'` prevents the request from reaching the source. See the [Workers fetch reference](https://developers.cloudflare.com/workers/runtime-apis/fetch/).
 
-## Deployment and Access
+## Deploy the passkey change
 
-The current Worker, database, and Access application are already configured. Do not create replacements for routine updates. Keep private backups in the ignored `.wrangler/` folder. Database exports can print signed download URLs; keep these out of logs and shared output.
+Keep the current Worker, hostname, and D1 database. Store a private database backup in the ignored `.wrangler/` folder. Keep signed download URLs out of shared output.
 
-For a code update, run the checks, then `npm run deploy`. This builds and deploys the Worker. It does not apply migrations, refresh sets, or change Access. Before a required hosted migration, back up the database, then run:
+1. Run the format check and tests. Check that the hosted `ADMIN_EMAIL` matches the email on the existing administrator row.
+2. Generate two different random values with `openssl rand -hex 32`. Set them as the Worker secrets `BETTER_AUTH_SECRET` and `OWNER_SETUP_TOKEN` with Wrangler. Keep the setup code private.
+3. Back up D1. Apply the additive migration with `npx wrangler d1 migrations apply carddex-preview --remote`. Run `npm run deploy`. This command builds and deploys the Worker.
+4. Remove the Cloudflare Access protection for the Carddex Worker hostname after the Worker starts to require passkey sessions. Check that a new browser session reaches Carddex sign-in and that private API requests return 401. Keep other Cloudflare applications and policies in place.
+5. On the hosted hostname, open `/setup` and enter the setup code. Create the first passkey and sign in. Check the existing collection and test an anonymous share link. Use **Manage passkeys** in the account menu to add a second passkey. Remove the `OWNER_SETUP_TOKEN` secret when setup is complete.
 
-```sh
-npx wrangler d1 migrations apply carddex-preview --remote
-```
+The setup code can open registration only until the account has its first passkey. Setup never changes an existing account ID. The last passkey cannot be removed in the app. A fresh database creates its owner from `ADMIN_EMAIL` during setup.
 
-Do not rewrite applied migrations. Add a new migration for a schema change. Check sign-in and the affected flows after deployment.
+The owner can select **Invite someone** in the account menu. Enter the recipient's email address and copy the invite link. The link expires after 48 hours or after one person uses it to create a passkey. The recipient starts with a separate private collection.
 
-### Access setup from the terminal
-
-Access setup uses the Cloudflare API. The current Wrangler OAuth login does not supply Access management scopes. For setup or repair, create a token limited to the configured account, with these account permissions:
-
-- **Access: Apps and Policies — Edit**
-- **Access: Organizations, Identity Providers, and Groups — Edit**
-
-Copy `.env.example` to `.env.cloudflare` and put the token there. Keep it out of Git and logs. Set the administrator email in `.dev.vars`.
-
-`npm run access:plan` shows a read-only plan. `npm run access:apply` creates required settings and reuses matching settings. It stops if a new provider could change another app's sign-in options, or if the existing preview policy differs from the expected policy. It allows only the configured administrator, writes the issuer and audience to `wrangler.jsonc`, and disables version preview URLs. Deploy after a setup change. Deployment can use Wrangler OAuth; it does not need the Access token.
-
-Invitations require the same approved emails in the app's `INVITED_EMAILS` secret and the Access policy. The current setup script manages the administrator-only policy. Review and change both lists together when invitations are needed.
-
-### A separate deployment
-
-These steps are for a new account or deployment, not the current preview:
-
-1. Sign in with `npx wrangler login` and set the intended account in `wrangler.jsonc`.
-2. Create a separate database with `npx wrangler d1 create carddex-preview`. Set its returned ID in the configuration.
-3. Apply remote migrations. Set `ADMIN_EMAIL` with `npx wrangler secret put ADMIN_EMAIL`.
-4. Configure Access for every public hostname, with email code sign-in and the approved email list.
-5. Set `ACCESS_TEAM_DOMAIN` to the HTTPS team address without a trailing slash. Set `ACCESS_AUD` to the app's audience tag. The terminal setup can write these values.
-6. Deploy and check sign-in and account separation. Keep local authentication disabled on public hosts.
-
-References: [Access applications API](https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/applications/methods/create/), [Zero Trust organization API](https://developers.cloudflare.com/api/resources/zero_trust/subresources/organizations/methods/create/), [Access on Workers](https://developers.cloudflare.com/workers/configuration/cloudflare-access/), [token verification](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/), and [D1 migrations](https://developers.cloudflare.com/d1/reference/migrations/).
+For another deployment, set `PASSKEY_ORIGIN` to the exact HTTPS address. Register passkeys for that hostname. Changing hostnames requires new passkeys.
 
 ## Backups and old checkmarks
 

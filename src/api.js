@@ -9,7 +9,7 @@ export function json(value, status = 200) {
     status,
     headers: {
       'Cache-Control': 'private, no-store',
-      Vary: 'Cookie, Cf-Access-Jwt-Assertion',
+      Vary: 'Cookie',
       'X-Content-Type-Options': 'nosniff',
     },
   });

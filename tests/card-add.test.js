@@ -11,7 +11,7 @@ async function fixture() {
   for (const name of readdirSync('migrations').sort())
     db.exec(readFileSync(`migrations/${name}`, 'utf8'));
   db.exec(
-    "INSERT INTO users VALUES('owner','owner@example.test','admin','2026-01-01'); INSERT INTO users VALUES('other','other@example.test','member','2026-01-01')",
+    "INSERT INTO users (id,email,role,created_at) VALUES('owner','owner@example.test','admin','2026-01-01'); INSERT INTO users (id,email,role,created_at) VALUES('other','other@example.test','member','2026-01-01')",
   );
   const id = crypto.randomUUID();
   db.prepare('INSERT INTO collections(user_id,id,name,revision) VALUES(?,?,?,1)').run(

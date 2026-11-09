@@ -142,7 +142,7 @@ function fixture() {
     db.exec(readFileSync(`migrations/${name}`, 'utf8'));
   db.exec(readFileSync('tests/fixtures/catalogue.sql', 'utf8'));
   db.exec(
-    "INSERT INTO users VALUES('owner','owner@example.test','admin','2026-01-01'); INSERT INTO users VALUES('other','other@example.test','member','2026-01-01');",
+    "INSERT INTO users (id,email,role,created_at) VALUES('owner','owner@example.test','admin','2026-01-01'); INSERT INTO users (id,email,role,created_at) VALUES('other','other@example.test','member','2026-01-01');",
   );
   const variantId = db.prepare('SELECT id FROM catalogue_variants LIMIT 1').get().id;
   const env = {
@@ -267,7 +267,9 @@ test('the history migration preserves existing account records and sync position
       .filter((name) => name < '0006'))
       db.exec(readFileSync(`migrations/${name}`, 'utf8'));
     db.exec(readFileSync('tests/fixtures/catalogue.sql', 'utf8'));
-    db.exec("INSERT INTO users VALUES('owner','owner@example.test','admin','2026-01-01')");
+    db.exec(
+      "INSERT INTO users (id,email,role,created_at) VALUES('owner','owner@example.test','admin','2026-01-01')",
+    );
     const variant = db.prepare('SELECT id FROM catalogue_variants LIMIT 1').get().id;
     db.prepare(
       'INSERT INTO inventory(user_id,variant_id,quantity,wanted,revision) VALUES(?,?,7,1,4)',

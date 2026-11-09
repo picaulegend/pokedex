@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile, copyFile, rm } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { build } from 'esbuild';
 import { iconDataUrl, writeAppIcons } from './lib/app-icons.mjs';
 
 await rm('dist', { recursive: true, force: true });
@@ -49,6 +50,30 @@ const cloudHtml = html.replace(
   data[0],
   `<script id="pokemon-data" type="application/json">${JSON.stringify(pokemon)}</script>`,
 );
+const appModules = [
+  'cloud.js',
+  'cloud-store.js',
+  'library.js',
+  'navigation.js',
+  'shell.js',
+  'ui.js',
+  'card-search-ui.js',
+  'card-detail.js',
+  'card-history-ui.js',
+  'card-history-model.js',
+  'set-picker.js',
+  'share-controls.js',
+];
+const appAssets = await Promise.all(
+  ['cloud.css', ...appModules].map(async (file) => [file, await readFile(`src/client/${file}`)]),
+);
+// Relative imports must use the same asset version as the entry point and stylesheet.
+const appHash = createHash('sha256');
+for (const [file, bytes] of appAssets)
+  appHash.update(file).update('\0').update(String(bytes.length)).update('\0').update(bytes);
+const appPath = `/app/${appHash.digest('hex').slice(0, 16)}`;
+await mkdir(`dist${appPath}`, { recursive: true });
+for (const [file, bytes] of appAssets) await writeFile(`dist${appPath}/${file}`, bytes);
 const cloudDescription =
   'Your private Pokémon card collection. Track your cards, build collections, and keep a wishlist in Pokédex order.';
 await writeFile(
@@ -71,51 +96,29 @@ await writeFile(
       '<meta charset="utf-8">',
       '<meta charset="utf-8">\n<meta name="robots" content="noindex,nofollow,noarchive">\n<meta property="og:site_name" content="Carddex">\n<meta property="og:title" content="Carddex — Your Pokémon card collection">\n<meta property="og:description" content="' +
         cloudDescription +
-        '">\n<meta property="og:type" content="website">\n<script id="cloud-mode">window.CARDDEX_CLOUD=true;document.documentElement.classList.add("cloud-app");</script>\n<link rel="stylesheet" data-cloud-style href="/cloud.css">' +
-        [
-          'cloud.js',
-          'cloud-store.js',
-          'library.js',
-          'navigation.js',
-          'shell.js',
-          'ui.js',
-          'card-search-ui.js',
-          'card-detail.js',
-          'card-history-ui.js',
-          'card-history-model.js',
-          'set-picker.js',
-          'share-controls.js',
-        ]
-          .map((file) => `<link rel="modulepreload" data-cloud-style href="/${file}">`)
+        `">\n<meta property="og:type" content="website">\n<script id="cloud-mode">window.CARDDEX_CLOUD=true;document.documentElement.classList.add("cloud-app");</script>\n<link rel="stylesheet" data-cloud-style href="${appPath}/cloud.css">` +
+        appModules
+          .map((file) => `<link rel="modulepreload" data-cloud-style href="${appPath}/${file}">`)
           .join(''),
     )
     .replace(
       '</body>',
-      '<script type="module" data-cloud-client src="/cloud.js"></script>\n</body>',
+      `<script type="module" data-cloud-client src="${appPath}/cloud.js"></script>\n</body>`,
     ),
 );
-for (const file of [
-  'cloud.js',
-  'cloud-store.js',
-  'cloud.css',
-  'library.js',
-  'set-picker.js',
-  'navigation.js',
-  'shell.js',
-  'ui.js',
-  'card-search-ui.js',
-  'card-detail.js',
-  'card-history-ui.js',
-  'card-history-model.js',
-  'share-controls.js',
-  'share.js',
-  'share.css',
-])
+for (const file of ['share.js', 'share.css', 'passkeys.css'])
   await copyFile(`src/client/${file}`, `dist/${file}`);
+await build({
+  entryPoints: ['src/client/passkey-ui.js'],
+  bundle: true,
+  minify: true,
+  format: 'esm',
+  outfile: 'dist/passkey-ui.js',
+});
 await copyFile('scripts/TCGdex-LICENSE.txt', 'dist/TCGdex-LICENSE.txt');
 await writeFile(
   'dist/_headers',
-  '/sprites/*\n  Cache-Control: public, max-age=31536000, immutable\n',
+  '/\n  Cache-Control: private, no-store\n/sprites/*\n  Cache-Control: public, max-age=31536000, immutable\n',
 );
 if (process.argv.includes('--test-fixtures'))
   await copyFile('tests/fixtures/source-cards.json', 'dist/__test-source.json');

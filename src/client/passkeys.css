@@ -1,0 +1,77 @@
+:root {
+  color-scheme: light;
+  font:
+    16px/1.5 system-ui,
+    sans-serif;
+  color: #233a34;
+  background: #f7f8f3;
+}
+body {
+  margin: 0;
+  padding: clamp(20px, 8vw, 96px) 20px;
+}
+main {
+  max-width: 420px;
+  margin: auto;
+  padding: clamp(20px, 6vw, 36px);
+  border: 1px solid #dce4d7;
+  border-radius: 18px;
+  background: #fff;
+}
+.brand {
+  font-weight: 750;
+  margin: 0;
+}
+h1 {
+  margin: 8px 0 12px;
+  line-height: 1.2;
+}
+form {
+  display: grid;
+  gap: 8px;
+  margin: 18px 0;
+}
+button,
+input {
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 8px 14px;
+  font: inherit;
+  border: 1px solid #8a9a90;
+  border-radius: 8px;
+}
+button {
+  background: #233a34;
+  color: #fff;
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+a {
+  color: #233a34;
+}
+ul {
+  padding: 0;
+  list-style: none;
+}
+li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-block: 8px;
+  overflow-wrap: anywhere;
+}
+#passkey-status:empty {
+  display: none;
+}
+#invite {
+  margin-top: 24px;
+  border-top: 1px solid #dce4d7;
+}
+#invite-result:not([hidden]) {
+  display: grid;
+  gap: 8px;
+}

@@ -1,11 +1,23 @@
 .cloud-app:root {
-  --ink: #233a34;
-  --muted: #586c60;
-  --green: #385e4c;
-  --paper: #f7f8f3;
-  --line: #dce3da;
-  --app-header: 64px;
-  --app-nav: 216px;
+  color-scheme: light dark;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Consolas, monospace;
+  --ink: light-dark(#1b1b1b, #f2f1ee);
+  --on-ink: light-dark(#fff, #1b1b1b);
+  --ink-hover: light-dark(#383838, #d4d3d0);
+  --muted: light-dark(#60605e, #b6b6b2);
+  --paper: light-dark(#fcfcfb, #181818);
+  --surface: light-dark(#fff, #1c1c1c);
+  --rail: light-dark(#f5f5f3, #1f1f1f);
+  --mat: light-dark(#efefed, #262625);
+  --hover: light-dark(#e3e3df, #363634);
+  --line: light-dark(#dbdbd8, #3b3b39);
+  --field-line: light-dark(#838381, #898987);
+  --warning: light-dark(#805020, #e4b781);
+  --error: light-dark(#8b382b, #f1a596);
+  --radius: 3px;
+  --app-header: 56px;
+  --app-nav: 174px;
 }
 .cloud-app body {
   font-size: 16px;
@@ -39,7 +51,7 @@
 .cloud-app summary:focus-visible,
 .cloud-app input:focus-visible,
 .cloud-app select:focus-visible {
-  outline: 3px solid #547840;
+  outline: 2px solid var(--ink);
   outline-offset: 3px;
 }
 .cloud-app .sidebar,
@@ -63,26 +75,23 @@
 }
 .cloud-app .app-header {
   position: fixed;
-  inset: 0 0 auto var(--app-nav);
+  inset: 0 0 auto;
   z-index: 30;
   height: var(--app-header);
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 0 clamp(20px, 3vw, 48px);
-  background: #f7f8f3f5;
+  padding: 0 20px;
+  background: var(--paper);
   border-bottom: 1px solid var(--line);
-  backdrop-filter: blur(12px);
 }
 .cloud-app .app-header h1 {
-  font-size: 20px;
-  letter-spacing: -0.5px;
-  margin: 0;
-  min-width: 0;
-  flex: 1;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  position: absolute;
+  width: 1px;
+  height: 1px;
   overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 .cloud-app .app-header h1:focus {
   outline: none;
@@ -97,17 +106,26 @@
   font-size: 23px;
   line-height: 1;
   border: 1px solid var(--line);
-  border-radius: 12px;
-  background: white;
+  border-radius: var(--radius);
+  background: var(--surface);
   color: var(--ink);
 }
 .cloud-app .save-chip {
   min-height: 44px;
-  padding: 8px 10px;
-  color: var(--green);
-  font-size: 13px;
+  min-width: 44px;
+  margin-left: auto;
+  padding: 8px;
+  color: var(--ink);
+  font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
+  border-radius: var(--radius);
+}
+.cloud-app .save-chip[data-state='saved'] {
+  font-size: 0;
+}
+.cloud-app .save-chip[data-state='saved']::before {
+  margin: 0;
 }
 .cloud-app .save-chip::before {
   content: '';
@@ -116,75 +134,75 @@
   height: 7px;
   margin-right: 7px;
   border-radius: 50%;
-  background: #5e7d4c;
+  background: var(--muted);
 }
 .cloud-app .save-chip[data-state='warning'],
 .cloud-app .save-chip[data-state='pending'] {
-  color: #805020;
+  color: var(--warning);
 }
 .cloud-app .save-chip[data-state='warning']::before,
 .cloud-app .save-chip[data-state='pending']::before {
-  background: #9a672b;
+  background: var(--warning);
 }
 .cloud-app .app-nav {
   position: fixed;
-  inset: 0 auto 0 0;
+  inset: var(--app-header) auto 0 0;
   z-index: 35;
   display: flex;
   flex-direction: column;
   gap: 8px;
   width: var(--app-nav);
-  padding: 28px 16px;
-  background: #edf1e8;
+  padding: 20px 12px;
+  background: var(--rail);
   border-right: 1px solid var(--line);
 }
 .cloud-app .app-brand {
-  display: flex;
-  gap: 10px;
+  display: inline-flex;
   align-items: center;
+  min-height: 44px;
+  margin-right: 8px;
   color: var(--ink);
   font-weight: 800;
-  font-size: 25px;
-  letter-spacing: -1px;
+  font-size: 17px;
+  letter-spacing: 0.12em;
   text-decoration: none;
-  padding: 0 4px 32px;
 }
 .cloud-app .app-nav > button {
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-height: 50px;
-  padding: 12px;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px;
   text-align: left;
-  font-weight: 650;
+  font-weight: 550;
   font-size: 14px;
-  border-radius: 12px;
+  border-radius: var(--radius);
 }
-.cloud-app .app-nav > button > span {
-  width: 24px;
-  text-align: center;
-  font-size: 23px;
-  line-height: 1;
+.cloud-app .app-nav svg,
+.cloud-app .app-header svg,
+.cloud-app .search-results-heading svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
 }
 .cloud-app .app-nav small {
   margin-left: auto;
   font-size: 12px;
 }
 .cloud-app .app-nav button[aria-current='page'] {
-  background: var(--ink);
-  color: white;
+  background: var(--mat);
+  font-weight: 700;
 }
 .cloud-app .app-nav .nav-add {
-  margin-top: 16px;
-  border: 1px solid #a8b8a2;
-  background: #dfeacb;
-  color: var(--ink);
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
 }
 .cloud-app .primary-button,
 .cloud-app .secondary-button {
   min-height: 44px;
   padding: 11px 16px;
-  border-radius: 12px;
+  border-radius: var(--radius);
   font-size: 14px;
   line-height: 1.4;
   font-weight: 650;
@@ -192,19 +210,22 @@
 .cloud-app .primary-button {
   background: var(--ink);
   border: 1px solid var(--ink);
-  color: white;
+  color: var(--on-ink);
 }
 .cloud-app .secondary-button {
-  background: white;
-  border: 1px solid #b7c5b1;
+  background: var(--surface);
+  border: 1px solid var(--field-line);
   color: var(--ink);
 }
 .cloud-app .primary-button:hover {
-  background: var(--green);
+  background: var(--ink-hover);
 }
-.cloud-app .secondary-button:hover {
-  border-color: var(--green);
-  background: #f0f5e8;
+.cloud-app
+  :is(.secondary-button, .icon-button, .save-chip, .mobile-view-button):hover:not(:disabled),
+.cloud-app .app-nav > button:hover:not(:disabled),
+.cloud-app :is(.filter-panel, .card-source-details) > summary:hover,
+.cloud-app .view-menu button:hover {
+  background: var(--hover);
 }
 .cloud-app label,
 .cloud-app .field-label {
@@ -218,21 +239,39 @@
   min-width: 0;
 }
 .cloud-app input:not([type='checkbox']):not([type='radio']),
-.cloud-app select {
+.cloud-app select,
+.cloud-app .mobile-generation select {
   width: 100%;
   min-width: 0;
-  min-height: 48px;
-  padding: 10px 12px;
-  border: 1px solid #87998a;
-  border-radius: 10px;
-  background: white;
+  min-height: 44px;
+  padding: 9px 12px;
+  border: 1px solid var(--field-line);
+  border-radius: var(--radius);
+  background: var(--surface);
   color: var(--ink);
   font-size: 16px;
   line-height: 1.4;
 }
+.cloud-app select,
+.cloud-app .mobile-generation select {
+  appearance: none;
+  padding-right: 32px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    right 16px center,
+    right 12px center;
+  background-size: 4px 4px;
+  background-repeat: no-repeat;
+}
 .cloud-app input::placeholder {
-  color: #647469;
+  color: var(--muted);
   opacity: 1;
+}
+.cloud-app input[type='checkbox'],
+.cloud-app input[type='radio'] {
+  accent-color: var(--ink);
 }
 .cloud-app .muted {
   color: var(--muted);
@@ -270,10 +309,11 @@
 }
 .cloud-app .progress-track {
   height: 6px;
-  background: #e1e7dc;
+  border-radius: var(--radius);
+  background: var(--line);
 }
 .cloud-app .progress-fill {
-  background: var(--green);
+  background: var(--ink);
 }
 .cloud-app .section-title .gen-tag {
   display: none;
@@ -295,12 +335,13 @@
 }
 .cloud-app .search-box {
   max-width: none;
+  border-color: var(--field-line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--muted);
 }
-.cloud-app .search-box input {
-  padding-left: 42px;
-  border: 0;
-  background: none;
-  padding-left: 0;
+.cloud-app .search-box > svg {
+  color: var(--muted);
 }
 .cloud-app .search-box input:not([type='checkbox']):not([type='radio']) {
   border: 0;
@@ -308,13 +349,8 @@
   padding-left: 0;
 }
 .cloud-app .search-box:focus-within {
-  outline: 3px solid #547840;
+  outline: 2px solid var(--ink);
   outline-offset: 3px;
-}
-.cloud-app .app-mark {
-  display: none;
-  color: var(--ink);
-  flex: none;
 }
 .cloud-app body[data-cloud-view='collections'] #library-title,
 .cloud-app body[data-cloud-view='wishlist'] #library-title {
@@ -322,13 +358,26 @@
 }
 .cloud-app .filters {
   margin: 0;
-  gap: 0;
-  padding: 3px;
+  gap: 2px;
+  padding: 0;
+  background: none;
+  border-radius: var(--radius);
 }
 .cloud-app .filter {
   min-height: 44px;
   padding: 9px 11px;
   font-size: 13px;
+  color: var(--ink);
+  border-radius: var(--radius);
+}
+.cloud-app .filter[aria-pressed='true'] {
+  color: var(--ink);
+  background: var(--mat);
+  box-shadow: none;
+}
+.cloud-app .filter:hover,
+.cloud-app .filter[aria-pressed='true']:hover {
+  background: var(--hover);
 }
 .cloud-app .filter span {
   display: none;
@@ -353,8 +402,8 @@
   height: 44px;
   padding: 10px;
   border: 1px solid var(--line);
-  border-radius: 10px;
-  background: white;
+  border-radius: var(--radius);
+  background: var(--surface);
 }
 .cloud-app .results-meta {
   padding-top: 9px;
@@ -366,6 +415,7 @@
 .cloud-app .clear-filters {
   min-height: 44px;
   font-size: 12px;
+  color: var(--muted);
 }
 .cloud-app .cards {
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -375,16 +425,32 @@
   position: relative;
   min-height: 160px;
   padding: 10px;
-  border-radius: 14px;
+  border: 1px solid transparent;
+  border-radius: 0;
+  background: var(--mat);
+  box-shadow: none;
+}
+.cloud-app .pokemon-card:has(input:checked) {
+  border-color: var(--field-line);
+  background: var(--mat);
 }
 .cloud-app .pokemon-card:hover {
-  border-color: #b9c8b1;
+  border-color: var(--field-line);
+  background: var(--hover);
+  box-shadow: none;
+}
+.cloud-app .pokemon-card:has(input:focus-visible) {
+  outline: 2px solid var(--ink);
 }
 .cloud-app .card-top {
   align-items: center;
   min-height: 36px;
 }
-.cloud-app .dex-number {
+.cloud-app .dex-number,
+.cloud-app .library-dex,
+.cloud-app [data-card-number] {
+  font-family: var(--mono);
+  color: var(--muted);
   font-size: 12px;
 }
 .cloud-app .species-check {
@@ -399,8 +465,8 @@
   z-index: 1;
 }
 .cloud-app .species-check input {
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
   margin: 0;
 }
 .cloud-app .have-flag,
@@ -432,34 +498,72 @@
   outline: none;
 }
 .cloud-app .pokemon-open:focus-visible::after {
-  outline: 3px solid #547840;
+  outline: 2px solid var(--ink);
   outline-offset: 2px;
-  border-radius: 14px;
+  border-radius: var(--radius);
 }
 .cloud-app .pokemon-open small {
   display: block;
   min-height: 18px;
   font-size: 12px;
-  color: var(--green);
+  color: var(--ink);
   font-weight: 600;
   margin-top: 2px;
 }
-.cloud-app .cards.list {
-  grid-template-columns: 1fr;
-}
-.cloud-app .cards.list .pokemon-card {
-  min-height: 80px;
-}
-.cloud-app .cards.list .pokemon-open {
-  text-align: left;
-}
-.cloud-app .cards.list .sprite {
-  width: 52px;
-  height: 48px;
-  transform: none;
-}
-.cloud-app .cards.list .species-check {
-  margin: 0;
+@media screen {
+  .cloud-app .cards.list {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .cloud-app .cards.list .pokemon-card {
+    display: grid;
+    grid-template-columns: 54px 40px minmax(0, 1fr) 44px;
+    align-items: center;
+    gap: 8px;
+    min-height: 52px;
+    padding: 3px 8px;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    background: none;
+  }
+  .cloud-app .cards.list .pokemon-card:hover {
+    background: var(--mat);
+  }
+  .cloud-app .cards.list :is(.card-top, .card-main) {
+    display: contents;
+  }
+  .cloud-app .cards.list :is(.dex-number, .sprite, .card-info, .species-check) {
+    grid-row: 1;
+  }
+  .cloud-app .cards.list .dex-number {
+    grid-column: 1;
+  }
+  .cloud-app .cards.list .card-info {
+    grid-column: 3;
+    min-width: 0;
+  }
+  .cloud-app .cards.list .pokemon-open {
+    margin: 0;
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+  .cloud-app .cards.list .pokemon-open small:empty {
+    display: none;
+  }
+  .cloud-app .cards.list .sprite {
+    grid-column: 2;
+    width: 40px;
+    height: 40px;
+    margin: 0;
+    transform: none;
+  }
+  .cloud-app .cards.list .species-check {
+    grid-column: 4;
+    margin: 0;
+  }
+  .cloud-app .cards.list .species-check input {
+    position: static;
+  }
 }
 .cloud-app .section-head {
   margin: 22px 0 12px;
@@ -468,6 +572,7 @@
   font-size: 18px;
 }
 .cloud-app .section-progress {
+  color: var(--muted);
   font-size: 12px;
 }
 .cloud-app .section-head p {
@@ -482,8 +587,8 @@
 }
 .cloud-app .screen-intro h2,
 .cloud-app .view-heading h2 {
-  font-size: 28px;
-  letter-spacing: -0.8px;
+  font-size: clamp(28px, 4vw, 42px);
+  letter-spacing: -0.04em;
   margin: 0 0 8px;
   line-height: 1.2;
   overflow-wrap: anywhere;
@@ -538,9 +643,9 @@
   min-width: 180px;
   padding: 8px;
   border: 1px solid var(--line);
-  border-radius: 12px;
-  background: white;
-  box-shadow: 0 8px 24px #233a3414;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 8px 24px #00000014;
 }
 .cloud-app .view-menu button {
   display: block;
@@ -553,8 +658,8 @@
 .cloud-app .filter-panel {
   margin-bottom: 20px;
   border: 1px solid var(--line);
-  border-radius: 12px;
-  background: #fff9;
+  border-radius: var(--radius);
+  background: var(--rail);
 }
 .cloud-app .filter-panel > summary {
   min-height: 48px;
@@ -565,7 +670,7 @@
 }
 .cloud-app .filter-panel > summary > span {
   margin-left: 8px;
-  color: var(--green);
+  color: var(--ink);
   font-size: 12px;
 }
 .cloud-app #library-filters,
@@ -577,10 +682,13 @@
 }
 .cloud-app #library-message,
 .cloud-app #detail-message.is-error {
-  color: #805020;
+  color: var(--warning);
   font-size: 14px;
 }
-.cloud-app #library-message:empty {
+.cloud-app #library-message:empty,
+.cloud-app #library-summary:empty,
+.cloud-app #search-context:empty,
+.cloud-app .search-pages:has(#search-page:empty):not(:has(button:not([hidden]))) {
   display: none;
 }
 .cloud-app #detail-message {
@@ -594,8 +702,8 @@
   gap: 14px;
   align-items: center;
   padding: 16px;
-  background: #f1ead7;
-  border-radius: 12px;
+  background: var(--mat);
+  border-radius: var(--radius);
   font-size: 14px;
   margin-bottom: 20px;
 }
@@ -617,32 +725,33 @@
 .cloud-app .tcg-card,
 .cloud-app .search-card {
   min-width: 0;
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: white;
-  overflow: hidden;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
 }
 .cloud-app .card-open {
   display: block;
   width: 100%;
   padding: 0;
   text-align: left;
-  border-radius: 10px;
+  border-radius: var(--radius);
 }
 .cloud-app .tcg-picture {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  aspect-ratio: 245/342;
+  aspect-ratio: 1;
+  padding: 10%;
   overflow: hidden;
-  border-radius: 9px;
-  background: #edf1e8;
+  background: var(--mat);
   color: var(--muted);
   font-size: 14px;
   line-height: 1.5;
   text-align: center;
+}
+.cloud-app .card-open:hover .tcg-picture,
+.cloud-app .image-open:hover .tcg-picture {
+  background: var(--hover);
 }
 .cloud-app .tcg-picture > span {
   padding: 20px 12px;
@@ -655,8 +764,8 @@
 }
 .cloud-app .card-caption {
   display: grid;
-  gap: 5px;
-  padding: 13px 1px 2px;
+  gap: 3px;
+  padding: 10px 0 2px;
 }
 .cloud-app .card-caption strong {
   font-size: 17px;
@@ -678,16 +787,16 @@
 .cloud-app .ownership-badges > span {
   font-size: 12px;
   padding: 3px 7px;
-  border-radius: 6px;
-  background: #f0f2eb;
+  border-radius: var(--radius);
+  background: var(--mat);
 }
 .cloud-app .ownership-badges .owned-badge {
-  background: #e5eed7;
-  color: #385333;
+  background: var(--mat);
+  color: var(--ink);
 }
 .cloud-app .ownership-badges .wanted-badge {
-  background: #f6ecd5;
-  color: #775020;
+  background: var(--mat);
+  color: var(--warning);
 }
 .cloud-app .tcg-members {
   font-size: 12px;
@@ -705,9 +814,9 @@
   grid-column: 1/-1;
   padding: 30px 18px;
   text-align: center;
-  border: 1px dashed #bdcbb6;
-  border-radius: 16px;
-  background: #fff8;
+  border: 1px dashed var(--field-line);
+  border-radius: var(--radius);
+  background: var(--rail);
   color: var(--muted);
 }
 .cloud-app .library-empty h3 {
@@ -727,6 +836,9 @@
   font-size: 12px;
   color: var(--muted);
 }
+.cloud-app .library-footer a {
+  color: inherit;
+}
 .cloud-app .collection-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
@@ -734,15 +846,16 @@
 }
 .cloud-app .collection-tile {
   display: grid;
-  gap: 12px;
-  padding: 22px;
+  gap: 8px;
+  padding: 0 0 14px;
   text-align: left;
-  background: white;
-  border: 1px solid var(--line);
-  border-radius: 16px;
+  border-bottom: 1px solid var(--line);
 }
 .cloud-app .collection-tile:hover {
-  border-color: #a8b8a2;
+  border-color: var(--field-line);
+}
+.cloud-app .collection-tile:hover .goal-art {
+  background: var(--hover);
 }
 .cloud-app .collection-tile strong {
   font-size: 19px;
@@ -755,41 +868,42 @@
 }
 .cloud-app .goal-art {
   display: flex;
-  height: 84px;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  min-height: 132px;
+  padding: 10px;
+  background: var(--mat);
 }
 .cloud-app .goal-art img {
-  width: 60px;
-  height: 84px;
-  object-fit: cover;
-  border-radius: 4px;
-  background: #e6edda;
-  box-shadow: 0 1px 3px #23302a33;
-}
-.cloud-app .goal-art img + img {
-  margin-left: -22px;
+  width: min(26%, 68px);
+  height: auto;
+  aspect-ratio: 245 / 342;
+  object-fit: contain;
 }
 .cloud-app .goal-art.is-empty::before {
   content: '';
-  width: 60px;
-  border: 1px dashed #b7c5b1;
-  border-radius: 4px;
+  width: 54px;
+  aspect-ratio: 245 / 342;
+  border: 1px dashed var(--field-line);
+  border-radius: var(--radius);
 }
 .cloud-app progress {
   display: block;
   width: 100%;
   height: 7px;
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--radius);
   overflow: hidden;
-  accent-color: #5a7d42;
-  background: #e5eadd;
+  accent-color: var(--ink);
+  background: var(--line);
 }
 .cloud-app progress::-webkit-progress-bar {
-  background: #e5eadd;
+  background: var(--line);
 }
 .cloud-app progress::-webkit-progress-value {
-  background: #5a7d42;
-  border-radius: 10px;
+  background: var(--ink);
+  border-radius: var(--radius);
 }
 .cloud-app .collection-progress {
   margin-top: 12px;
@@ -802,8 +916,8 @@
   padding: 20px;
   margin-bottom: 24px;
   border: 1px solid var(--line);
-  border-radius: 14px;
-  background: white;
+  border-radius: var(--radius);
+  background: var(--surface);
 }
 .cloud-app .form-actions {
   display: flex;
@@ -838,14 +952,19 @@
 .cloud-app #card-search-form {
   margin-bottom: 28px;
 }
-.cloud-app .search-submit {
-  min-width: 150px;
-}
 .cloud-app .search-results-heading {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 14px;
+  gap: 8px 14px;
+  flex-wrap: wrap;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.cloud-app .search-results-heading > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 .cloud-app .search-results-heading h2 {
   font-size: 20px;
@@ -867,17 +986,6 @@
   margin-top: 24px;
   font-size: 14px;
 }
-.cloud-app .search-more {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px 16px;
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid var(--line);
-  font-size: 14px;
-  color: var(--muted);
-}
 .cloud-app #set-picker > * {
   max-width: 720px;
 }
@@ -893,9 +1001,9 @@
   display: none;
 }
 .cloud-app .set-picker-list {
-  background: white;
+  background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--radius);
   overflow: hidden;
 }
 .cloud-app .set-picker-results {
@@ -919,12 +1027,12 @@
 }
 .cloud-app .set-choice:hover,
 .cloud-app .set-any:hover {
-  background: #f3f6ee;
+  background: var(--hover);
 }
 .cloud-app .set-choice[aria-pressed='true'],
 .cloud-app .set-any[aria-pressed='true'] {
-  background: #eaf1e1;
-  box-shadow: inset 3px 0 0 var(--green);
+  background: var(--mat);
+  box-shadow: inset 3px 0 0 var(--ink);
 }
 .cloud-app .set-choice-text {
   display: grid;
@@ -979,29 +1087,41 @@
 }
 .cloud-app .image-open {
   display: block;
-  width: min(100%, 360px);
-  margin: auto;
+  width: 100%;
   padding: 0;
-  border-radius: 14px;
 }
 .cloud-app .detail-info h2 {
-  font-size: 30px;
-  letter-spacing: -0.8px;
-  line-height: 1.2;
-  margin: 12px 0 8px;
+  font-size: clamp(34px, 5vw, 60px);
+  letter-spacing: -0.055em;
+  line-height: 1;
+  margin: 0 0 20px;
   overflow-wrap: anywhere;
 }
-.cloud-app .detail-set {
-  margin: 0 0 8px;
-  font-size: 17px;
+.cloud-app .detail-record {
+  margin: 0 0 20px;
+  border-top: 1px solid var(--line);
 }
-.cloud-app .detail-info > .muted {
+.cloud-app .detail-record > div {
+  display: grid;
+  grid-template-columns: minmax(92px, 1fr) 2fr;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
   font-size: 14px;
-  margin: 0 0 24px;
+}
+.cloud-app .detail-record dt {
+  color: var(--muted);
+}
+.cloud-app .detail-record dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.cloud-app .detail-record > div:nth-child(2) dd {
+  font-family: var(--mono);
 }
 .cloud-app .language-badge {
   font-size: 13px;
-  color: var(--green);
+  color: var(--ink);
   font-weight: 650;
 }
 .cloud-app .finish-field {
@@ -1042,16 +1162,16 @@
   min-height: 48px;
 }
 .cloud-app .want-button[aria-pressed='true'] {
-  color: var(--green);
-  background: #e6eedb;
-  border-color: #9cb28b;
+  color: var(--ink);
+  background: var(--mat);
+  border-color: var(--field-line);
 }
 .cloud-app .goal-context {
   margin: 16px 0;
   padding: 12px;
-  background: #eaf0df;
-  color: var(--green);
-  border-radius: 10px;
+  background: var(--mat);
+  color: var(--ink);
+  border-radius: var(--radius);
   font-size: 14px;
 }
 .cloud-app .goal-context button {
@@ -1086,7 +1206,7 @@
   width: 24px;
   height: 24px;
   flex: none;
-  accent-color: var(--green);
+  accent-color: var(--ink);
 }
 .cloud-app .membership-list span {
   min-width: 0;
@@ -1108,13 +1228,13 @@
   max-height: calc(100dvh - 24px);
   padding: 24px;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: var(--radius);
   overflow-y: auto;
   background: var(--paper);
   color: var(--ink);
 }
 .cloud-app dialog::backdrop {
-  background: #102b2499;
+  background: #0009;
   backdrop-filter: blur(3px);
 }
 .cloud-app .utility-dialog .dialog-head {
@@ -1153,12 +1273,12 @@
   min-height: 48px;
   padding: 12px;
   text-align: left;
-  border-radius: 10px;
+  border-radius: var(--radius);
   font-size: 15px;
   font-weight: 650;
 }
 .cloud-app .account-tools button:hover {
-  background: #e9eedf;
+  background: var(--hover);
 }
 .cloud-app .account-tools small {
   color: var(--muted);
@@ -1193,7 +1313,7 @@
   text-decoration: none;
 }
 .cloud-app #sharing-pending {
-  color: #805020;
+  color: var(--warning);
   font-size: 14px;
 }
 .cloud-app #sharing-status {
@@ -1209,7 +1329,7 @@
   margin-top: 20px;
 }
 .cloud-app #sharing-stop {
-  color: #8b382b;
+  color: var(--error);
 }
 .cloud-app .cloud-conflict {
   padding: 18px 0;
@@ -1227,9 +1347,9 @@
   max-height: calc(100dvh - 24px);
   padding: 60px 16px 16px;
   border: 0;
-  border-radius: 16px;
-  background: #132b25;
-  color: white;
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
 }
 .cloud-app .image-dialog #image-close {
   position: absolute;
@@ -1246,13 +1366,15 @@
 .cloud-app .toast {
   z-index: 80;
   bottom: 24px;
+  left: calc(50% + var(--app-nav) / 2);
+  border-color: var(--line);
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: var(--on-ink);
   width: max-content;
   font-size: 14px;
 }
 @media (max-width: 900px) {
-  .cloud-app .app-header:has(#app-back[hidden]) .app-mark {
-    display: block;
-  }
   .cloud-app:root {
     --app-nav: 0px;
     --app-header: 60px;
@@ -1265,9 +1387,6 @@
     padding: 0 16px;
     gap: 8px;
   }
-  .cloud-app .app-header h1 {
-    font-size: 19px;
-  }
   .cloud-app .app-nav {
     inset: auto 0 0;
     width: 100%;
@@ -1279,11 +1398,7 @@
     gap: 4px;
     border-right: 0;
     border-top: 1px solid var(--line);
-    background: #f7f8f3fa;
-    backdrop-filter: blur(12px);
-  }
-  .cloud-app .app-nav .app-brand {
-    display: none;
+    background: var(--paper);
   }
   .cloud-app .app-nav > button {
     display: flex;
@@ -1299,9 +1414,6 @@
     line-height: 1.3;
     position: relative;
   }
-  .cloud-app .app-nav > button > span {
-    font-size: 24px;
-  }
   .cloud-app .app-nav .nav-add {
     margin-top: 0;
     border: 0;
@@ -1314,9 +1426,9 @@
     min-width: 16px;
     padding: 0 4px;
     font-size: 12px;
-    background: #e5ebda;
+    background: var(--mat);
     color: var(--ink);
-    border-radius: 5px;
+    border-radius: var(--radius);
   }
   .cloud-app .controls-row {
     grid-template-columns: minmax(0, 1fr) minmax(100px, 1fr) 44px;
@@ -1406,9 +1518,6 @@
     width: 100%;
     justify-content: space-between;
   }
-  .cloud-app .view-actions > .primary-button {
-    flex: 1;
-  }
   .cloud-app .screen-intro {
     margin-bottom: 20px;
   }
@@ -1416,11 +1525,6 @@
   .cloud-app .search-results {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
-  }
-  .cloud-app .tcg-card,
-  .cloud-app .search-card {
-    padding: 9px;
-    border-radius: 13px;
   }
   .cloud-app .card-caption strong {
     font-size: 15px;
@@ -1444,9 +1548,6 @@
   .cloud-app .search-number-fields {
     grid-template-columns: 1fr;
   }
-  .cloud-app .search-submit {
-    width: 100%;
-  }
   .cloud-app .search-results-heading h2 {
     font-size: 18px;
   }
@@ -1456,9 +1557,6 @@
   }
   .cloud-app .detail-art {
     position: static;
-  }
-  .cloud-app .image-open {
-    width: min(58vw, 260px);
   }
   .cloud-app #card-detail {
     padding-bottom: calc(180px + env(safe-area-inset-bottom));
@@ -1472,10 +1570,9 @@
     margin: 0;
     padding: 10px;
     border: 1px solid var(--line);
-    border-radius: 14px;
-    background: #f7f8f3f5;
-    box-shadow: 0 6px 24px #233a341a;
-    backdrop-filter: blur(12px);
+    border-radius: var(--radius);
+    background: var(--paper);
+    box-shadow: 0 6px 24px #0000001a;
     flex-wrap: nowrap;
     gap: 10px;
   }
@@ -1491,9 +1588,6 @@
   .cloud-app #card-detail input,
   .cloud-app #card-detail select {
     scroll-margin-bottom: 180px;
-  }
-  .cloud-app .detail-info h2 {
-    font-size: 27px;
   }
   .cloud-app #library-legacy {
     flex-direction: column;
@@ -1548,9 +1642,15 @@
   background: none;
   min-height: 36px;
   padding: 5px 0;
-  color: var(--green);
+  color: var(--ink);
   font-size: 13px;
   cursor: pointer;
+}
+.cloud-app .history-text-button:hover:not(:disabled),
+.cloud-app .history-filters button:hover {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .cloud-app .history-filters {
   display: flex;
@@ -1590,7 +1690,7 @@
   overflow: hidden;
 }
 .cloud-app .history-method {
-  color: #7a8b6e;
+  color: var(--muted);
   padding-top: 3px;
 }
 .cloud-app .history-entry-main {
@@ -1626,12 +1726,12 @@
   padding: 5px;
   margin: -4px -5px -4px 0;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--radius);
   background: none;
-  color: #8b9980;
+  color: var(--muted);
 }
 .cloud-app .history-edit:hover {
-  background: #edf1e6;
+  background: var(--hover);
 }
 .cloud-app .history-edit .history-icon {
   width: 14px;
@@ -1655,7 +1755,7 @@
 }
 .cloud-app .history-entry-main .history-ownership {
   margin-top: 10px;
-  color: #8a7662;
+  color: var(--muted);
   font-size: 11px;
 }
 .cloud-app .history-change {
@@ -1689,7 +1789,7 @@
   height: 12px;
 }
 .cloud-app .past-badge {
-  color: #866f54;
+  color: var(--muted);
 }
 .cloud-app .card-history-plan p,
 .cloud-app .card-history-plan a {
@@ -1707,7 +1807,7 @@
   background: var(--paper);
 }
 .cloud-app .history-dialog::backdrop {
-  background: #23372d4a;
+  background: #0005;
   backdrop-filter: none;
 }
 .cloud-app body:has(.history-dialog[open]) {
@@ -1751,7 +1851,7 @@
   gap: 11px;
 }
 .cloud-app .history-dialog .mini-card img {
-  border-radius: 3px;
+  border-radius: var(--radius);
   object-fit: cover;
 }
 .cloud-app .history-dialog .mini-card strong,
@@ -1794,7 +1894,7 @@
   width: 16px;
   height: 16px;
   margin: 0;
-  accent-color: var(--green);
+  accent-color: var(--ink);
 }
 .cloud-app .history-dialog .purpose-options input:disabled + span {
   opacity: 0.4;
@@ -1824,16 +1924,16 @@
   gap: 7px;
   min-height: 65px;
   padding: 7px 2px;
-  border-radius: 6px;
-  color: #87967a;
+  border-radius: var(--radius);
+  color: var(--muted);
   font-size: 11px;
 }
 .cloud-app .history-dialog .method-options input:checked + span {
   color: var(--ink);
-  background: #e9eee2;
+  background: var(--mat);
 }
 .cloud-app .history-dialog .method-options input:focus-visible + span {
-  outline: 3px solid #547840;
+  outline: 2px solid var(--ink);
   outline-offset: 3px;
 }
 .cloud-app .history-dialog .form-grid {
@@ -1845,7 +1945,7 @@
   grid-template-columns: 1.5fr 1fr;
 }
 .cloud-app .history-dialog .optional {
-  color: #8b9980;
+  color: var(--muted);
   font-size: 10px;
   font-weight: 400;
 }
@@ -1857,11 +1957,11 @@
   font: inherit;
   font-size: 16px;
   color: var(--ink);
-  border: 1px solid #87998a;
-  border-radius: 10px;
+  border: 1px solid var(--field-line);
+  border-radius: var(--radius);
 }
 .cloud-app .history-dialog textarea:focus-visible {
-  outline: 3px solid #547840;
+  outline: 2px solid var(--ink);
   outline-offset: 3px;
 }
 .cloud-app .history-dialog .money-input {
@@ -1909,10 +2009,10 @@
   padding: 5px 0;
   background: none;
   font-size: 11px;
-  color: #9c6257;
+  color: var(--error);
 }
 .cloud-app .history-error {
-  color: #9d483a;
+  color: var(--error);
   font-size: 13px;
 }
 .cloud-app .history-dialog .removal-card-reference {
@@ -1936,7 +2036,7 @@
   height: 16px;
   min-height: 0;
   margin: 0;
-  accent-color: var(--green);
+  accent-color: var(--ink);
 }
 .cloud-app .history-dialog .removal-choice strong {
   display: block;

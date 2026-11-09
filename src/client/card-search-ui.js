@@ -1,6 +1,8 @@
 import { escape, picture, bindImages, languageName, credits, plural } from './ui.js';
 import { createSetPicker } from './set-picker.js';
 
+const filterPrompt = 'Enter a name, set, or card number to filter saved cards.';
+
 export function createCardSearch({
   app,
   api,
@@ -15,11 +17,10 @@ export function createCardSearch({
   screen.className = 'app-screen';
   screen.dataset.cloudUi = '';
   screen.hidden = true;
-  screen.innerHTML = `<div class="screen-intro"><h2 id="card-search-title">Find a card</h2><p id="search-context">Start with a Pokémon name, or use a set and card number.</p></div>
-    <form id="card-search-form"><div class="search-main-fields"><label>Pokémon or card name<input id="card-search-name" type="search" maxlength="100" placeholder="For example: Arcanine" autocomplete="off"></label><label>Language<select id="card-search-language"><option value="en">English</option><option value="ja">Japanese</option></select></label></div>
-    <details id="search-by-number" class="filter-panel"><summary>Set and card number <span id="search-set-chip"></span></summary><div class="search-number-fields"><div class="search-set-field"><span>Set</span><div class="selected-set"><button class="secondary-button" id="choose-search-set" type="button">Choose a set</button><button class="icon-button" id="clear-search-set" type="button" aria-label="Clear selected set" hidden>×</button></div><input id="card-search-set" type="hidden"><small id="selected-set-detail"></small></div><label>Card number<input id="card-search-number" maxlength="20" placeholder="For example: 001/165"></label></div></details>
-    <button class="primary-button search-submit" type="submit">Search cards</button></form>
-    <div class="search-results-heading"><h2 id="search-scope">In Carddex</h2></div><p id="card-search-status" role="status">Search for a card you own or want.</p><button class="secondary-button" id="search-retry" hidden>Try again</button><div id="card-search-results" class="search-results"></div><div class="search-pages"><button class="secondary-button" id="search-previous" hidden>Previous</button><span id="search-page"></span><button class="secondary-button" id="search-next" hidden>Next</button></div><p class="search-more"><span id="search-more-text">Not listed? TCGdex has every printing.</span><button class="secondary-button" id="search-external">Search TCGdex</button></p>${credits}`;
+  screen.innerHTML = `<div class="screen-intro"><h2 id="card-search-title">Add a card</h2><p id="search-context"></p></div>
+    <form id="card-search-form" aria-label="Filter saved cards"><div class="search-main-fields"><label>Filter saved cards<input id="card-search-name" type="search" maxlength="100" placeholder="Pokémon or card name" autocomplete="off"></label><label>Language<select id="card-search-language"><option value="en">English</option><option value="ja">Japanese</option></select></label></div>
+    <details id="search-by-number" class="filter-panel"><summary>Set and card number <span id="search-set-chip"></span></summary><div class="search-number-fields"><div class="search-set-field"><span>Set</span><div class="selected-set"><button class="secondary-button" id="choose-search-set" type="button">Choose a set</button><button class="icon-button" id="clear-search-set" type="button" aria-label="Clear selected set" hidden>×</button></div><input id="card-search-set" type="hidden"><small id="selected-set-detail"></small></div><label>Card number<input id="card-search-number" maxlength="20" placeholder="For example, 001/165"></label></div></details></form>
+    <div class="search-results-heading"><h2 id="search-scope" tabindex="-1">Saved cards</h2><button class="secondary-button" id="search-external"><svg aria-hidden="true"><use href="#i-search"/></svg>Search TCGdex</button><button class="secondary-button" id="filter-saved" hidden>Back to saved cards</button></div><p id="card-search-status" role="status"></p><button class="secondary-button" id="search-retry" hidden>Try again</button><div id="card-search-results" class="search-results"></div><div class="search-pages"><button class="secondary-button" id="search-previous" hidden>Previous</button><span id="search-page"></span><button class="secondary-button" id="search-next" hidden>Next</button></div>${credits}`;
   document.body.append(screen);
   const $ = (id) => screen.querySelector(`#${id}`);
   let context = {},
@@ -29,6 +30,8 @@ export function createCardSearch({
     external = false,
     lastRequest,
     busy = false,
+    locked = false,
+    filterTimer,
     controller;
   const cardsByKey = new Map();
   const picker = createSetPicker(api, navigation, shell);
@@ -81,6 +84,8 @@ export function createCardSearch({
     $('card-search-results').classList.remove('is-stale');
   }
   function resetResults(message, keep = false) {
+    clearTimeout(filterTimer);
+    filterTimer = undefined;
     generation++;
     controller?.abort();
     controller = null;
@@ -88,16 +93,37 @@ export function createCardSearch({
     screen.removeAttribute('aria-busy');
     if (!keep) clearResults();
     else if (cardsByKey.size) $('card-search-results').classList.add('is-stale');
-    message ??= cardsByKey.size
-      ? 'These results are from your last search. Search again to update them.'
-      : 'Search again to use these details.';
+    $('card-search-results').inert = keep;
     $('search-page').textContent = '';
     $('search-previous').hidden = $('search-next').hidden = $('search-retry').hidden = true;
-    $('search-external').disabled = false;
-    screen.querySelector('[type="submit"]').disabled = false;
+    $('search-external').disabled = locked;
     $('card-search-status').textContent = message;
   }
-  function selectSet(set, remember = true) {
+  function setScope(all) {
+    external = all;
+    $('search-scope').textContent = all ? 'TCGdex results' : 'Saved cards';
+    $('search-external').hidden = all;
+    $('filter-saved').hidden = !all;
+  }
+  function hasFilters() {
+    return Boolean(
+      context.pokemon ||
+      context.collection ||
+      $('card-search-name').value.trim() ||
+      $('card-search-set').value ||
+      $('card-search-number').value.trim(),
+    );
+  }
+  function filterSaved(delay = 0) {
+    const hasInput = hasFilters();
+    resetResults(hasInput ? 'Filtering saved cards…' : filterPrompt, hasInput && !external);
+    setScope(false);
+    rememberSearch();
+    if (!hasInput || locked) return;
+    if (delay) filterTimer = setTimeout(() => void runSearch(false), delay);
+    else void runSearch(false);
+  }
+  function selectSet(set) {
     $('card-search-set').value = set?.sourceId || '';
     $('choose-search-set').textContent = set?.name || 'Choose a set';
     $('clear-search-set').hidden = !set?.sourceId;
@@ -105,30 +131,29 @@ export function createCardSearch({
       ? `${set.sourceId}${set.officialCount ? ` · Printed total: ${set.officialCount}` : ''}${set.referenceNote ? ` · ${set.referenceNote}` : ''}`
       : '';
     $('search-set-chip').textContent = set?.name || '';
-    resetResults(undefined, true);
-    if (remember) rememberSearch();
   }
   $('choose-search-set').onclick = async () => {
     const set = await picker.open($('card-search-language').value, $('card-search-set').value);
-    if (set) selectSet(set);
+    if (set) {
+      selectSet(set);
+      filterSaved();
+    }
   };
-  $('clear-search-set').onclick = () => selectSet(null);
+  $('clear-search-set').onclick = () => {
+    selectSet(null);
+    filterSaved();
+  };
   async function runSearch(all, requestedPage = 1) {
-    external = all;
+    if (locked || navigation.route.screen !== 'search') return;
+    resetResults(all ? 'Searching TCGdex…' : 'Filtering saved cards…', all === external);
+    setScope(all);
     page = requestedPage;
     lastRequest = { all, page };
-    resetResults(all ? 'Finding more cards…' : 'Searching saved cards…', true);
     const current = generation;
     controller = new AbortController();
     const signal = controller.signal;
     rememberSearch(all ? 'external' : 'saved', page);
     busy = true;
-    $('search-external').disabled = true;
-    screen.querySelector('[type="submit"]').disabled = true;
-    $('search-scope').textContent = all ? 'From TCGdex' : 'In Carddex';
-    $('search-more-text').textContent = all
-      ? 'Change the search, then search TCGdex again.'
-      : 'Not listed? TCGdex has every printing.';
     screen.setAttribute('aria-busy', 'true');
     const language = $('card-search-language').value,
       name = $('card-search-name').value.trim();
@@ -178,7 +203,7 @@ export function createCardSearch({
           : 'No cards found. Try another name, set, or number.'
         : result.cards.length
           ? `${plural(result.cards.length, 'saved match', 'saved matches')} in Carddex.`
-          : 'No saved matches in Carddex yet. Search TCGdex below.';
+          : 'No saved matches. Search TCGdex for more cards.';
       $('search-page').textContent = result.cards.length ? `Page ${page}` : '';
       $('search-previous').hidden = page === 1;
       $('search-next').hidden = !result.hasMore;
@@ -191,27 +216,31 @@ export function createCardSearch({
     } finally {
       if (current === generation) {
         busy = false;
+        $('card-search-results').inert = false;
         screen.removeAttribute('aria-busy');
-        $('search-external').disabled = false;
-        screen.querySelector('[type="submit"]').disabled = false;
       }
     }
   }
   $('card-search-form').onsubmit = (event) => {
     event.preventDefault();
-    if (!busy) void runSearch(false);
+    filterSaved();
   };
-  $('search-external').onclick = () => void runSearch(true);
+  $('search-external').onclick = () => {
+    void runSearch(true);
+    $('search-scope').focus();
+  };
+  $('filter-saved').onclick = () => {
+    filterSaved();
+    $('card-search-name').focus();
+  };
   $('search-retry').onclick = () => void runSearch(lastRequest.all, lastRequest.page);
   $('search-previous').onclick = () => void runSearch(external, page - 1);
   $('search-next').onclick = () => void runSearch(external, page + 1);
   for (const id of ['card-search-name', 'card-search-number'])
-    $(id).oninput = () => {
-      resetResults(undefined, true);
-      rememberSearch();
-    };
+    $(id).oninput = () => filterSaved(250);
   $('card-search-language').onchange = () => {
     selectSet(null);
+    filterSaved();
     try {
       localStorage.setItem('carddex.card-language', $('card-search-language').value);
     } catch {
@@ -233,32 +262,35 @@ export function createCardSearch({
       $('card-search-name').value = route.term || '';
       $('card-search-number').value = route.number || '';
       if (['en', 'ja'].includes(route.language)) $('card-search-language').value = route.language;
-      selectSet(
-        route.set ? { sourceId: route.set, name: route.setName || route.set } : null,
-        false,
-      );
+      selectSet(route.set ? { sourceId: route.set, name: route.setName || route.set } : null);
+      $('search-by-number').open = Boolean(route.set || route.number);
       const goal = route.collection && collectionName(route.collection);
       $('card-search-title').textContent = route.pokemon
         ? `Cards for ${app.pokemonName(Number(route.pokemon))}`
         : goal
           ? `Add to ${goal}`
-          : 'Find a card';
+          : 'Add a card';
       $('search-context').textContent = goal
         ? 'Open a card, choose its finish, then add it to this collection.'
-        : 'Search by Pokémon name, or choose a set and card number.';
-      resetResults('Search for a card you own or want.');
+        : 'Filter cards already in Carddex. Use TCGdex to find more.';
+      resetResults(filterPrompt);
+      setScope(false);
       if (['saved', 'external'].includes(route.mode))
         void runSearch(
           route.mode === 'external',
           Math.max(1, Math.min(1000, Number(route.page) || 1)),
         );
-      else if (route.pokemon || route.collection) void runSearch(false);
+      else if (hasFilters()) void runSearch(false);
     },
     leave() {
-      if (busy) resetResults('Search again to continue.', true);
+      if (busy || filterTimer !== undefined) {
+        resetResults(filterPrompt);
+        contextKey = undefined;
+      }
     },
     setLocked(value) {
-      screen.querySelector('form').inert = value;
+      locked = value;
+      $('card-search-form').inert = value;
       $('search-external').disabled = value;
     },
   };

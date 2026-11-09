@@ -5,39 +5,42 @@ import { projectRoot, wranglerPath, runWrangler, runWranglerJson } from './lib/w
 process.env.WRANGLER_SEND_METRICS = 'false';
 process.env.WRANGLER_LOG_PATH ||= `${projectRoot}.wrangler/logs/tests.log`;
 
-// This state belongs only to the automated server on port 8788.
-await rm(new URL('../.wrangler/test-state/', import.meta.url), { recursive: true, force: true });
-execFileSync(process.execPath, ['scripts/build.mjs', '--test-fixtures'], {
-  cwd: projectRoot,
+const passkeys = process.argv.includes('--passkeys');
+const state = passkeys ? '.wrangler/passkey-test-state' : '.wrangler/test-state';
+const port = passkeys ? '8789' : '8788';
+await rm(new URL(`../${state}/`, import.meta.url), { recursive: true, force: true });
+if (!passkeys)
+  execFileSync(process.execPath, ['scripts/build.mjs', '--test-fixtures'], {
+    cwd: projectRoot,
+    stdio: 'inherit',
+  });
+runWrangler(['d1', 'migrations', 'apply', 'carddex-preview', '--local', '--persist-to', state], {
   stdio: 'inherit',
 });
-runWrangler(
-  [
-    'd1',
-    'migrations',
-    'apply',
-    'carddex-preview',
-    '--local',
-    '--persist-to',
-    '.wrangler/test-state',
-  ],
-  { stdio: 'inherit' },
-);
 runWranglerJson([
   'd1',
   'execute',
   'carddex-preview',
   '--local',
   '--persist-to',
-  '.wrangler/test-state',
+  state,
   '--file',
-  'tests/fixtures/catalogue.sql',
+  passkeys ? 'tests/fixtures/passkey-owner.sql' : 'tests/fixtures/catalogue.sql',
 ]);
-execFileSync(process.execPath, ['scripts/sync-sets.mjs', '--fixture', '--test', '--apply'], {
-  cwd: projectRoot,
-  stdio: 'inherit',
-});
+if (!passkeys)
+  execFileSync(process.execPath, ['scripts/sync-sets.mjs', '--fixture', '--test', '--apply'], {
+    cwd: projectRoot,
+    stdio: 'inherit',
+  });
 
+const vars = passkeys
+  ? [
+      'LOCAL_DEV_AUTH:false',
+      'PASSKEY_ORIGIN:http://localhost:8789',
+      'BETTER_AUTH_SECRET:isolated-tests-secret-h3CDKmVbbj23fKzQ28e1qw',
+      'OWNER_SETUP_TOKEN:isolated-owner-setup-ySaM23Zso6ouCNf89e2Xg',
+    ]
+  : ['LOCAL_DEV_AUTH:true', 'INVITED_EMAILS:friend@example.test', 'CATALOGUE_TEST_SOURCE:true'];
 const server = spawn(
   wranglerPath,
   [
@@ -45,24 +48,16 @@ const server = spawn(
     '--ip',
     '127.0.0.1',
     '--port',
-    '8788',
+    port,
     '--inspector-port',
-    '9230',
+    passkeys ? '9231' : '9230',
     '--persist-to',
-    '.wrangler/test-state',
-    '--var',
-    'LOCAL_DEV_AUTH:true',
+    state,
     '--var',
     'ADMIN_EMAIL:owner@example.test',
-    '--var',
-    'INVITED_EMAILS:friend@example.test',
-    '--var',
-    'CATALOGUE_TEST_SOURCE:true',
+    ...vars.flatMap((value) => ['--var', value]),
   ],
-  {
-    cwd: projectRoot,
-    stdio: 'inherit',
-  },
+  { cwd: projectRoot, stdio: 'inherit' },
 );
 for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => server.kill(signal));
 server.on('error', (error) => {

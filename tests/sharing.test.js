@@ -3,23 +3,6 @@ import assert from 'node:assert/strict';
 import worker from '../src/worker.js';
 import { shareTarget } from '../src/sharing.js';
 import { renderSharedPage } from '../src/shared-page.js';
-import { sharingApplication, checkSharingApplication } from '../scripts/setup-sharing-access.mjs';
-
-test('public sharing is limited to the /s path and a single bypass policy', () => {
-  const app = sharingApplication('email-provider');
-  assert.equal(app.domain, 'carddex-preview.pohon.workers.dev/s/*');
-  assert.deepEqual(app.policies[0].include, [{ everyone: {} }]);
-  checkSharingApplication(app, app.policies);
-  assert.throws(() =>
-    checkSharingApplication({ ...app, domain: 'carddex-preview.pohon.workers.dev' }, app.policies),
-  );
-  assert.throws(() => checkSharingApplication(app, [{ ...app.policies[0], decision: 'allow' }]));
-  assert.throws(() =>
-    checkSharingApplication(app, [
-      { ...app.policies[0], require: [{ email: { email: 'someone@example.test' } }] },
-    ]),
-  );
-});
 test('share targets cannot select a different account or an unsupported view', () => {
   assert.deepEqual(shareTarget('wishlist'), { scope: 'wishlist', targetId: '' });
   assert.throws(() => shareTarget('inventory'));
@@ -59,9 +42,8 @@ test('shared HTML escapes names and uses source images only', () => {
 });
 test('public links never authenticate private data requests or allow public writes', async () => {
   const env = {
-    ADMIN_EMAIL: 'owner@example.test',
-    ACCESS_TEAM_DOMAIN: 'https://carddex-test.cloudflareaccess.com',
-    ACCESS_AUD: 'test-audience',
+    PASSKEY_ORIGIN: 'https://carddex.example',
+    BETTER_AUTH_SECRET: 'isolated-test-secret-nqduY6guQ8K4dxrqQw',
   };
   for (const path of [
     '/api/shares?scope=wishlist',

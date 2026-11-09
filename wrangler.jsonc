@@ -4,10 +4,11 @@
   "account_id": "de7f1e314a126dcd3e39c30dfe25f58b",
   "main": "src/worker.js",
   "compatibility_date": "2026-10-30",
+  "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
-    "run_worker_first": ["/api/*", "/s/*"]
+    "run_worker_first": ["/*", "!/sprites/*"]
   },
   "d1_databases": [
     {
@@ -18,8 +19,7 @@
     }
   ],
   "vars": {
-    "ACCESS_TEAM_DOMAIN": "https://proud-math-f0a5.cloudflareaccess.com",
-    "ACCESS_AUD": "bfec8a0bb2049847d7d4d4d5c14621bb92aafb53522ee2f145be89beebd73404"
+    "PASSKEY_ORIGIN": "https://carddex-preview.pohon.workers.dev"
   },
   "observability": {
     "enabled": true

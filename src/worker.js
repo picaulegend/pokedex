@@ -1,5 +1,7 @@
-import { authenticate, HttpError } from './auth.js';
+import { localUser, HttpError } from './auth.js';
 import { isId, json, progressState as state, readBody } from './api.js';
+import { passkeyRequest, passkeyUser } from './passkeys.js';
+import { accountPage } from './account-page.js';
 import { syncRecords, catalogue, saveRecord } from './records.js';
 import { searchCards, previewCard, addCard, resolveSources } from './card-search.js';
 import { manageShare, previewShare, publicShare } from './sharing.js';
@@ -92,12 +94,48 @@ async function syncChange(request, env, user, pokemonId) {
   return json({ state: current, mutationId: body.mutationId });
 }
 
+const signInAssets = new Set(['/passkey-ui.js', '/passkeys.css', '/favicon.svg']);
+const authenticate = async (request, env) =>
+  (await localUser(request, env)) || passkeyUser(request, env);
+
+async function privatePage(request, env, path) {
+  if (!['GET', 'HEAD'].includes(request.method))
+    throw new HttpError(405, 'This method is not supported.');
+  if (['/login', '/setup', '/invite'].includes(path))
+    return accountPage(path, request.method, { allowSetup: Boolean(env.OWNER_SETUP_TOKEN) });
+  let user;
+  try {
+    user = await authenticate(request, env);
+  } catch (error) {
+    if (error.status !== 401) throw error;
+    return new Response(null, {
+      status: 302,
+      headers: { Location: '/login', 'Cache-Control': 'private, no-store' },
+    });
+  }
+  if (path === '/passkeys')
+    return accountPage(path, request.method, {
+      canInvite: user.role === 'admin' && !user.development,
+    });
+  const asset = await env.ASSETS.fetch(request);
+  if (!asset.headers.get('Content-Type')?.startsWith('text/html')) return asset;
+  const headers = new Headers(asset.headers);
+  headers.set('Cache-Control', 'private, no-store');
+  return new Response(asset.body, { status: asset.status, headers });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname.startsWith('/s/')) return publicShare(request, env, url);
-    if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
     try {
+      if (signInAssets.has(url.pathname)) return env.ASSETS.fetch(request);
+      if (
+        url.pathname.startsWith('/api/auth/') ||
+        ['/api/owner/setup', '/api/invitations', '/api/invitations/open'].includes(url.pathname)
+      )
+        return await passkeyRequest(request, env, url.pathname);
+      if (!url.pathname.startsWith('/api/')) return await privatePage(request, env, url.pathname);
       if (!['GET', 'PUT', 'POST'].includes(request.method))
         throw new HttpError(405, 'This method is not supported.');
       const user = await authenticate(request, env);
@@ -114,13 +152,16 @@ export default {
           401,
         );
       }
-      await env.DB.prepare(
-        `INSERT INTO users (id,email,role,created_at) VALUES (?,?,?,?)
-        ON CONFLICT(id) DO UPDATE SET email=excluded.email,role=excluded.role
-        WHERE users.email<>excluded.email OR users.role<>excluded.role`,
-      )
-        .bind(user.id, user.email, user.role, new Date().toISOString())
-        .run();
+      if (user.development) {
+        const now = new Date().toISOString();
+        await env.DB.prepare(
+          `INSERT INTO users (id,email,role,created_at,updated_at) VALUES (?,?,?,?,?)
+          ON CONFLICT(id) DO UPDATE SET email=excluded.email,role=excluded.role
+          WHERE users.email<>excluded.email OR users.role<>excluded.role`,
+        )
+          .bind(user.id, user.email, user.role, now, now)
+          .run();
+      }
       if (url.pathname === '/api/session' && request.method === 'GET') return json({ user });
       if (url.pathname === '/api/shares' && ['GET', 'PUT'].includes(request.method))
         return await manageShare(request, env, user, url);

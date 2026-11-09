@@ -29,7 +29,7 @@
 - Show saved online data on each page request. Hide email addresses, exact copy quantities, account IDs, and other collection names.
 - Read saved card data only. Public views must not search the external source or import cards.
 - Check the link and its enabled state on every request. Do not cache shared page content. Turning a link off blocks future requests; re-enabling creates a new link. Deleting a collection turns its link off.
-- Only `/s/*` bypasses Cloudflare Access. Keep account and edit routes protected. The private preview requires a verified, matching account.
+- Public share pages use `/s/*`. Keep the app and its private API behind passkey sign-in. The private preview requires a verified, matching account.
 - Keep shared links out of collection JSON backups. Restoring a backup must not enable sharing.
 
 ## Maintenance
@@ -38,7 +38,7 @@
 - Use read-only local transactions for account reads. Keep related edits in one local transaction and preserve the existing offline queue and conflict checks.
 - Keep the cloud app and standalone checklist distinct in code and notes. Standalone exports contain species checkmarks only; cloud JSON backups contain the full card collection.
 - Do not rewrite applied database migrations. Add a new migration for a schema change.
-- Keep `wrangler.jsonc` valid as JSON. The Access setup script reads it with `JSON.parse`; the format override preserves this requirement.
+- Keep `wrangler.jsonc` valid as JSON. The format override preserves this requirement.
 - Run `npm run format:check` and the relevant tests before deployment. Browser tests must use the isolated test database, not preview data.
 - For external source request changes, also check live search and card details from Cloudflare. Local tests with saved source replies do not check the hosted connection.
 - Keep secrets, private backups, generated assets, and local database files out of Git and shared output.
