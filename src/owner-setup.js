@@ -8,10 +8,10 @@ function setupCookie(secure) {
   return secure ? '__Host-carddex-owner-setup' : 'carddex-owner-setup';
 }
 
-export async function beginOwnerSetup(request, env, secure) {
+export async function beginOwnerSetup(request, env, { origin, secure, allowExisting }) {
   const email = emailAddress(env.ADMIN_EMAIL);
   const secret = env.OWNER_SETUP_TOKEN;
-  if (!email || !secret || secret.length < 32)
+  if (origin !== env.PASSKEY_ORIGIN || !email || !secret || secret.length < 32)
     throw new HttpError(404, 'Owner setup is unavailable.');
   const body = await readBody(request);
   if (
@@ -28,15 +28,24 @@ export async function beginOwnerSetup(request, env, secure) {
        SELECT ?,?,'admin',?,? WHERE NOT EXISTS (SELECT 1 FROM users)`,
     ).bind(crypto.randomUUID(), email, now.toISOString(), now.toISOString()),
     env.DB.prepare(
-      `INSERT INTO auth_owner_setup (user_id,token_hash,expires_at)
-       SELECT id,?,? FROM users
+      `INSERT INTO auth_owner_setup (user_id,token_hash,expires_at,origin)
+       SELECT id,?,?,? FROM users
        WHERE email=? AND role='admin'
          AND (SELECT COUNT(*) FROM users WHERE email=?)=1
-         AND NOT EXISTS (SELECT 1 FROM passkey WHERE userId=users.id)
+         AND (? OR NOT EXISTS (SELECT 1 FROM passkey WHERE userId=users.id))
        ON CONFLICT(user_id) DO UPDATE SET token_hash=excluded.token_hash,
-         expires_at=excluded.expires_at, used=0
-       WHERE auth_owner_setup.used=0 OR auth_owner_setup.expires_at<=?`,
-    ).bind(await tokenHash(ticket), now.getTime() + lifetime * 1000, email, email, now.getTime()),
+         expires_at=excluded.expires_at, origin=excluded.origin, credential_id=NULL, used=0, completed=0
+       WHERE auth_owner_setup.origin IS NOT excluded.origin OR
+         (auth_owner_setup.completed=0 AND (auth_owner_setup.used=0 OR auth_owner_setup.expires_at<=?))`,
+    ).bind(
+      await tokenHash(ticket),
+      now.getTime() + lifetime * 1000,
+      origin,
+      email,
+      email,
+      Number(allowExisting),
+      now.getTime(),
+    ),
   ]);
   if (result.meta.changes !== 1)
     throw new HttpError(409, 'Owner setup is unavailable. If you added a passkey, sign in.');
@@ -49,17 +58,21 @@ export async function beginOwnerSetup(request, env, secure) {
   return response;
 }
 
-export async function ownerGrant(db, ctx, secure, userId) {
+export async function ownerGrant(db, ctx, { origin, secure, allowExisting }, credential) {
   const ticket = ctx.getCookie(setupCookie(secure));
   if (!/^[A-Za-z0-9_-]{43}$/.test(ticket || '')) return null;
   const key = await tokenHash(ticket);
   const now = Date.now();
-  const unused = `token_hash=? AND expires_at>? AND used=0
-    AND NOT EXISTS (SELECT 1 FROM passkey WHERE userId=auth_owner_setup.user_id)`;
-  if (userId)
+  const unused = `token_hash=? AND origin=? AND expires_at>? AND used=0 AND completed=0
+    AND (? OR NOT EXISTS (SELECT 1 FROM passkey WHERE userId=auth_owner_setup.user_id))`;
+  const grant = [key, origin, now, Number(allowExisting)];
+  if (credential)
     return db
-      .prepare(`UPDATE auth_owner_setup SET used=1 WHERE user_id=? AND ${unused} RETURNING user_id`)
-      .bind(userId, key, now)
+      .prepare(
+        `UPDATE auth_owner_setup SET used=1,credential_id=?
+        WHERE user_id=? AND ${unused} RETURNING user_id`,
+      )
+      .bind(credential.id, credential.userId, ...grant)
       .first();
 
   return db
@@ -67,6 +80,6 @@ export async function ownerGrant(db, ctx, secure, userId) {
       `SELECT users.id,users.email FROM auth_owner_setup
      JOIN users ON users.id=auth_owner_setup.user_id WHERE ${unused}`,
     )
-    .bind(key, now)
+    .bind(...grant)
     .first();
 }

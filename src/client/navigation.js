@@ -1,6 +1,7 @@
 const screens = new Set([
   'pokedex',
   'pokemon',
+  'cards',
   'collections',
   'collection',
   'wishlist',

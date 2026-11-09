@@ -15,10 +15,10 @@ const pages = {
     content: `<p>Add a passkey on another device or use a security key so you can still sign in if you lose one.</p>
 <ul id="passkey-list"></ul>
 <form id="passkey-add"><label for="passkey-name">Passkey name</label><input id="passkey-name" name="name" maxlength="100" placeholder="For example, security key"><button>Add passkey</button></form>
-<a href="/">Back to Carddex</a>`,
+<a href="/">Back to Collect</a>`,
   },
   '/invite': {
-    title: 'Join Carddex',
+    title: 'Join Collect',
     content: `<p>Create a passkey to open your own private collection.</p>
 <button id="invite-accept">Create passkey</button>
 <p><a href="/login">Go to sign-in</a></p>`,
@@ -42,8 +42,8 @@ export function accountPage(path, method, { allowSetup, canInvite } = {}) {
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive">
-<title>${title} · Carddex</title><link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="/passkeys.css"></head>
-<body><main><p class="brand">Carddex</p><h1>${title}</h1>${content}${canInvite ? inviteSection : ''}
+<title>${title} · Collect</title><link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="/passkeys.css"></head>
+<body><main><p class="brand">Collect</p><h1>${title}</h1>${content}${canInvite ? inviteSection : ''}
 <p id="passkey-status" role="status" aria-live="polite"></p>${setup}</main>
 <script type="module" src="/passkey-ui.js"></script></body></html>`,
     {

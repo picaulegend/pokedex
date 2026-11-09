@@ -101,8 +101,12 @@ const authenticate = async (request, env) =>
 async function privatePage(request, env, path) {
   if (!['GET', 'HEAD'].includes(request.method))
     throw new HttpError(405, 'This method is not supported.');
-  if (['/login', '/setup', '/invite'].includes(path))
-    return accountPage(path, request.method, { allowSetup: Boolean(env.OWNER_SETUP_TOKEN) });
+  if (['/login', '/setup', '/invite'].includes(path)) {
+    const allowSetup =
+      new URL(request.url).origin === env.PASSKEY_ORIGIN && Boolean(env.OWNER_SETUP_TOKEN);
+    if (path === '/setup' && !allowSetup) throw new HttpError(404, 'Owner setup is unavailable.');
+    return accountPage(path, request.method, { allowSetup });
+  }
   let user;
   try {
     user = await authenticate(request, env);

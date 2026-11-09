@@ -60,16 +60,14 @@ export function createCardLibrary({
     const collections = Object.values(state ? visibleRecords(state, 'collection') : {}).filter(
       (group) => !group.deleted,
     );
-    const personal = new Set(
-      Object.values(inventory)
-        .filter((row) => row.quantity || row.wanted || hasHistory(row))
-        .map((row) => row.variantId),
-    );
-    const wanted = new Set(
-      Object.values(inventory)
-        .filter((row) => row.wanted)
-        .map((row) => row.variantId),
-    );
+    const personal = new Set();
+    const wanted = new Set();
+    const owned = new Set();
+    for (const row of Object.values(inventory)) {
+      if (row.quantity > 0) owned.add(row.variantId);
+      if (row.wanted) wanted.add(row.variantId);
+      if (row.quantity || row.wanted || hasHistory(row)) personal.add(row.variantId);
+    }
     for (const group of collections)
       for (const id of group.variantIds) {
         personal.add(id);
@@ -82,6 +80,7 @@ export function createCardLibrary({
       groups: new Map(collections.map((group) => [group.id, group])),
       personal,
       wanted,
+      owned,
     });
   }
   const inventory = () => snapshot().inventory;
@@ -89,6 +88,7 @@ export function createCardLibrary({
   const group = (id) => snapshot().groups.get(id);
   const personalIds = () => snapshot().personal;
   const wantedIds = () => snapshot().wanted;
+  const ownedIds = () => snapshot().owned;
   let route,
     cards = [],
     loadedKey = '',
@@ -201,6 +201,7 @@ export function createCardLibrary({
   function viewIds() {
     if (route.screen === 'collections')
       return [...new Set(collections().flatMap((group) => group.variantIds.slice(0, 3)))];
+    if (route.screen === 'cards') return [...ownedIds()];
     return route.screen === 'wishlist'
       ? [...wantedIds()]
       : route.screen === 'collection'
@@ -301,14 +302,17 @@ export function createCardLibrary({
       current = group(route.collection);
     const isList = route.screen === 'collections',
       isGoal = route.screen === 'collection',
-      isWishlist = route.screen === 'wishlist';
+      isWishlist = route.screen === 'wishlist',
+      isCards = route.screen === 'cards';
     const title = isList
       ? 'Collections'
       : isGoal
         ? current?.name || 'Collection not found'
         : isWishlist
           ? 'Wishlist'
-          : app.pokemonName(Number(route.pokemon));
+          : isCards
+            ? 'Cards'
+            : app.pokemonName(Number(route.pokemon));
     shell.title(title, isGoal ? 'Collections' : route.screen === 'pokemon' ? 'Pokédex' : title);
     $('library-title').textContent = title;
     const isPokemon = route.screen === 'pokemon';
@@ -338,6 +342,7 @@ export function createCardLibrary({
       'collection-status':
         !isList &&
         !isWishlist &&
+        !isCards &&
         (cards.some((card) =>
           card.variants.some((v) => !rows[v.id]?.quantity && hasHistory(rows[v.id])),
         ) ||
@@ -362,6 +367,7 @@ export function createCardLibrary({
       );
     } else if (isWishlist)
       $('library-summary').textContent = plural(wantedIds().size, 'wanted card');
+    else if (isCards) $('library-summary').textContent = plural(cards.length, 'owned card');
     else {
       const currentCount = cards.filter((card) =>
         card.variants.some((v) => rows[v.id]?.quantity || wantedIds().has(v.id)),
@@ -425,7 +431,9 @@ export function createCardLibrary({
         ? wantedIds()
         : isGoal
           ? new Set(current?.variantIds || [])
-          : personalIds();
+          : isCards
+            ? ownedIds()
+            : personalIds();
       if (isWishlist && $('wishlist-collection').value) {
         const members = new Set(group($('wishlist-collection').value)?.variantIds || []);
         allowed = new Set([...allowed].filter((id) => members.has(id)));
@@ -438,7 +446,7 @@ export function createCardLibrary({
       );
       const entries = visible.flatMap((card) => {
         let variants = card.variants.filter((variant) => allowed.has(variant.id));
-        if (!isWishlist)
+        if (!isWishlist && !isCards)
           variants = variants.filter((variant) => {
             const row = rows[variant.id];
             const status = $('collection-status').value;
@@ -476,7 +484,7 @@ export function createCardLibrary({
           (entries.length > galleryLimit
             ? `<button class="secondary-button library-more" data-more-cards>Show more cards · ${galleryLimit} of ${entries.length} shown</button>`
             : '') ||
-          `<div class="library-empty"><h3>${filterCount ? 'No cards match these filters' : isWishlist ? 'Your wishlist is empty' : isGoal ? (current ? 'No cards in this collection yet' : 'This collection is unavailable') : 'No cards recorded yet'}</h3><p>${filterCount ? 'Your saved cards are still here. Clear the filters to see them.' : isGoal && !current ? 'It may have been deleted on another device.' : isWishlist ? 'Use Add cards, then choose Add to wishlist on a card.' : isGoal ? 'Use Add cards to choose cards for this collection.' : 'Use Add cards to find a card you own or want.'}</p>${filterCount ? '<button id="empty-clear-filters" class="secondary-button">Clear filters</button>' : ''}</div>`,
+          `<div class="library-empty"><h3>${filterCount ? 'No cards match these filters' : isWishlist ? 'Your wishlist is empty' : isGoal ? (current ? 'No cards in this collection yet' : 'This collection is unavailable') : isCards ? 'No owned cards yet' : 'No cards recorded yet'}</h3><p>${filterCount ? 'Your saved cards are still here. Clear the filters to see them.' : isGoal && !current ? 'It may have been deleted on another device.' : isWishlist ? 'Use Add cards, then choose Add to wishlist on a card.' : isGoal ? 'Use Add cards to choose cards for this collection.' : isCards ? 'Use Add cards to find a card and record the copies you own.' : 'Use Add cards to find a card you own or want.'}</p>${filterCount ? '<button id="empty-clear-filters" class="secondary-button">Clear filters</button>' : ''}</div>`,
       );
     });
     bindImages(screen);
@@ -599,7 +607,9 @@ export function createCardLibrary({
       });
     route = next;
     generation++;
-    screen.hidden = !['pokemon', 'collections', 'collection', 'wishlist'].includes(next.screen);
+    screen.hidden = !['pokemon', 'cards', 'collections', 'collection', 'wishlist'].includes(
+      next.screen,
+    );
     search.screen.hidden = next.screen !== 'search';
     detail.screen.hidden = next.screen !== 'card';
     if (next.screen !== 'card') detail.leave();

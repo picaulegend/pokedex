@@ -94,7 +94,7 @@ test('the private page loads the stylesheet and all modules from one version', a
     if (url.hostname === '127.0.0.1' && /\.(js|css)$/.test(url.pathname)) assets.push(url.pathname);
   });
   const document = await page.goto('/');
-  await expect(page.locator('.app-header .app-brand')).toHaveText('CARDDEX');
+  await expect(page.locator('.app-header .app-brand')).toHaveText('Collect');
   await expect(page.locator('#app-save-state')).toHaveText('Saved');
   expect(document.headers()['cache-control']).toContain('no-store');
   const [assetPath] = new Set(assets.map((asset) => asset.slice(0, asset.lastIndexOf('/'))));

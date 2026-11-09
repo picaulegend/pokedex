@@ -11,8 +11,8 @@ await writeFile(
   'dist/manifest.webmanifest',
   JSON.stringify({
     id: '/',
-    name: 'Carddex — Pokémon card collection',
-    short_name: 'Carddex',
+    name: 'Collect',
+    short_name: 'Collect',
     description: 'Your private Pokémon card collection, wishlist, and Pokédex progress.',
     lang: 'en',
     start_url: '/',
@@ -81,7 +81,7 @@ await writeFile(
   cloudHtml
     .replace(
       /<title>([^<]*)<\/title>/,
-      '<title data-standalone-title="$1">Carddex — Your Pokémon card collection</title>',
+      '<title data-standalone-title="$1">Collect — Your Pokémon card collection</title>',
     )
     .replace(
       /<link rel="icon"[^>]*>/,
@@ -94,7 +94,7 @@ await writeFile(
     )
     .replace(
       '<meta charset="utf-8">',
-      '<meta charset="utf-8">\n<meta name="robots" content="noindex,nofollow,noarchive">\n<meta property="og:site_name" content="Carddex">\n<meta property="og:title" content="Carddex — Your Pokémon card collection">\n<meta property="og:description" content="' +
+      '<meta charset="utf-8">\n<meta name="robots" content="noindex,nofollow,noarchive">\n<meta property="og:site_name" content="Collect">\n<meta property="og:title" content="Collect — Your Pokémon card collection">\n<meta property="og:description" content="' +
         cloudDescription +
         `">\n<meta property="og:type" content="website">\n<script id="cloud-mode">window.CARDDEX_CLOUD=true;document.documentElement.classList.add("cloud-app");</script>\n<link rel="stylesheet" data-cloud-style href="${appPath}/cloud.css">` +
         appModules

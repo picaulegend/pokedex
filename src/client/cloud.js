@@ -565,7 +565,7 @@ window.addEventListener('carddex:backup', async () => {
   );
   const link = document.createElement('a');
   link.href = url;
-  link.download = `carddex-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  link.download = `collect-backup-${new Date().toISOString().slice(0, 10)}.json`;
   link.click();
   app.notify('Full collection backup download started.');
   setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -616,7 +616,7 @@ window.addEventListener('carddex:restore', async (event) => {
               /^[a-zA-Z0-9.+-]{1,100}$/.test(r.sourceId),
           )))
     )
-      throw new Error('Choose a valid Carddex backup.');
+      throw new Error('Choose a valid Collect backup.');
     data.inventory = data.inventory
       .map((row) => ({ ...row, history: validateHistory(historyOf(row), row.quantity) }))
       .filter((r) => r.quantity || r.wanted || hasDetails(r));

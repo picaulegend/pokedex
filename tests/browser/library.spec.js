@@ -248,6 +248,19 @@ test('card galleries, finishes, wanted cards, quantities, and collection members
   await expect
     .poll(async () => (await sync(request)).inventory.find((r) => r.variantId === id)?.quantity)
     .toBe(2);
+  const nav = page.getByRole('navigation', { name: 'Main navigation' });
+  await expect(nav.locator('#open-pokedex + .nav-divider + #open-cards')).toBeVisible();
+  await expect(nav.locator('#open-cards + #open-collections + #open-wishlist')).toBeVisible();
+  await nav.locator('#open-cards').click();
+  await expect(page).toHaveURL(/#\/cards$/);
+  await expect(page.locator('#app-title')).toHaveText('Cards');
+  const ownedCard = page.locator('[data-open-card="en:sv03.5-001"]');
+  await expect(ownedCard.locator('.owned-badge')).toHaveText('2 owned');
+  await expect(page.locator('[data-open-card="ja:SV2a-001"]')).toHaveCount(0);
+  await ownedCard.click();
+  await expect(nav.locator('#open-cards')).toHaveAttribute('aria-current', 'page');
+  await page.locator('#app-back').click();
+  await expect(ownedCard).toBeVisible();
   await page.locator('#open-pokedex').click();
   await expect(page.locator('[data-id="1"]')).toBeChecked();
   await page.locator('#open-wishlist').click();

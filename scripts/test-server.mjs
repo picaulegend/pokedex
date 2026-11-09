@@ -37,6 +37,7 @@ const vars = passkeys
   ? [
       'LOCAL_DEV_AUTH:false',
       'PASSKEY_ORIGIN:http://localhost:8789',
+      'PASSKEY_LEGACY_ORIGIN:http://127.0.0.1:8789',
       'BETTER_AUTH_SECRET:isolated-tests-secret-h3CDKmVbbj23fKzQ28e1qw',
       'OWNER_SETUP_TOKEN:isolated-owner-setup-ySaM23Zso6ouCNf89e2Xg',
     ]
@@ -45,6 +46,7 @@ const server = spawn(
   wranglerPath,
   [
     'dev',
+    '--infer-origin-from-routes=false',
     '--ip',
     '127.0.0.1',
     '--port',

@@ -3,8 +3,8 @@ export function createShell(app, navigation) {
   shell.dataset.cloudUi = '';
   const icon = (path) =>
     `<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="${path}"/></svg>`;
-  shell.innerHTML = `<header class="app-header"><a class="app-brand" href="#/pokedex">CARDDEX</a><button id="app-back" class="icon-button" aria-label="Back" hidden>${icon('M19 12H5m7-7-7 7 7 7')}</button><h1 id="app-title" tabindex="-1">Pokédex</h1><button id="app-save-state" class="save-chip" aria-label="Account and save status">Connecting…</button><button id="app-account" class="icon-button" aria-label="Account and backups"><svg aria-hidden="true"><use href="#i-more"/></svg></button></header>
-    <nav class="app-nav" aria-label="Main navigation"><button id="open-pokedex" data-destination="pokedex"><svg aria-hidden="true"><use href="#i-grid"/></svg>Pokédex</button><button id="open-collections" data-destination="collections">${icon('M3 7h18v13H3zM3 4h18m-12 7h6')}Collections <small id="collections-count">0</small></button><button id="open-wishlist" data-destination="wishlist">${icon('M20 5a4.5 4.5 0 0 0-6.4 0L12 6.6 10.4 5A4.5 4.5 0 0 0 4 11.4l8 8 8-8A4.5 4.5 0 0 0 20 5Z')}Wishlist <small id="wishlist-count">0</small></button><button id="open-card-search" class="nav-add" data-destination="search">${icon('M12 5v14M5 12h14')}Add card</button></nav>`;
+  shell.innerHTML = `<header class="app-header"><a class="app-brand" href="#/pokedex">Collect</a><button id="app-back" class="icon-button" aria-label="Back" hidden>${icon('M19 12H5m7-7-7 7 7 7')}</button><h1 id="app-title" tabindex="-1">Pokédex</h1><button id="app-save-state" class="save-chip" aria-label="Account and save status">Connecting…</button><button id="app-account" class="icon-button" aria-label="Account and backups"><svg aria-hidden="true"><use href="#i-more"/></svg></button></header>
+    <nav class="app-nav" aria-label="Main navigation"><button id="open-pokedex" data-destination="pokedex"><svg aria-hidden="true"><use href="#i-grid"/></svg>Pokédex</button><hr class="nav-divider" aria-hidden="true"><button id="open-cards" data-destination="cards">${icon('M3 6v15h11M7 3h14v14H7z')}Cards</button><button id="open-collections" data-destination="collections">${icon('M3 7h18v13H3zM3 4h18m-12 7h6')}Collections <small id="collections-count">0</small></button><button id="open-wishlist" data-destination="wishlist">${icon('M20 5a4.5 4.5 0 0 0-6.4 0L12 6.6 10.4 5A4.5 4.5 0 0 0 4 11.4l8 8 8-8A4.5 4.5 0 0 0 20 5Z')}Wishlist <small id="wishlist-count">0</small></button><button id="open-card-search" class="nav-add" data-destination="search">${icon('M12 5v14M5 12h14')}Add card</button></nav>`;
   document.body.prepend(shell);
   document.querySelector('.skip').addEventListener('click', (event) => {
     event.preventDefault();
@@ -38,7 +38,7 @@ export function createShell(app, navigation) {
   const about = document.createElement('div');
   about.className = 'account-about';
   about.innerHTML =
-    '<h3>About Carddex</h3><p>Your Pokémon card collection.</p><p>Card data: <a href="https://tcgdex.dev/" target="_blank" rel="noopener noreferrer">TCGdex</a> · <a href="/TCGdex-LICENSE.txt" target="_blank" rel="noopener noreferrer">MIT licence</a>.<br>Pokémon sprites: <a href="https://pokeapi.co/" target="_blank" rel="noopener noreferrer">PokéAPI</a>.</p><p>Unofficial fan app. Pokémon © Nintendo / Creatures / GAME FREAK.</p>';
+    '<h3>About Collect</h3><p>Your Pokémon card collection.</p><p>Card data: <a href="https://tcgdex.dev/" target="_blank" rel="noopener noreferrer">TCGdex</a> · <a href="/TCGdex-LICENSE.txt" target="_blank" rel="noopener noreferrer">MIT licence</a>.<br>Pokémon sprites: <a href="https://pokeapi.co/" target="_blank" rel="noopener noreferrer">PokéAPI</a>.</p><p>Unofficial fan app. Pokémon © Nintendo / Creatures / GAME FREAK.</p>';
   panel.append(about);
   const restore = document.createElement('dialog');
   restore.id = 'restore-review';
@@ -95,18 +95,19 @@ export function createShell(app, navigation) {
     const button = event.target.closest('[data-destination]');
     if (button) navigation.go(button.dataset.destination);
   };
+  const destinations = ['pokedex', 'cards', 'collections', 'wishlist'];
   let screen;
   navigation.subscribe((route) => {
     if (screen && screen !== route.screen) $('toast').hidden = true;
     screen = route.screen;
     const active = route.collection
       ? 'collections'
-      : route.from === 'wishlist'
-        ? 'wishlist'
-        : ['collection', 'collections'].includes(route.screen)
-          ? 'collections'
-          : route.screen === 'wishlist'
-            ? 'wishlist'
+      : route.screen === 'collection'
+        ? 'collections'
+        : destinations.includes(route.screen)
+          ? route.screen
+          : ['cards', 'wishlist'].includes(route.from)
+            ? route.from
             : ['search', 'sets', 'card'].includes(route.screen) && !route.pokemon
               ? 'search'
               : 'pokedex';
@@ -114,7 +115,7 @@ export function createShell(app, navigation) {
       if (button.dataset.destination === active) button.setAttribute('aria-current', 'page');
       else button.removeAttribute('aria-current');
     }
-    $('app-back').hidden = ['pokedex', 'collections', 'wishlist'].includes(route.screen);
+    $('app-back').hidden = destinations.includes(route.screen);
     if (panel.open) panel.close();
   });
   return {
@@ -135,7 +136,7 @@ export function createShell(app, navigation) {
     },
     title(text, heading = text) {
       $('app-title').textContent = heading;
-      document.title = `${text} · Carddex`;
+      document.title = `${text} · Collect`;
     },
     status(text, kind) {
       if ($('app-save-state').textContent !== text) $('app-save-state').textContent = text;

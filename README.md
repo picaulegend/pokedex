@@ -1,8 +1,8 @@
-# Carddex
+# Collect
 
 A private Pokémon card collection built around the National Pokédex. The checklist has 1,025 species, from Bulbasaur to Pecharunt. Owning at least one card of a Pokémon completes its Pokédex entry.
 
-The [cloud preview](https://carddex-preview.pohon.workers.dev) uses Cloudflare Workers and D1. The passkey setup keeps the existing owner account and its collection records. The [original Pages app](https://pokedex-1gj.pages.dev) remains a standalone checklist.
+The [cloud app](https://collect.postwork.tech) uses Cloudflare Workers and D1. The passkey setup keeps the existing owner account and its collection records. The [original Pages app](https://pokedex-1gj.pages.dev) remains a standalone checklist.
 
 ## Cloud app
 
@@ -22,7 +22,7 @@ The current scope is physical Pokémon cards in English and Japanese. Trainer ca
 
 The app has a $0 monthly operating budget. It uses Workers Free and D1 Free. It has no R2 binding. Read [AGENTS.md](AGENTS.md) for the project rules and [the cloud guide](docs/cloud-preview.md) for setup, current limits, and operation.
 
-Use the main navigation for **Pokédex**, **Collections**, and **Wishlist**. **Add card** starts a search. Open a card image for its details, finish, quantity, and collection membership. The Back button returns to the previous view. Account, save status, and backup tools are in the header menu.
+Use the main navigation for **Pokédex**, **Cards**, **Collections**, and **Wishlist**. **Cards** shows all the cards you own. **Add card** starts a search. Open a card image for its details, finish, quantity, and collection membership. The Back button returns to the previous view. Account, save status, and backup tools are in the header menu.
 
 In card details, **+** adds a copy quickly. **Add details** records how you got copies already counted. **Add entry** can also record new copies. **−** lets you choose the copy and record what happened; it lowers the owned count and keeps its history. Each finish has separate quantities, history, and wishlist notes. Dates, places, people, prices, and notes are optional and stay private on shared pages.
 

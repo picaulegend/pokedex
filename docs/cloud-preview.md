@@ -4,7 +4,7 @@ The cloud app uses Workers Static Assets, a Worker API, D1, and Better Auth pass
 
 ## Current state
 
-The private cloud app is at [carddex-preview.pohon.workers.dev](https://carddex-preview.pohon.workers.dev). It has separate accounts, Pokédex sync, exact card quantities, wanted cards, manual collections, and explicit card search. The original [Pages app](https://pokedex-1gj.pages.dev) remains a standalone checklist with separate browser storage.
+Collect is the private cloud app at [collect.postwork.tech](https://collect.postwork.tech). It has separate accounts, Pokédex sync, exact card quantities, wanted cards, manual collections, and explicit card search. The original [Pages app](https://pokedex-1gj.pages.dev) remains a standalone checklist with separate browser storage.
 
 The owner signs in with a passkey. The first passkey attaches to the existing administrator account. The account ID stays the same, so the app can read its collections and pending edits. Version preview URLs are disabled. The `/s/*` path serves enabled read-only share pages without sign-in.
 
@@ -131,14 +131,14 @@ Keep the current Worker, hostname, and D1 database. Store a private database bac
 1. Run the format check and tests. Check that the hosted `ADMIN_EMAIL` matches the email on the existing administrator row.
 2. Generate two different random values with `openssl rand -hex 32`. Set them as the Worker secrets `BETTER_AUTH_SECRET` and `OWNER_SETUP_TOKEN` with Wrangler. Keep the setup code private.
 3. Back up D1. Apply the additive migration with `npx wrangler d1 migrations apply carddex-preview --remote`. Run `npm run deploy`. This command builds and deploys the Worker.
-4. Remove the Cloudflare Access protection for the Carddex Worker hostname after the Worker starts to require passkey sessions. Check that a new browser session reaches Carddex sign-in and that private API requests return 401. Keep other Cloudflare applications and policies in place.
+4. Remove the Cloudflare Access protection for the legacy Worker hostname after the Worker starts to require passkey sessions. Check that a new browser session reaches Collect sign-in and that private API requests return 401. Keep other Cloudflare applications and policies in place.
 5. On the hosted hostname, open `/setup` and enter the setup code. Create the first passkey and sign in. Check the existing collection and test an anonymous share link. Use **Manage passkeys** in the account menu to add a second passkey. Remove the `OWNER_SETUP_TOKEN` secret when setup is complete.
 
-The setup code can open registration only until the account has its first passkey. Setup never changes an existing account ID. The last passkey cannot be removed in the app. A fresh database creates its owner from `ADMIN_EMAIL` during setup.
+The setup code can open registration only until the account has its first passkey for the primary hostname. Setup never changes an existing account ID. The last passkey on the account cannot be removed in the app. A fresh database creates its owner from `ADMIN_EMAIL` during setup.
 
 The owner can select **Invite someone** in the account menu. Enter the recipient's email address and copy the invite link. The link expires after 48 hours or after one person uses it to create a passkey. The recipient starts with a separate private collection.
 
-For another deployment, set `PASSKEY_ORIGIN` to the exact HTTPS address. Register passkeys for that hostname. Changing hostnames requires new passkeys.
+For another deployment, set `PASSKEY_ORIGIN` to the exact HTTPS address. When changing hostnames, set `PASSKEY_LEGACY_ORIGIN` to the previous address so its passkeys and links still work. Set a new `OWNER_SETUP_TOKEN` and register the owner passkey at `/setup` on the primary hostname. Both hostnames use the same saved accounts. The browser keeps pending local edits at the hostname where you made them.
 
 ## Backups and old checkmarks
 

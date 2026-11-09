@@ -104,7 +104,7 @@ export function createShareControls({ api, canEdit, getState }) {
   };
   $('sharing-send').onclick = async () => {
     try {
-      await navigator.share({ title: 'Carddex collection', url: state.share.url });
+      await navigator.share({ title: 'Collect', url: state.share.url });
     } catch (error) {
       if (error.name !== 'AbortError')
         $('sharing-status').textContent = 'Use Copy link to share this page.';

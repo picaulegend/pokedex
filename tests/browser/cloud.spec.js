@@ -147,7 +147,7 @@ test('phone and desktop share progress, keep offline changes, and export a stand
   expect(html).not.toMatch(/<script[^>]+data-cloud-client/);
   expect(html).not.toContain('data-standalone-description');
   expect(html).not.toContain('data-standalone-title');
-  expect(html).toContain('<title>Carddex — My Pokémon card checklist</title>');
+  expect(html).toContain('<title>Collect — My Pokémon card checklist</title>');
   expect(html).not.toContain('class="cloud-app"');
   expect(html).not.toContain('id="app-header"');
   expect(html).toContain('An offline Pokémon card checklist');

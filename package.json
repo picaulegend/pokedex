@@ -9,7 +9,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "db:local": "wrangler d1 migrations apply carddex-preview --local --persist-to .wrangler/preview-state",
-    "dev": "npm run build && npm run db:local && wrangler dev --ip 127.0.0.1 --port 8787 --persist-to .wrangler/preview-state",
+    "dev": "npm run build && npm run db:local && wrangler dev --infer-origin-from-routes=false --ip 127.0.0.1 --port 8787 --persist-to .wrangler/preview-state",
     "dev:test": "node scripts/test-server.mjs",
     "catalogue:prepare": "python3 scripts/prepare_catalogue.py",
     "catalogue:audit": "npm run catalogue:prepare && node scripts/import-catalogue.mjs --audit",

@@ -202,7 +202,7 @@ export function createCardSearch({
           ? `${plural(result.cards.length, 'result')}. Open a card to choose its finish.`
           : 'No cards found. Try another name, set, or number.'
         : result.cards.length
-          ? `${plural(result.cards.length, 'saved match', 'saved matches')} in Carddex.`
+          ? `${plural(result.cards.length, 'saved match', 'saved matches')} in Collect.`
           : 'No saved matches. Search TCGdex for more cards.';
       $('search-page').textContent = result.cards.length ? `Page ${page}` : '';
       $('search-previous').hidden = page === 1;
@@ -272,7 +272,7 @@ export function createCardSearch({
           : 'Add a card';
       $('search-context').textContent = goal
         ? 'Open a card, choose its finish, then add it to this collection.'
-        : 'Filter cards already in Carddex. Use TCGdex to find more.';
+        : 'Filter cards already in Collect. Use TCGdex to find more.';
       resetResults(filterPrompt);
       setScope(false);
       if (['saved', 'external'].includes(route.mode))

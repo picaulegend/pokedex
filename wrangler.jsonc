@@ -3,6 +3,8 @@
   "name": "carddex-preview",
   "account_id": "de7f1e314a126dcd3e39c30dfe25f58b",
   "main": "src/worker.js",
+  "workers_dev": true,
+  "routes": [{ "pattern": "collect.postwork.tech", "custom_domain": true }],
   "compatibility_date": "2026-10-30",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
@@ -19,7 +21,8 @@
     }
   ],
   "vars": {
-    "PASSKEY_ORIGIN": "https://carddex-preview.pohon.workers.dev"
+    "PASSKEY_ORIGIN": "https://collect.postwork.tech",
+    "PASSKEY_LEGACY_ORIGIN": "https://carddex-preview.pohon.workers.dev"
   },
   "observability": {
     "enabled": true

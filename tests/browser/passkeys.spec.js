@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 const origin = 'http://localhost:8789';
+const previousOrigin = 'http://127.0.0.1:8789';
 const auth = origin + '/api/auth/passkey/';
 const token = 'isolated-owner-setup-ySaM23Zso6ouCNf89e2Xg';
 const authenticator = {
@@ -42,6 +43,15 @@ test('the existing owner can sign in, manage passkeys, and invite a member', asy
   );
   expect((await setup('wrong code')).status()).toBe(403);
   expect((await setup(token, 'https://example.test')).status()).toBe(403);
+  expect((await api.get(previousOrigin + '/api/session')).status()).toBe(401);
+  expect(
+    (
+      await api.post(previousOrigin + '/api/owner/setup', {
+        data: { token },
+        headers: { Origin: previousOrigin },
+      })
+    ).status(),
+  ).toBe(404);
 
   const cdp = await context.newCDPSession(page);
   await cdp.send('WebAuthn.enable');
@@ -66,6 +76,11 @@ test('the existing owner can sign in, manage passkeys, and invite a member', asy
   await page.locator('#app-account').click();
   await expect(page.locator('#cloud-account')).toContainText('Owner');
   await page.getByRole('link', { name: 'Manage passkeys' }).click();
+  const keys = await (await api.get(auth + 'list-user-passkeys')).json();
+  expect(keys.map((key) => key.id)).toContain('legacy-key');
+  expect(keys).toHaveLength(2);
+  expect((await remove('legacy-key')).ok()).toBe(true);
+  await page.reload();
   await expect(page.getByRole('button', { name: 'Remove Owner passkey' })).toBeDisabled();
   const [key] = await (await api.get(auth + 'list-user-passkeys')).json();
   expect((await remove(key.id)).status()).toBe(400);
@@ -76,6 +91,7 @@ test('the existing owner can sign in, manage passkeys, and invite a member', asy
   await page.getByRole('button', { name: 'Add passkey' }).click();
   await expect(page.getByRole('button', { name: 'Remove Security key' })).toBeEnabled();
   expect((await remove(key.id)).ok()).toBe(true);
+  expect((await setup(token)).status()).toBe(409);
 
   await page.getByLabel('Their email address').fill('member@example.test');
   await page.getByRole('button', { name: 'Create invite link' }).click();
@@ -122,7 +138,7 @@ test('the existing owner can sign in, manage passkeys, and invite a member', asy
     await guest.close();
   }
 
-  await page.getByRole('link', { name: 'Back to Carddex' }).click();
+  await page.getByRole('link', { name: 'Back to Collect' }).click();
   await page.locator('#app-account').click();
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   await expect(page).toHaveURL(origin + '/login');

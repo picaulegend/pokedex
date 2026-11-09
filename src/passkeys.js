@@ -23,7 +23,7 @@ function config(request, env) {
   const url = new URL(request.url);
   const secure = url.protocol === 'https:';
   if (
-    url.origin !== env.PASSKEY_ORIGIN ||
+    ![env.PASSKEY_ORIGIN, env.PASSKEY_LEGACY_ORIGIN].includes(url.origin) ||
     (!secure && !loopback.has(url.hostname)) ||
     !env.BETTER_AUTH_SECRET ||
     env.BETTER_AUTH_SECRET.length < 32
@@ -34,8 +34,9 @@ function config(request, env) {
 }
 
 function createAuth(env, url, secure) {
+  const ownerSetup = setupConfig(env, url, secure);
   return betterAuth({
-    appName: 'Carddex',
+    appName: 'Collect',
     baseURL: url.origin,
     secret: env.BETTER_AUTH_SECRET,
     database: env.DB,
@@ -84,7 +85,7 @@ function createAuth(env, url, secure) {
     plugins: [
       passkey({
         rpID: url.hostname,
-        rpName: 'Carddex',
+        rpName: 'Collect',
         origin: url.origin,
         authenticatorSelection: { residentKey: 'required', userVerification: 'required' },
         registration: {
@@ -96,7 +97,10 @@ function createAuth(env, url, secure) {
                 throw new APIError('FORBIDDEN', { message: 'Open the invite link again.' });
               return { id: member.id, name: member.email };
             }
-            const owner = context === 'owner-setup' && (await ownerGrant(env.DB, ctx, secure));
+            const owner =
+              context === 'owner-setup' &&
+              url.origin === env.PASSKEY_ORIGIN &&
+              (await ownerGrant(env.DB, ctx, ownerSetup));
             if (!owner) throw new APIError('FORBIDDEN', { message: 'Start owner setup again.' });
             return { id: owner.id, name: owner.email };
           },
@@ -110,13 +114,28 @@ function createAuth(env, url, secure) {
                 });
               return;
             }
-            if (context !== 'owner-setup' || !(await ownerGrant(env.DB, ctx, secure, user.id)))
+            if (
+              context !== 'owner-setup' ||
+              url.origin !== env.PASSKEY_ORIGIN ||
+              !(await ownerGrant(env.DB, ctx, ownerSetup, {
+                userId: user.id,
+                id: verification.registrationInfo.credential.id,
+              }))
+            )
               throw new APIError('FORBIDDEN', { message: 'Start owner setup again.' });
           },
         },
       }),
     ],
   });
+}
+
+function setupConfig(env, url, secure) {
+  return {
+    origin: url.origin,
+    secure,
+    allowExisting: Boolean(env.PASSKEY_LEGACY_ORIGIN) && env.PASSKEY_LEGACY_ORIGIN !== url.origin,
+  };
 }
 
 export async function passkeyUser(request, env) {
@@ -141,14 +160,15 @@ export async function passkeyRequest(request, env, path) {
     (method === 'POST' && request.headers.get('Origin') !== url.origin)
   )
     throw new HttpError(403, 'Use the app to change your account.');
-  if (path === '/api/owner/setup') return beginOwnerSetup(request, env, secure);
+  if (path === '/api/owner/setup')
+    return beginOwnerSetup(request, env, setupConfig(env, url, secure));
   const auth = createAuth(env, url, secure);
   if (path === '/api/invitations') {
     const session = await readSession(request, auth);
     if (!session) throw new HttpError(401, 'Sign in to continue.');
     if (session.user.role !== 'admin')
       throw new HttpError(403, 'Only the owner can create an invite link.');
-    return createInvitation(request, env.DB, url.origin);
+    return createInvitation(request, env.DB, env.PASSKEY_ORIGIN);
   }
   if (path === '/api/invitations/open') {
     if (request.headers.has('Cookie') && (await readSession(request, auth)))
