@@ -9,6 +9,7 @@ import {
 } from './card-source.js';
 import { catalogue, saveRecord } from './records.js';
 import { addCollectionCard } from './card-add.js';
+import { evaluateBadges } from './badges.js';
 
 export async function searchCards(request, env, url) {
   const language = url.searchParams.get('language') || 'en';
@@ -197,17 +198,30 @@ export async function addCard(request, env, user) {
       422,
       'This source variant changed. Find the card and select its finish again.',
     );
-  if (body.collectionId) return addCollectionCard(env, user, body, card);
-  const change = new Request(request.url, {
-    method: 'PUT',
-    headers: request.headers,
-    body: JSON.stringify({
-      quantity: body.quantity,
-      wanted: body.wanted,
-      ...(body.history === undefined ? {} : { history: body.history }),
-      baseRevision: body.baseRevision,
-      mutationId: body.mutationId,
-    }),
-  });
-  return saveRecord(change, env, user, 'inventory', body.variantId, card);
+  let response;
+  if (body.collectionId) {
+    response = await addCollectionCard(env, user, body, card);
+  } else {
+    const change = new Request(request.url, {
+      method: 'PUT',
+      headers: request.headers,
+      body: JSON.stringify({
+        quantity: body.quantity,
+        wanted: body.wanted,
+        ...(body.history === undefined ? {} : { history: body.history }),
+        baseRevision: body.baseRevision,
+        mutationId: body.mutationId,
+      }),
+    });
+    response = await saveRecord(change, env, user, 'inventory', body.variantId, card);
+  }
+  if (!response.ok || (!body.quantity && !body.collectionId)) return response;
+  try {
+    const badges = await evaluateBadges(env, user.id);
+    return json({ ...(await response.clone().json()), badges }, response.status);
+  } catch (error) {
+    // The card save already succeeded. The next sync can retry the badge check.
+    console.error('Badge check failed', error.name);
+    return response;
+  }
 }

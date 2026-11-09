@@ -1,6 +1,6 @@
 export async function openAccount(page) {
   if (!(await page.locator('#account-panel').isVisible()))
-    await page.locator('#app-account').click();
+    await page.locator('#app-save-state').click();
 }
 export async function syncNow(page) {
   await openAccount(page);

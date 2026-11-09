@@ -8,6 +8,7 @@ const screens = new Set([
   'search',
   'card',
   'sets',
+  'profile',
 ]);
 
 export function createNavigation() {

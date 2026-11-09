@@ -1,5 +1,6 @@
 import {
   cardCounts,
+  mergeBadges,
   mergeRemote,
   mergeSync,
   queueChange,
@@ -12,6 +13,7 @@ import { createCardLibrary } from './library.js';
 import { plural } from './ui.js';
 import { createNavigation } from './navigation.js';
 import { createShell } from './shell.js';
+import { createProfile } from './profile.js';
 import {
   hasDetails,
   historyOf,
@@ -22,7 +24,23 @@ import {
 
 const app = window.carddex;
 const navigation = createNavigation();
-const shell = createShell(app, navigation);
+const shell = createShell(navigation);
+const profile = createProfile({
+  app,
+  navigation,
+  shell,
+  saveShowcase,
+  async saveProfile(change) {
+    const result = await api('/api/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(change),
+    });
+    if (Object.hasOwn(result, 'favoritePokemonId'))
+      app.setFavoritePokemon(result.favoritePokemonId);
+    return result;
+  },
+});
 const panel = shell.panel;
 const dialog = document.createElement('dialog');
 dialog.id = 'cloud-review';
@@ -39,11 +57,17 @@ let user,
   channel,
   generation = 0;
 let flushTask;
+let showcase = [];
+let showcaseSaving = false;
+let showcaseVersion = 0;
+let trainerInventory = {};
 const library = createCardLibrary({
   app,
   navigation,
   shell,
   api,
+  isFeatured: (id) => showcase.some((card) => card.variantId === id),
+  saveShowcase,
   getState: () => saved,
   canEdit: () => Boolean(user && !authFailed),
   save: async (kind, id, data) => {
@@ -127,9 +151,11 @@ const library = createCardLibrary({
       state.variantLinks ||= {};
       state.variantLinks[variantId] = card.pokemonIds;
       mergeRemote(state, body.progress);
+      mergeBadges(state, body.badges);
     });
     show(next);
     announce();
+    if (body.badges?.needsCheck) void checkBadges();
   },
 });
 
@@ -153,7 +179,11 @@ async function api(path, options = {}) {
     authFailed = true;
     app.setEditing(false);
     library.setLocked(true);
-    throw new Error('Sign in again. Pending changes stay on this device.');
+    profile.lock();
+    status();
+    throw Object.assign(new Error('Sign in again. Pending changes stay on this device.'), {
+      status: 401,
+    });
   }
   let body;
   try {
@@ -165,10 +195,15 @@ async function api(path, options = {}) {
     authFailed = true;
     app.setEditing(false);
     library.setLocked(true);
-    throw new Error(
-      body.code === 'account_changed'
-        ? 'The account changed. Reload before saving. Pending changes stay with their original account.'
-        : 'Sign in again. Pending changes stay on this device.',
+    profile.lock();
+    status();
+    throw Object.assign(
+      new Error(
+        body.code === 'account_changed'
+          ? 'The account changed. Reload before saving. Pending changes stay with their original account.'
+          : 'Sign in again. Pending changes stay on this device.',
+      ),
+      { status: 401 },
     );
   }
   if (!response.ok) {
@@ -224,22 +259,87 @@ function status() {
 
 function show(next) {
   saved = next;
-  app.showCloudCollection(visibleOwned(next), cardCounts(next));
+  trainerInventory = visibleRecords(next, 'inventory');
+  const owned = visibleOwned(next, trainerInventory);
+  app.showCloudCollection(owned, cardCounts(next, trainerInventory));
+  profile.progress(owned);
+  profile.badges(next.badges);
+  showShowcase();
   status();
   library.update();
+}
+
+function showShowcase() {
+  profile.showcase(
+    showcase.filter((card) => trainerInventory[card.variantId]?.quantity > 0),
+    Boolean(user && !authFailed),
+  );
+}
+
+async function saveShowcase(variantId, featured) {
+  if (showcaseSaving) throw new Error('Wait for the current showcase change to finish.');
+  showcaseSaving = true;
+  showcaseVersion++;
+  try {
+    const result = await api('/api/profile/showcase', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ variantId, featured }),
+    });
+    showcase = result.showcase;
+  } catch (error) {
+    if (error.body?.showcase) showcase = error.body.showcase;
+    if (!error.status) throw new Error('Connect to the internet and try again.');
+    throw error;
+  } finally {
+    showcaseSaving = false;
+    showShowcase();
+    library.update();
+  }
 }
 
 function announce() {
   channel?.postMessage('changed');
 }
 
+let badgeTask;
+function checkBadges() {
+  if (badgeTask) return badgeTask;
+  badgeTask = (async () => {
+    const accountId = user.id;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const { badges } = await api('/api/profile/badges/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}',
+      });
+      const next = await updateAccount(accountId, (state) => mergeBadges(state, badges));
+      if (user.id === accountId) show(next);
+      if (!badges.needsCheck) break;
+    }
+  })()
+    .catch(() => {
+      // Keep saved badges. The next sync can retry this check.
+    })
+    .finally(() => {
+      badgeTask = null;
+    });
+  return badgeTask;
+}
+
 async function refresh() {
   if (!user || authFailed) return;
   saved = await updateAccount(user.id);
+  const version = showcaseSaving ? -1 : ++showcaseVersion;
   const body = await api(`/api/sync?after=${saved.cursor || 0}`);
-  const next = await updateAccount(user.id, (state) => mergeSync(state, body));
+  const next = await updateAccount(user.id, (state) => {
+    const changed = mergeSync(state, body);
+    return mergeBadges(state, body.badges) || changed;
+  });
+  if (version === showcaseVersion && body.showcase) showcase = body.showcase;
   message = '';
   show(next);
+  if (body.badges?.needsCheck && !next.recordPending.length) await checkBadges();
 }
 
 function flush() {
@@ -357,11 +457,10 @@ async function start() {
   $('cloud-retry').disabled = true;
   try {
     ({ user } = await api('/api/session'));
-    shell.account(user);
+    app.setFavoritePokemon(user.favoritePokemonId);
+    profile.account(user);
     app.setScope(user.id);
     saved = await updateAccount(user.id);
-    $('cloud-account').textContent =
-      `${user.email}${user.role === 'admin' ? ' · Owner' : ''}${user.development ? ' · Local preview' : ''}`;
     document.querySelector('.sidebar-foot').innerHTML =
       '<div class="local-tag"><span class="dot"></span> YOUR PRIVATE COLLECTION</div>Changes sync between your devices. Use <strong>Back up</strong> to keep a separate copy.';
     channel =
@@ -411,6 +510,7 @@ $('cloud-signin').onclick = () => location.assign('/login' + location.hash);
 $('app-signout').onclick = async () => {
   const button = $('app-signout');
   button.disabled = true;
+  $('profile-account-status').textContent = '';
   try {
     await api('/api/auth/sign-out', {
       method: 'POST',
@@ -418,9 +518,8 @@ $('app-signout').onclick = async () => {
       body: '{}',
     });
     location.replace('/login');
-  } catch (error) {
-    message = error.message;
-    status();
+  } catch {
+    $('profile-account-status').textContent = 'Could not sign out. Try again.';
     button.disabled = false;
   }
 };

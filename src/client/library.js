@@ -21,6 +21,8 @@ export function createCardLibrary({
   api,
   navigation,
   shell,
+  isFeatured,
+  saveShowcase,
   getState,
   canEdit,
   save,
@@ -32,10 +34,22 @@ export function createCardLibrary({
   screen.className = 'app-screen';
   screen.dataset.cloudUi = '';
   screen.hidden = true;
-  screen.innerHTML = `<header class="view-heading"><img id="library-sprite" class="library-sprite" data-plain-image alt="" width="96" height="96" hidden><div><span id="library-dex" class="library-dex" hidden></span><h2 id="library-title"></h2><p id="library-summary"></p><div id="collection-progress" class="collection-progress" hidden></div></div><div class="view-actions"><button class="primary-button" id="library-add">Add cards</button><button class="primary-button" id="new-collection" hidden>New collection</button><details id="collection-menu" class="view-menu" hidden><summary class="secondary-button">Manage</summary><div><button id="collection-rename">Rename</button><button id="collection-delete">Delete collection</button></div></details></div></header>
+  screen.innerHTML = `<header class="view-heading"><img id="library-sprite" class="library-sprite" data-plain-image alt="" width="96" height="96" hidden><div><span id="library-dex" class="library-dex" hidden></span><span id="library-favorite" class="favorite-heart" hidden><span aria-hidden="true">♥</span> Favorite</span><h2 id="library-title"></h2><p id="library-summary"></p><div id="collection-progress" class="collection-progress" hidden></div></div><div class="view-actions"><button class="primary-button" id="library-add">Add cards</button><button class="primary-button" id="new-collection" hidden>New collection</button><details id="collection-menu" class="view-menu" hidden><summary class="secondary-button">Manage</summary><div><button id="collection-rename">Rename</button><button id="collection-delete">Delete collection</button></div></details></div></header>
     <p id="library-message" role="status"></p><div id="library-legacy" hidden></div>
     <form id="collection-form" hidden><label>Collection name<input id="collection-name" maxlength="80" required placeholder="For example: Favourite artwork"></label><div class="form-actions"><button class="primary-button" type="submit">Save collection</button><button class="secondary-button" id="collection-cancel" type="button">Cancel</button></div></form>
-    <details id="library-filter-panel" class="filter-panel"><summary>Filters <span id="library-filter-count"></span></summary><div id="library-filters"><label>Language<select id="card-language"><option value="">All languages</option><option value="en">English</option><option value="ja">Japanese</option></select></label><label>Set<select id="card-set"><option value="">All sets</option></select></label><label>Artist<select id="card-artist"><option value="">All artists</option></select></label><label id="wishlist-collection-label" hidden>Collection<select id="wishlist-collection"><option value="">All collections</option></select></label><label id="collection-status-label" hidden>Show<select id="collection-status"><option value="">All cards</option><option value="missing">Missing</option><option value="owned">Owned</option><option value="past">Previously owned</option></select></label><button class="secondary-button" id="library-clear-filters">Clear filters</button></div></details>
+    <details id="library-filter-panel" class="filter-panel"><summary>Filters <span id="library-filter-count"></span></summary>
+      <div id="library-filters">
+        <label id="card-name-label" hidden>Card name<input id="card-name" type="text" autocomplete="off" placeholder="Filter by card name"></label>
+        <button class="icon-button" id="library-clear-filters" type="button" aria-label="Clear filters" title="Clear filters" disabled><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+        <div id="library-filter-options">
+          <label>Language<select id="card-language"><option value="">All languages</option><option value="en">English</option><option value="ja">Japanese</option></select></label>
+          <label>Set<select id="card-set"><option value="">All sets</option></select></label>
+          <label>Artist<select id="card-artist"><option value="">All artists</option></select></label>
+          <label id="wishlist-collection-label" hidden>Collection<select id="wishlist-collection"><option value="">All collections</option></select></label>
+          <label id="collection-status-label" hidden>Show<select id="collection-status"><option value="">All cards</option><option value="missing">Missing</option><option value="owned">Owned</option><option value="past">Previously owned</option></select></label>
+        </div>
+      </div>
+    </details>
     <div id="library-content"></div>${credits}`;
   document.body.append(screen);
   const $ = (id) => screen.querySelector(`#${id}`);
@@ -43,13 +57,14 @@ export function createCardLibrary({
     cache = new Map(),
     byVariant = new Map(),
     cardRequests = new Map();
-  const filterIds = [
+  const selectFilterIds = [
     'card-language',
     'card-set',
     'card-artist',
     'wishlist-collection',
     'collection-status',
   ];
+  const filterIds = ['card-name', ...selectFilterIds];
   const filterSnapshots = new Map();
   let restoreFilters;
   let derivedState, derived;
@@ -156,6 +171,8 @@ export function createCardLibrary({
     getInventory: inventory,
     getCollections: collections,
     canEdit,
+    isFeatured,
+    saveShowcase,
     save,
     admit,
   });
@@ -249,8 +266,7 @@ export function createCardLibrary({
       cards = [...result.values()];
       setFilters();
       if (restoreFilters) {
-        for (const [id, value] of Object.entries(restoreFilters.values)) $(id).value = value;
-        $('library-filter-panel').open = restoreFilters.open;
+        for (const id of selectFilterIds) $(id).value = restoreFilters[id];
         restoreFilters = null;
       }
       render();
@@ -282,15 +298,14 @@ export function createCardLibrary({
     }
   }
   function clearFilters() {
-    for (const id of [
-      'card-language',
-      'card-set',
-      'card-artist',
-      'wishlist-collection',
-      'collection-status',
-    ])
-      $(id).value = '';
+    restoreFilters = null;
+    for (const id of filterIds) $(id).value = '';
     render();
+    const panel = $('library-filter-panel');
+    (panel.open && !$('card-name-label').hidden
+      ? $('card-name')
+      : panel.querySelector('summary')
+    ).focus();
   }
   function showMessage(error) {
     $('library-message').textContent = error.message || 'This change could not be saved.';
@@ -317,6 +332,7 @@ export function createCardLibrary({
     $('library-title').textContent = title;
     const isPokemon = route.screen === 'pokemon';
     $('library-sprite').hidden = $('library-dex').hidden = !isPokemon;
+    $('library-favorite').hidden = !isPokemon || !app.isFavoritePokemon(Number(route.pokemon));
     if (isPokemon) {
       const image = app.pokemonImage(Number(route.pokemon));
       if ($('library-sprite').getAttribute('src') !== image) $('library-sprite').src = image;
@@ -350,8 +366,10 @@ export function createCardLibrary({
           ? 2
           : 0,
     };
-    let anyFilter = false;
-    for (const id of filterIds) {
+    const showNameFilter = isCards || isWishlist;
+    $('card-name-label').hidden = !showNameFilter;
+    let anyFilter = showNameFilter;
+    for (const id of selectFilterIds) {
       const shown = !isList && (Boolean($(id).value) || choices[id] > 1);
       $(id).closest('label').hidden = !shown;
       anyFilter ||= shown;
@@ -394,14 +412,11 @@ export function createCardLibrary({
       $('clear-legacy').disabled = locked;
       $('clear-legacy').onclick = () => void clearLegacy(Number(route.pokemon)).catch(showMessage);
     }
-    const filterCount = [
-      'card-language',
-      'card-set',
-      'card-artist',
-      'wishlist-collection',
-      'collection-status',
-    ].filter((id) => $(id).value).length;
+    const nameFilter = $('card-name').value.trim().toLowerCase();
+    const filterCount =
+      selectFilterIds.filter((id) => $(id).value).length + Number(Boolean(nameFilter));
     $('library-filter-count').textContent = filterCount ? `${filterCount} active` : '';
+    $('library-clear-filters').disabled = !filterCount;
     preserveFocus($('library-content'), () => {
       if (isList) {
         $('library-content').className = 'collection-list';
@@ -440,6 +455,7 @@ export function createCardLibrary({
       }
       const visible = cards.filter(
         (c) =>
+          (!nameFilter || c.name.toLowerCase().includes(nameFilter)) &&
           (!$('card-language').value || c.language === $('card-language').value) &&
           (!$('card-set').value || c.setId === $('card-set').value) &&
           (!$('card-artist').value || c.artist === $('card-artist').value),
@@ -552,14 +568,8 @@ export function createCardLibrary({
   };
   $('collection-name').oninput = () => $('collection-name').setCustomValidity('');
   $('library-clear-filters').onclick = clearFilters;
-  for (const id of [
-    'card-language',
-    'card-set',
-    'card-artist',
-    'wishlist-collection',
-    'collection-status',
-  ])
-    $(id).onchange = render;
+  $('card-name').oninput = render;
+  for (const id of selectFilterIds) $(id).onchange = render;
   $('library-content').onclick = async (event) => {
     if (event.target.closest('[data-more-cards]')) {
       galleryLimit += 48;
@@ -636,16 +646,11 @@ export function createCardLibrary({
     const key = `${next.screen}:${next.pokemon || next.collection || ''}`;
     if (filtersKey !== key) {
       filtersKey = key;
-      restoreFilters = filterSnapshots.get(key);
-      for (const id of [
-        'card-language',
-        'card-set',
-        'card-artist',
-        'wishlist-collection',
-        'collection-status',
-      ])
-        $(id).value = '';
-      $('library-filter-panel').open = false;
+      const savedFilters = filterSnapshots.get(key);
+      restoreFilters = savedFilters?.values;
+      for (const id of selectFilterIds) $(id).value = '';
+      $('card-name').value = savedFilters?.values['card-name'] || '';
+      $('library-filter-panel').open = savedFilters?.open || false;
       $('collection-form').hidden = true;
       $('library-message').textContent = '';
     }

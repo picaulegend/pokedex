@@ -16,6 +16,7 @@ export function emptyState() {
     cursor: 0,
     inventory: {},
     collections: {},
+    badges: null,
     recordPending: [],
     recordConflicts: {},
   };
@@ -69,6 +70,20 @@ export function mergeSync(state, body) {
   return true;
 }
 
+export function mergeBadges(state, snapshot) {
+  if (!snapshot) return false;
+  const previous = state.badges;
+  if (
+    previous &&
+    (previous.rulesVersion > snapshot.rulesVersion ||
+      (previous.rulesVersion === snapshot.rulesVersion &&
+        previous.checkedRevision >= snapshot.checkedRevision))
+  )
+    return false;
+  state.badges = snapshot;
+  return true;
+}
+
 export function visibleRecords(state, kind) {
   const rows = { ...state[kind === 'inventory' ? 'inventory' : 'collections'] };
   const value = (item) =>
@@ -112,7 +127,7 @@ export function mergeRemote(state, rows) {
   }
 }
 
-export function visibleOwned(state) {
+export function visibleOwned(state, inventory = visibleRecords(state, 'inventory')) {
   const values = new Map(Object.values(state.server).map((row) => [row.pokemonId, row.owned]));
   const legacy = new Map(
     Object.values(state.server).map((row) => [row.pokemonId, row.legacyOwned ?? row.owned]),
@@ -135,7 +150,7 @@ export function visibleOwned(state) {
       .filter((r) => r.kind === 'inventory')
       .map((r) => r.id),
   );
-  for (const row of Object.values(visibleRecords(state, 'inventory'))) {
+  for (const row of Object.values(inventory)) {
     for (const id of row.pokemonIds || state.variantLinks?.[row.variantId] || []) {
       if (pendingVariants.has(row.variantId)) affected.add(id);
       if (row.quantity > 0) cardsOwned.add(id);
@@ -148,9 +163,9 @@ export function visibleOwned(state) {
     .sort((a, b) => a - b);
 }
 
-export function cardCounts(state) {
+export function cardCounts(state, inventory = visibleRecords(state, 'inventory')) {
   const counts = new Map();
-  for (const row of Object.values(visibleRecords(state, 'inventory')))
+  for (const row of Object.values(inventory))
     if (row.quantity > 0)
       for (const id of row.pokemonIds || state.variantLinks?.[row.variantId] || [])
         counts.set(id, (counts.get(id) || 0) + 1);

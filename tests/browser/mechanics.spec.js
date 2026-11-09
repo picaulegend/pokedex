@@ -29,7 +29,7 @@ test('large card galleries add another page without replacing existing cards and
         inventory: cards.map((card) => ({
           variantId: card.variants[0].id,
           quantity: 1,
-          wanted: false,
+          wanted: true,
           revision: 1,
           pokemonIds: [1],
         })),
@@ -54,9 +54,24 @@ test('large card galleries add another page without replacing existing cards and
   await expect(page.locator('.tcg-card')).toHaveCount(31);
   await expect(page.locator('[data-more-cards]')).toHaveCount(0);
   await expect(page.locator('#library-sprite')).toBeVisible();
-  await page.evaluate(() => (location.hash = '#/wishlist'));
-  await expect(page.locator('#library-title')).toHaveText('Wishlist');
-  await expect(page.locator('#library-sprite')).toBeHidden();
+  for (const view of ['cards', 'wishlist']) {
+    await page.locator(`#open-${view}`).click();
+    await expect(page.locator('#library-sprite')).toBeHidden();
+    await expect(page.locator('.tcg-card')).toHaveCount(48);
+    await page.locator('#library-filter-panel > summary').click();
+    const name = page.getByRole('textbox', { name: 'Card name' });
+    await name.fill(' FIXTURE 62 ');
+    await expect(page.locator('.tcg-card')).toHaveCount(1);
+    await expect(page.locator('.tcg-card strong')).toHaveText('Render fixture 62');
+    await page.locator('#card-language').selectOption('ja');
+    await expect(page.locator('.tcg-card')).toHaveCount(0);
+    await expect(page.locator('#library-filter-count')).toHaveText('2 active');
+    await page.locator('#library-clear-filters').click();
+    await expect(name).toBeFocused();
+    await expect(name).toHaveValue('');
+    await expect(page.locator('#card-language')).toHaveValue('');
+    await expect(page.locator('.tcg-card')).toHaveCount(48);
+  }
 });
 
 test('the cloud page loads a small Pokémon grid and keeps existing cards when more are shown', async ({

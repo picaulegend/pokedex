@@ -14,7 +14,7 @@ Workers is on Free, D1 uses the free allowance, and the app has no R2 binding. T
 
 ## Cards and collections
 
-- **Pokédex**, **Collections**, and **Wishlist** are the main destinations. Phones use bottom navigation; desktop uses a sidebar. The header keeps save status visible in every view. Open its menu for account details, sync controls, and backups.
+- **Pokédex**, **Cards**, **Collections**, and **Wishlist** are the main destinations. Phones use bottom navigation; desktop uses a sidebar. Select the header avatar to open your private **Profile**. Select the save status to open **Sync and backups**.
 - Select a Pokémon name in the Pokédex to open its gallery with owned and wanted cards, plus missing collection members. The tile shows the number of recorded cards. **Filters** shows only the filters that have two or more values in the current view. Open a card for its larger image, finish, quantity, wanted status, and collection memberships. Back navigation returns to the previous screen.
 - **Add card** opens search. **Search cards** reads saved records. **Search TCGdex**, below the results, makes an explicit external search, with up to 24 results per page. Saved matches do not prove complete coverage. Changed search details grey out old results until the next search. Failed searches offer a retry.
 - **Choose a set** searches saved names, source references, or printed card totals. It follows the selected language and shows source logos or symbols when available. Recently used sets appear first. Open **Set and card number** to use the picker. **Any set** is the first item in the list. Changing language clears the set. Choosing a set does not load its cards.
@@ -26,6 +26,12 @@ Workers is on Free, D1 uses the free allowance, and the app has no R2 binding. T
 - Old or simple checkmarks mean that the exact card is unknown. They stay separate from exact quantities. The card view can remove an old checkmark. Unchecking a Pokémon does not erase recorded cards.
 
 The current scope is English and Japanese physical Pokémon cards. Trainer, Energy, and digital Pocket cards are excluded. Collections based on rules and complete-set checklist goals remain planned work.
+
+## Private profile
+
+Choose a trainer or **Default**, then select **Save avatar**. The account saves the choice online and shows it in the header on each device after sign-in or reload. The profile also gives access to passkeys, sign-out, and **Sync and backups**. Owners can create an invite from the profile.
+
+Migration `0010_profile_avatar.sql` adds an optional avatar ID to each account. The private profile uses a fixed list of trainer sprites from [Pokémon Showdown](https://play.pokemonshowdown.com/sprites/trainers/). The browser loads the images from their source and shows a default icon if an image does not load. Public shares and collection backups do not include the avatar.
 
 ## Private card history
 
@@ -145,7 +151,7 @@ For another deployment, set `PASSKEY_ORIGIN` to the exact HTTPS address. When ch
 The Pages and Worker addresses have separate browser storage. To move the old checklist:
 
 1. Open the Pages app and select **Back up**.
-2. Sign in to the cloud app, open the header account menu, select **Restore collection**, and choose the file.
+2. Sign in to the cloud app. Select the save status in the header, select **Restore from backup**, and choose the file.
 3. Choose **Add these checkmarks to my collection**.
 4. Wait for **All changes saved online**. Check the result on another device.
 

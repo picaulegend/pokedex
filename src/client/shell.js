@@ -1,9 +1,11 @@
-export function createShell(app, navigation) {
+import { avatarFace, showAvatar } from './profile.js';
+
+export function createShell(navigation) {
   const shell = document.createElement('div');
   shell.dataset.cloudUi = '';
   const icon = (path) =>
     `<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="${path}"/></svg>`;
-  shell.innerHTML = `<header class="app-header"><a class="app-brand" href="#/pokedex">Collect</a><button id="app-back" class="icon-button" aria-label="Back" hidden>${icon('M19 12H5m7-7-7 7 7 7')}</button><h1 id="app-title" tabindex="-1">Pokédex</h1><button id="app-save-state" class="save-chip" aria-label="Account and save status">Connecting…</button><button id="app-account" class="icon-button" aria-label="Account and backups"><svg aria-hidden="true"><use href="#i-more"/></svg></button></header>
+  shell.innerHTML = `<header class="app-header"><a class="app-brand" href="#/pokedex">Collect</a><button id="app-back" class="icon-button" aria-label="Back" hidden>${icon('M19 12H5m7-7-7 7 7 7')}</button><h1 id="app-title" tabindex="-1">Pokédex</h1><button id="app-save-state" class="save-chip" aria-haspopup="dialog">Connecting…</button><button id="app-account" class="icon-button profile-button" aria-label="Profile" title="Profile">${avatarFace}</button></header>
     <nav class="app-nav" aria-label="Main navigation"><button id="open-pokedex" data-destination="pokedex"><svg aria-hidden="true"><use href="#i-grid"/></svg>Pokédex</button><hr class="nav-divider" aria-hidden="true"><button id="open-cards" data-destination="cards">${icon('M3 6v15h11M7 3h14v14H7z')}Cards</button><button id="open-collections" data-destination="collections">${icon('M3 7h18v13H3zM3 4h18m-12 7h6')}Collections <small id="collections-count">0</small></button><button id="open-wishlist" data-destination="wishlist">${icon('M20 5a4.5 4.5 0 0 0-6.4 0L12 6.6 10.4 5A4.5 4.5 0 0 0 4 11.4l8 8 8-8A4.5 4.5 0 0 0 20 5Z')}Wishlist <small id="wishlist-count">0</small></button><button id="open-card-search" class="nav-add" data-destination="search">${icon('M12 5v14M5 12h14')}Add card</button></nav>`;
   document.body.prepend(shell);
   document.querySelector('.skip').addEventListener('click', (event) => {
@@ -15,26 +17,8 @@ export function createShell(app, navigation) {
   panel.dataset.cloudUi = '';
   panel.className = 'utility-dialog';
   panel.setAttribute('aria-labelledby', 'account-title');
-  panel.innerHTML = `<div class="dialog-head"><h2 id="account-title">Account</h2><button id="account-close" class="icon-button" aria-label="Close account menu">×</button></div><p id="cloud-account">Connecting your account…</p><p id="cloud-status" role="status" aria-live="polite"></p><div class="account-actions"><button class="secondary-button" id="cloud-import" hidden>Import old checkmarks</button><button class="primary-button" id="cloud-conflicts" hidden>Review changes</button><button class="secondary-button" id="cloud-retry">Sync now</button><button class="secondary-button" id="cloud-signin" hidden>Sign in again</button></div><h3>Files</h3><div class="account-tools"><button id="app-backup">Download backup <small>All cards, quantities, and collections</small></button><button id="app-restore">Restore from backup</button><button id="app-checklist">Download offline checklist <small>Pokédex ticks only</small></button><button id="app-share">List missing Pokémon</button><button id="app-print">Print Pokédex</button></div>`;
+  panel.innerHTML = `<div class="dialog-head"><h2 id="account-title">Sync and backups</h2><button id="account-close" class="icon-button" aria-label="Close sync and backups">×</button></div><p id="cloud-status" role="status" aria-live="polite"></p><div class="account-actions"><button class="secondary-button" id="cloud-import" hidden>Import old checkmarks</button><button class="primary-button" id="cloud-conflicts" hidden>Review changes</button><button class="secondary-button" id="cloud-retry">Sync now</button><button class="secondary-button" id="cloud-signin" hidden>Sign in again</button></div><h3>Files</h3><div class="account-tools"><button id="app-backup">Download backup <small>All cards, quantities, and collections</small></button><button id="app-restore">Restore from backup</button><button id="app-checklist">Download offline checklist <small>Pokédex ticks only</small></button><button id="app-share">List missing Pokémon</button><button id="app-print">Print Pokédex</button></div>`;
   document.body.append(panel);
-  const passkeys = document.createElement('a');
-  passkeys.href = '/passkeys';
-  passkeys.textContent = 'Manage passkeys';
-  passkeys.className = 'secondary-button signout-link';
-  passkeys.hidden = true;
-  panel.append(passkeys);
-  const invite = document.createElement('a');
-  invite.href = '/passkeys#invite';
-  invite.textContent = 'Invite someone';
-  invite.className = 'secondary-button signout-link';
-  invite.hidden = true;
-  panel.append(invite);
-  const signout = document.createElement('button');
-  signout.id = 'app-signout';
-  signout.className = 'secondary-button signout-link';
-  signout.textContent = 'Sign out';
-  signout.hidden = true;
-  panel.append(signout);
   const about = document.createElement('div');
   about.className = 'account-about';
   about.innerHTML =
@@ -76,7 +60,7 @@ export function createShell(app, navigation) {
   const openAccount = () => {
     if (!panel.open) panel.showModal();
   };
-  $('app-account').onclick = openAccount;
+  $('app-account').onclick = () => navigation.go('profile');
   $('app-save-state').onclick = openAccount;
   $('account-close').onclick = () => panel.close();
   for (const [from, to] of [
@@ -100,30 +84,34 @@ export function createShell(app, navigation) {
   navigation.subscribe((route) => {
     if (screen && screen !== route.screen) $('toast').hidden = true;
     screen = route.screen;
-    const active = route.collection
-      ? 'collections'
-      : route.screen === 'collection'
-        ? 'collections'
-        : destinations.includes(route.screen)
-          ? route.screen
-          : ['cards', 'wishlist'].includes(route.from)
-            ? route.from
-            : ['search', 'sets', 'card'].includes(route.screen) && !route.pokemon
-              ? 'search'
-              : 'pokedex';
+    const active =
+      route.screen === 'profile'
+        ? null
+        : route.collection
+          ? 'collections'
+          : route.screen === 'collection'
+            ? 'collections'
+            : destinations.includes(route.screen)
+              ? route.screen
+              : ['cards', 'wishlist'].includes(route.from)
+                ? route.from
+                : ['search', 'sets', 'card'].includes(route.screen) && !route.pokemon
+                  ? 'search'
+                  : 'pokedex';
     for (const button of shell.querySelectorAll('[data-destination]')) {
       if (button.dataset.destination === active) button.setAttribute('aria-current', 'page');
       else button.removeAttribute('aria-current');
     }
+    if (route.screen === 'profile') $('app-account').setAttribute('aria-current', 'page');
+    else $('app-account').removeAttribute('aria-current');
     $('app-back').hidden = destinations.includes(route.screen);
     if (panel.open) panel.close();
   });
   return {
     panel,
-    account(user) {
-      signout.hidden = user.development;
-      passkeys.hidden = user.development;
-      invite.hidden = user.development || user.role !== 'admin';
+    openAccount,
+    avatar(id) {
+      showAvatar($('app-account').querySelector('.avatar-face'), id);
     },
     confirmRestore(data, email) {
       restore.querySelector('#restore-account').textContent = `Account: ${email}`;
@@ -141,7 +129,10 @@ export function createShell(app, navigation) {
     status(text, kind) {
       if ($('app-save-state').textContent !== text) $('app-save-state').textContent = text;
       if ($('app-save-state').dataset.state !== kind) $('app-save-state').dataset.state = kind;
-      if ($('app-save-state').title !== text) $('app-save-state').title = text;
+      const label = `${text} · Sync and backups`;
+      if ($('app-save-state').title !== label) $('app-save-state').title = label;
+      if ($('app-save-state').getAttribute('aria-label') !== label)
+        $('app-save-state').setAttribute('aria-label', label);
     },
     lock(value) {
       $('open-card-search').disabled = value;

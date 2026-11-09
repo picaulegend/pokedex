@@ -105,6 +105,7 @@ async function showPasskeys() {
     const item = document.createElement('li');
     item.textContent = key.name || 'Passkey';
     const button = document.createElement('button');
+    button.className = 'secondary-button';
     button.textContent = 'Remove';
     button.setAttribute('aria-label', `Remove ${item.textContent}`);
     button.disabled = keys.length < 2;

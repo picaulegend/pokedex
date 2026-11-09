@@ -1,27 +1,5 @@
 .cloud-app:root {
-  color-scheme: light dark;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-  --mono: ui-monospace, 'SF Mono', Consolas, monospace;
-  --ink: light-dark(#1b1b1b, #f2f1ee);
-  --on-ink: light-dark(#fff, #1b1b1b);
-  --ink-hover: light-dark(#383838, #d4d3d0);
-  --muted: light-dark(#60605e, #b6b6b2);
-  --paper: light-dark(#fcfcfb, #181818);
-  --surface: light-dark(#fff, #1c1c1c);
-  --rail: light-dark(#f5f5f3, #1f1f1f);
-  --mat: light-dark(#efefed, #262625);
-  --hover: light-dark(#e3e3df, #363634);
-  --line: light-dark(#dbdbd8, #3b3b39);
-  --field-line: light-dark(#838381, #898987);
-  --warning: light-dark(#805020, #e4b781);
-  --error: light-dark(#8b382b, #f1a596);
-  --radius: 3px;
-  --app-header: 56px;
   --app-nav: 174px;
-}
-.cloud-app body {
-  font-size: 16px;
-  line-height: 1.5;
 }
 .cloud-app .account-about {
   margin-top: 24px;
@@ -32,27 +10,6 @@
   margin: 8px 0;
   font-size: 12px;
   line-height: 1.6;
-}
-.cloud-app [hidden] {
-  display: none !important;
-}
-.cloud-app button,
-.cloud-app summary,
-.cloud-app input,
-.cloud-app select {
-  touch-action: manipulation;
-}
-.cloud-app button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.cloud-app button:focus-visible,
-.cloud-app a:focus-visible,
-.cloud-app summary:focus-visible,
-.cloud-app input:focus-visible,
-.cloud-app select:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 3px;
 }
 .cloud-app .sidebar,
 .cloud-app .topbar,
@@ -72,18 +29,6 @@
 }
 .cloud-app .app-screen {
   padding-inline: max(clamp(20px, 3vw, 48px), (100% - var(--app-nav) - 1120px) / 2);
-}
-.cloud-app .app-header {
-  position: fixed;
-  inset: 0 0 auto;
-  z-index: 30;
-  height: var(--app-header);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 0 20px;
-  background: var(--paper);
-  border-bottom: 1px solid var(--line);
 }
 .cloud-app .app-header h1 {
   position: absolute;
@@ -122,27 +67,35 @@
   border-radius: var(--radius);
 }
 .cloud-app .save-chip[data-state='saved'] {
-  font-size: 0;
-}
-.cloud-app .save-chip[data-state='saved']::before {
-  margin: 0;
-}
-.cloud-app .save-chip::before {
-  content: '';
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  margin-right: 7px;
-  border-radius: 50%;
-  background: var(--muted);
+  color: var(--muted);
 }
 .cloud-app .save-chip[data-state='warning'],
 .cloud-app .save-chip[data-state='pending'] {
   color: var(--warning);
 }
-.cloud-app .save-chip[data-state='warning']::before,
-.cloud-app .save-chip[data-state='pending']::before {
-  background: var(--warning);
+.cloud-app .profile-button {
+  border-radius: 50%;
+  background: var(--mat);
+}
+.cloud-app .profile-button[aria-current='page'] {
+  border-color: var(--ink);
+}
+.cloud-app .avatar-face {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: var(--muted);
+}
+.cloud-app .avatar-face svg {
+  width: 48%;
+  height: 48%;
+}
+.cloud-app .avatar-face img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
 }
 .cloud-app .app-nav {
   position: fixed;
@@ -155,17 +108,6 @@
   padding: 20px 12px;
   background: var(--rail);
   border-right: 1px solid var(--line);
-}
-.cloud-app .app-brand {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  margin-right: 8px;
-  color: var(--ink);
-  font-weight: 800;
-  font-size: 17px;
-  letter-spacing: 0.12em;
-  text-decoration: none;
 }
 .cloud-app .app-nav > button {
   display: flex;
@@ -205,59 +147,11 @@
   border: 1px solid var(--line);
   background: var(--surface);
 }
-.cloud-app .primary-button,
-.cloud-app .secondary-button {
-  min-height: 44px;
-  padding: 11px 16px;
-  border-radius: var(--radius);
-  font-size: 14px;
-  line-height: 1.4;
-  font-weight: 650;
-}
-.cloud-app .primary-button {
-  background: var(--ink);
-  border: 1px solid var(--ink);
-  color: var(--on-ink);
-}
-.cloud-app .secondary-button {
-  background: var(--surface);
-  border: 1px solid var(--field-line);
-  color: var(--ink);
-}
-.cloud-app .primary-button:hover {
-  background: var(--ink-hover);
-}
-.cloud-app
-  :is(.secondary-button, .icon-button, .save-chip, .mobile-view-button):hover:not(:disabled),
+.cloud-app :is(.icon-button, .save-chip, .mobile-view-button):hover:not(:disabled),
 .cloud-app .app-nav > button:hover:not(:disabled),
 .cloud-app :is(.filter-panel, .card-source-details) > summary:hover,
 .cloud-app .view-menu button:hover {
   background: var(--hover);
-}
-.cloud-app label,
-.cloud-app .field-label {
-  font-size: 14px;
-  color: var(--muted);
-}
-.cloud-app label:not(.species-check),
-.cloud-app .search-set-field {
-  display: grid;
-  gap: 7px;
-  min-width: 0;
-}
-.cloud-app input:not([type='checkbox']):not([type='radio']),
-.cloud-app select,
-.cloud-app .mobile-generation select {
-  width: 100%;
-  min-width: 0;
-  min-height: 44px;
-  padding: 9px 12px;
-  border: 1px solid var(--field-line);
-  border-radius: var(--radius);
-  background: var(--surface);
-  color: var(--ink);
-  font-size: 16px;
-  line-height: 1.4;
 }
 .cloud-app select,
 .cloud-app .mobile-generation select {
@@ -271,10 +165,6 @@
     right 12px center;
   background-size: 4px 4px;
   background-repeat: no-repeat;
-}
-.cloud-app input::placeholder {
-  color: var(--muted);
-  opacity: 1;
 }
 .cloud-app input[type='checkbox'],
 .cloud-app input[type='radio'] {
@@ -518,6 +408,18 @@
   font-weight: 600;
   margin-top: 2px;
 }
+.cloud-app .favorite-heart {
+  margin-inline-start: 6px;
+  color: light-dark(#942e54, #f1a8c2);
+}
+.cloud-app #library-favorite {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: light-dark(#fae7ef, #462434);
+  font-size: 12px;
+  font-weight: 700;
+}
 @media screen {
   .cloud-app .cards.list {
     grid-template-columns: 1fr;
@@ -590,23 +492,6 @@
 .cloud-app .generation-section {
   scroll-margin-top: 220px;
 }
-.cloud-app .screen-intro {
-  margin-bottom: 24px;
-}
-.cloud-app .screen-intro h2,
-.cloud-app .view-heading h2 {
-  font-size: clamp(28px, 4vw, 42px);
-  letter-spacing: -0.04em;
-  margin: 0 0 8px;
-  line-height: 1.2;
-  overflow-wrap: anywhere;
-}
-.cloud-app .screen-intro p,
-.cloud-app .view-heading p {
-  font-size: 14px;
-  color: var(--muted);
-  margin: 0;
-}
 .cloud-app .view-heading {
   display: flex;
   justify-content: space-between;
@@ -626,7 +511,7 @@
   image-rendering: pixelated;
 }
 .cloud-app .library-dex {
-  display: block;
+  display: inline-block;
   font-size: 13px;
   font-weight: 650;
   color: var(--muted);
@@ -681,7 +566,33 @@
   color: var(--ink);
   font-size: 12px;
 }
-.cloud-app #library-filters,
+.cloud-app #library-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+  padding: 4px 14px 16px;
+}
+.cloud-app #library-clear-filters {
+  grid-column: 2;
+  grid-row: 1;
+  border-color: var(--field-line);
+}
+.cloud-app #library-clear-filters svg {
+  width: 18px;
+  height: 18px;
+}
+.cloud-app #library-filter-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+  gap: 12px;
+}
+.cloud-app #library-filter-options:not(:has(> label:not([hidden]))) {
+  display: none;
+}
+.cloud-app #card-name-label:not([hidden]) ~ #library-filter-options {
+  grid-column: 1 / -1;
+}
 .cloud-app .search-number-fields {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1169,7 +1080,7 @@
   min-width: 150px;
   min-height: 48px;
 }
-.cloud-app .want-button[aria-pressed='true'] {
+.cloud-app .want-button.is-wanted {
   color: var(--ink);
   background: var(--mat);
   border-color: var(--field-line);
@@ -1293,11 +1204,327 @@
   font-size: 12px;
   font-weight: 400;
 }
-.cloud-app .signout-link {
+.cloud-app .profile-layout {
+  max-width: 640px;
+}
+.cloud-app .trainer-card {
+  padding: clamp(14px, 4vw, 24px);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: light-dark(#f3f1fb, #241e30);
+}
+.cloud-app .trainer-card .screen-intro {
+  margin-bottom: 16px;
+}
+.cloud-app .trainer-card .profile-intro > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.cloud-app .trainer-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+  gap: 8px;
+}
+.cloud-app :is(.trainer-dex, .trainer-favorite) {
+  display: flex;
+  min-height: 84px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--surface);
+}
+.cloud-app .trainer-dex,
+.cloud-app .trainer-favorite > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+.cloud-app .trainer-dex progress {
+  width: 100%;
+  height: 8px;
+  margin-top: 6px;
+  accent-color: light-dark(#664aa3, #c3aafa);
+}
+.cloud-app .trainer-favorite {
+  align-items: center;
+  gap: 8px;
+}
+.cloud-app .trainer-favorite img {
+  image-rendering: pixelated;
+  object-fit: contain;
+}
+.cloud-app :is(.trainer-dex label, .trainer-favorite span, .trainer-badges small) {
+  color: var(--muted);
+  font-size: 12px;
+}
+.cloud-app :is(.trainer-card, .trainer-showcase) h3 {
+  margin: 16px 0 8px;
+  font-size: 17px;
+}
+.cloud-app :is(.trainer-badges, .trainer-slots) {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cloud-app .trainer-badges {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+}
+.cloud-app .trainer-badges li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.cloud-app .trainer-badges li > span {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--mat);
+  color: var(--muted);
+}
+.cloud-app .trainer-badges li[data-earned='true'] > span {
+  background: light-dark(#f9e4a9, #5b4320);
+  color: light-dark(#664600, #ffe297);
+}
+.cloud-app .trainer-badges :is(strong, small) {
   display: block;
+  overflow-wrap: anywhere;
+}
+.cloud-app .trainer-badges strong {
+  font-size: 14px;
+}
+.cloud-app #trainer-badge-count {
+  margin-inline-start: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+.cloud-app #trainer-earned-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+}
+.cloud-app #trainer-earned-badges li {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: light-dark(#f9e4a9, #5b4320);
+  color: light-dark(#664600, #ffe297);
+  font-size: 12px;
+  font-weight: 650;
+}
+.cloud-app .trainer-badge-goals summary {
+  min-height: 44px;
+  width: fit-content;
+  padding: 10px 2px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 650;
+}
+.cloud-app .trainer-badge-goals > p {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.cloud-app .trainer-badges .badge-progress:not(:empty) {
+  margin-top: 4px;
+  font-weight: 650;
+}
+@media (max-width: 560px) {
+  .cloud-app .trainer-badges {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.cloud-app .trainer-showcase {
+  margin: 18px 0 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+.cloud-app .trainer-showcase-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.cloud-app .trainer-showcase h3 {
+  margin: 0;
+}
+.cloud-app .trainer-showcase p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+.cloud-app .trainer-slots {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.cloud-app .trainer-slots > li {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.cloud-app .trainer-slots .secondary-button {
+  margin-top: 6px;
+  padding-inline: 8px;
+}
+.cloud-app .trainer-empty-slot {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  min-height: 100px;
+  border: 1px dashed var(--field-line);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.cloud-app .detail-feature {
+  margin-top: 12px;
+}
+.cloud-app .profile-intro {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.cloud-app .profile-intro > .avatar-face {
+  width: 72px;
+  height: 72px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--mat);
+}
+.cloud-app :is(#profile-avatars, #favorite-controls) {
+  margin: 0;
+  min-inline-size: 0;
+  padding: 0;
+  border: 0;
+}
+.cloud-app #profile-avatars legend,
+.cloud-app .profile-account h3,
+.cloud-app .profile-favorite h3 {
+  margin: 0 0 12px;
+  padding: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+.cloud-app .profile-favorite {
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+.cloud-app .profile-favorite h3 {
+  margin-bottom: 4px;
+}
+.cloud-app .profile-favorite-choice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 12px 0;
+}
+.cloud-app .profile-favorite-choice img {
+  object-fit: contain;
+  image-rendering: pixelated;
+  background: var(--mat);
+  border-radius: var(--radius);
+}
+.cloud-app #favorite-results {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cloud-app #favorite-results small {
+  color: var(--muted);
+}
+.cloud-app #favorite-matches:not(:empty) {
+  margin: 6px 0;
+}
+.cloud-app .profile-avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 8px;
+}
+.cloud-app .profile-avatar-option {
+  position: relative;
+}
+.cloud-app .profile-avatar-option input {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  margin: 0;
+  accent-color: var(--ink);
+  z-index: 1;
+  cursor: pointer;
+}
+.cloud-app .profile-avatar-option > span {
+  display: grid;
+  place-items: center;
+  align-content: start;
+  gap: 2px;
+  height: 100%;
+  padding: 12px 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
   text-align: center;
+  font-size: 12px;
+  color: var(--ink);
+  cursor: pointer;
+}
+.cloud-app .profile-avatar-option input:checked + span {
+  border-color: var(--ink);
+  background: var(--mat);
+}
+.cloud-app .profile-avatar-option:hover > span {
+  border-color: var(--field-line);
+}
+.cloud-app .profile-avatar-option .avatar-face {
+  width: 60px;
+  height: 60px;
+}
+.cloud-app .profile-save,
+.cloud-app .profile-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+.cloud-app .profile-save {
+  margin-top: 16px;
+}
+.cloud-app .profile-save p,
+.cloud-app .profile-account p,
+.cloud-app .profile-favorite p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+.cloud-app .profile-credits {
+  font-size: 12px;
+  color: var(--muted);
+}
+.cloud-app .profile-account {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.cloud-app .profile-actions a {
   text-decoration: none;
-  margin-top: 20px;
+}
+.cloud-app #profile-account-status:not(:empty) {
+  margin-top: 8px;
 }
 .cloud-app .restore-counts {
   display: grid;
@@ -1385,15 +1612,10 @@
 @media (max-width: 900px) {
   .cloud-app:root {
     --app-nav: 0px;
-    --app-header: 60px;
   }
   .cloud-app .main,
   .cloud-app .app-screen {
     padding: calc(var(--app-header) + 16px) 20px calc(98px + env(safe-area-inset-bottom));
-  }
-  .cloud-app .app-header {
-    padding: 0 16px;
-    gap: 8px;
   }
   .cloud-app .app-nav {
     inset: auto 0 0;
@@ -1468,15 +1690,9 @@
   .cloud-app .app-screen {
     padding: calc(var(--app-header) + 12px) 16px calc(96px + env(safe-area-inset-bottom));
   }
-  .cloud-app .app-header {
-    padding: 0 12px;
-  }
   .cloud-app .save-chip {
     padding: 8px 4px;
     font-size: 12px;
-  }
-  .cloud-app .save-chip::before {
-    margin-right: 5px;
   }
   .cloud-app .dex-progress-text,
   .cloud-app .dex-progress-text strong {
@@ -1523,16 +1739,9 @@
     gap: 16px;
     margin-bottom: 20px;
   }
-  .cloud-app .view-heading h2,
-  .cloud-app .screen-intro h2 {
-    font-size: 25px;
-  }
   .cloud-app .view-actions {
     width: 100%;
     justify-content: space-between;
-  }
-  .cloud-app .screen-intro {
-    margin-bottom: 20px;
   }
   .cloud-app .tcg-grid,
   .cloud-app .search-results {
@@ -1550,9 +1759,6 @@
   }
   .cloud-app .collection-list {
     grid-template-columns: 1fr;
-  }
-  .cloud-app #library-filters {
-    grid-template-columns: minmax(0, 1fr);
   }
   .cloud-app .search-main-fields {
     grid-template-columns: minmax(0, 1fr) 120px;

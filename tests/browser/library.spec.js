@@ -234,7 +234,9 @@ test('card galleries, finishes, wanted cards, quantities, and collection members
   await expect(page.locator('.tcg-language').first()).toHaveText('Japanese');
   await page.locator('#card-language').selectOption('en');
   await openOwnedCard(page, 'en', 'sv03.5-001', id);
-  await expect(page.locator('#detail-want')).toHaveAttribute('aria-pressed', 'true');
+  await expect(
+    page.getByRole('button', { name: 'Remove from wishlist', exact: true }),
+  ).toBeVisible();
   const group = (await sync(request)).collections.find(
     (c) => c.name === 'My Bulbasaur artwork' && !c.deleted,
   );

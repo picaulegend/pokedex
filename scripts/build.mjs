@@ -56,6 +56,10 @@ const appModules = [
   'library.js',
   'navigation.js',
   'shell.js',
+  'profile.js',
+  'trainer-card.js',
+  'badge-definitions.js',
+  'avatars.js',
   'ui.js',
   'card-search-ui.js',
   'card-detail.js',
@@ -64,9 +68,16 @@ const appModules = [
   'set-picker.js',
   'share-controls.js',
 ];
-const appAssets = await Promise.all(
-  ['cloud.css', ...appModules].map(async (file) => [file, await readFile(`src/client/${file}`)]),
-);
+const appTheme = await readFile('src/client/app-theme.css');
+async function themedStyles(file) {
+  return Buffer.concat([appTheme, await readFile(`src/client/${file}`)]);
+}
+const appAssets = [
+  ['cloud.css', await themedStyles('cloud.css')],
+  ...(await Promise.all(
+    appModules.map(async (file) => [file, await readFile(`src/client/${file}`)]),
+  )),
+];
 // Relative imports must use the same asset version as the entry point and stylesheet.
 const appHash = createHash('sha256');
 for (const [file, bytes] of appAssets)
@@ -106,8 +117,8 @@ await writeFile(
       `<script type="module" data-cloud-client src="${appPath}/cloud.js"></script>\n</body>`,
     ),
 );
-for (const file of ['share.js', 'share.css', 'passkeys.css'])
-  await copyFile(`src/client/${file}`, `dist/${file}`);
+for (const file of ['share.js', 'share.css']) await copyFile(`src/client/${file}`, `dist/${file}`);
+await writeFile('dist/passkeys.css', await themedStyles('passkeys.css'));
 await build({
   entryPoints: ['src/client/passkey-ui.js'],
   bundle: true,

@@ -63,6 +63,32 @@ export const pastCount = (history) =>
   history.changes.reduce((sum, change) => sum + change.quantity, 0);
 export const unrecordedCount = (row) => row.quantity - describedCount(historyOf(row));
 
+export function deleteHistoryEntry(row, entryId) {
+  const history = historyOf(row);
+  const changes = history.changes.flatMap((change) => {
+    const part = change.allocations.find((allocation) => allocation.entryId === entryId);
+    if (!part) return [change];
+    if (part.quantity === change.quantity) return [];
+    return [
+      {
+        ...change,
+        quantity: change.quantity - part.quantity,
+        allocations: change.allocations.filter((allocation) => allocation.entryId !== entryId),
+      },
+    ];
+  });
+  return {
+    quantity: row.quantity,
+    wanted: row.wanted,
+    history: {
+      ...history,
+      entries: history.entries.filter((entry) => entry.id !== entryId),
+      changes,
+    },
+    historyChoice: true,
+  };
+}
+
 export function validateHistory(value, owned) {
   quantity(owned, true);
   object(value, ['entries', 'changes', 'plan']);
@@ -282,7 +308,18 @@ export function mergeInventory(existing, incoming) {
       quantity: Math.max(entry.quantity, entries.get(entry.id)?.quantity || 0),
     });
   const changes = new Map(b.changes.map((change) => [change.id, structuredClone(change)]));
-  for (const change of a.changes) changes.set(change.id, structuredClone(change));
+  const currentEntries = new Set(a.entries.map((entry) => entry.id));
+  for (const change of a.changes) {
+    // When a backup restores a deleted entry, keep its part of a shared removal.
+    const restored = (changes.get(change.id)?.allocations || []).filter(
+      (part) => !currentEntries.has(part.entryId),
+    );
+    changes.set(change.id, {
+      ...structuredClone(change),
+      quantity: change.quantity + restored.reduce((total, part) => total + part.quantity, 0),
+      allocations: [...structuredClone(change.allocations), ...restored],
+    });
+  }
   const history = {
     entries: [...entries.values()],
     changes: [...changes.values()],

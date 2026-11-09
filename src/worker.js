@@ -5,6 +5,35 @@ import { accountPage } from './account-page.js';
 import { syncRecords, catalogue, saveRecord } from './records.js';
 import { searchCards, previewCard, addCard, resolveSources } from './card-search.js';
 import { manageShare, previewShare, publicShare } from './sharing.js';
+import { avatars } from './client/avatars.js';
+import { saveShowcase } from './showcase.js';
+import { checkBadges } from './badges.js';
+
+async function saveProfile(request, env, user) {
+  const body = await readBody(request, 256);
+  if (!body || Object.keys(body).length !== 1) throw new HttpError(400, 'Send one profile change.');
+  if (Object.hasOwn(body, 'avatarId')) {
+    const { avatarId } = body;
+    if (avatarId !== null && !avatars.some(({ id }) => id === avatarId))
+      throw new HttpError(400, 'Choose an available avatar.');
+    await env.DB.prepare('UPDATE users SET avatar_id=? WHERE id=? AND avatar_id IS NOT ?')
+      .bind(avatarId, user.id, avatarId)
+      .run();
+    return json({ avatarId });
+  }
+  const { favoritePokemonId } = body;
+  if (
+    favoritePokemonId !== null &&
+    (!Number.isInteger(favoritePokemonId) || favoritePokemonId < 1 || favoritePokemonId > 1025)
+  )
+    throw new HttpError(400, 'Choose a valid Pokémon.');
+  await env.DB.prepare(
+    'UPDATE users SET favorite_pokemon_id=? WHERE id=? AND favorite_pokemon_id IS NOT ?',
+  )
+    .bind(favoritePokemonId, user.id, favoritePokemonId)
+    .run();
+  return json({ favoritePokemonId });
+}
 
 async function syncChange(request, env, user, pokemonId) {
   const body = await readBody(request);
@@ -166,7 +195,20 @@ export default {
           .bind(user.id, user.email, user.role, now, now)
           .run();
       }
-      if (url.pathname === '/api/session' && request.method === 'GET') return json({ user });
+      if (url.pathname === '/api/session' && request.method === 'GET') {
+        const profile = await env.DB.prepare(
+          'SELECT avatar_id AS avatarId, favorite_pokemon_id AS favoritePokemonId FROM users WHERE id=?',
+        )
+          .bind(user.id)
+          .first();
+        return json({ user: { ...user, ...profile } });
+      }
+      if (url.pathname === '/api/profile' && request.method === 'PUT')
+        return await saveProfile(request, env, user);
+      if (url.pathname === '/api/profile/showcase' && request.method === 'PUT')
+        return await saveShowcase(request, env, user);
+      if (url.pathname === '/api/profile/badges/check' && request.method === 'POST')
+        return await checkBadges(request, env, user);
       if (url.pathname === '/api/shares' && ['GET', 'PUT'].includes(request.method))
         return await manageShare(request, env, user, url);
       if (url.pathname === '/api/shares/preview' && request.method === 'GET')

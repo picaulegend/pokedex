@@ -6,6 +6,7 @@ import {
   emptyHistory,
   validateHistory,
   removeCopies,
+  deleteHistoryEntry,
   remaining,
   inventoryChange,
   mergeInventory,
@@ -54,6 +55,36 @@ test('removing part of a purchase keeps its original details and received amount
   assert.equal(result.history.entries[0].amount, '12.50');
   assert.equal(result.history.changes[0].amount, '18.00');
   assert.deepEqual(row, original);
+});
+
+test('deleting a history entry preserves other copies and their part of a shared removal', () => {
+  const mistake = entry(1);
+  const purchase = entry(2);
+  const row = {
+    quantity: 3,
+    wanted: true,
+    history: validateHistory({ entries: [mistake, purchase], changes: [], plan: null }, 3),
+  };
+  const archived = removeCopies(
+    row,
+    [mistake, purchase].map(({ id: entryId }) => ({ entryId, quantity: 1 })),
+    disposition,
+    id(),
+  );
+  const result = inventoryChange(archived, deleteHistoryEntry(archived, mistake.id), id());
+  assert.equal(result.quantity, 1);
+  assert.equal(result.wanted, true);
+  assert.deepEqual(result.history.entries, [archived.history.entries[1]]);
+  assert.deepEqual(result.history.changes, [
+    {
+      ...archived.history.changes[0],
+      quantity: 1,
+      allocations: [{ entryId: purchase.id, quantity: 1 }],
+    },
+  ]);
+  const restored = mergeInventory(result, archived);
+  assert.equal(restored.quantity, 1);
+  assert.equal(restored.history.changes[0].quantity, 2);
 });
 
 test('unknown copies also retain a record when the last copy is removed', () => {

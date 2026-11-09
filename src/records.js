@@ -2,6 +2,8 @@ import { HttpError } from './auth.js';
 import { isId, json, progressState, readBody } from './api.js';
 import { cardDetails, cardStatements } from './card-source.js';
 import { emptyHistory, inventoryChange, validateHistory } from './client/card-history-model.js';
+import { showcaseQuery } from './showcase.js';
+import { badgeQuery, badgeSnapshot, markBadgeChange } from './badges.js';
 
 export const collectionSelect = `SELECT c.*,COALESCE((SELECT json_group_array(variant_id) FROM
   (SELECT variant_id FROM collection_cards WHERE user_id=c.user_id AND collection_id=c.id ORDER BY variant_id)),'[]') AS variant_ids FROM collections c`;
@@ -38,7 +40,7 @@ export async function syncRecords(env, user, url) {
   if (!/^\d{1,16}$/.test(afterText) || !Number.isSafeInteger(Number(afterText)))
     throw new HttpError(400, 'Use a valid sync position.');
   const after = Number(afterText);
-  // All four reads use one transaction. The cursor and records describe the same state.
+  // The cursor and records describe the same state.
   const version = '(SELECT COALESCE((SELECT version FROM account_sync WHERE user_id=?),1))';
   const results = await env.DB.batch([
     env.DB.prepare(
@@ -53,6 +55,8 @@ export async function syncRecords(env, user, url) {
     env.DB.prepare(
       `${collectionSelect} WHERE c.user_id=? AND c.sync_version>CASE WHEN ?>${version} THEN 0 ELSE ? END`,
     ).bind(user.id, after, user.id, after),
+    showcaseQuery(env, user.id),
+    badgeQuery(env, user.id),
   ]);
   const cursor = results[0].results[0].version;
   return json({
@@ -61,6 +65,8 @@ export async function syncRecords(env, user, url) {
     progress: results[1].results.map((row) => progressState(row)),
     inventory: results[2].results.map((row) => inventoryState(row)),
     collections: results[3].results.map(collectionState),
+    showcase: results[4].results,
+    badges: badgeSnapshot(results[5].results[0]),
   });
 }
 
@@ -378,14 +384,17 @@ export async function saveRecord(request, env, user, kind, id, preparedCard) {
       'EXISTS(SELECT 1 FROM record_mutations WHERE user_id=? AND mutation_id=? AND request_id=?)';
     statements.push(
       env.DB.prepare(
-        `DELETE FROM collection_cards WHERE user_id=? AND collection_id=? AND ${gate}`,
-      ).bind(user.id, id, user.id, body.mutationId, requestId),
+        `DELETE FROM collection_cards WHERE user_id=? AND collection_id=?
+        AND variant_id NOT IN (SELECT value FROM json_each(?)) AND ${gate}`,
+      ).bind(user.id, id, JSON.stringify(data.variantIds), user.id, body.mutationId, requestId),
+      markBadgeChange(env, user.id),
     );
     statements.push(
       env.DB.prepare(
         `INSERT INTO collection_cards(user_id,collection_id,variant_id)
-      SELECT ?,?,value FROM json_each(?) WHERE ${gate}`,
+      SELECT ?,?,value FROM json_each(?) WHERE ${gate} ON CONFLICT DO NOTHING`,
       ).bind(user.id, id, JSON.stringify(data.variantIds), user.id, body.mutationId, requestId),
+      markBadgeChange(env, user.id),
     );
   }
   statements.push(

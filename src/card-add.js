@@ -1,5 +1,6 @@
 import { json, progressState } from './api.js';
 import { cardStatements } from './card-source.js';
+import { markBadgeChange } from './badges.js';
 import {
   collectionSelect,
   collectionState,
@@ -83,6 +84,7 @@ export async function addCollectionCard(env, user, body, card) {
     env.DB.prepare(
       `INSERT INTO collection_cards(user_id,collection_id,variant_id) SELECT ?,?,? WHERE ${gate.sql} ON CONFLICT DO NOTHING`,
     ).bind(user.id, body.collectionId, body.variantId, ...gate.values),
+    markBadgeChange(env, user.id),
     env.DB.prepare('SELECT * FROM record_mutations WHERE user_id=? AND mutation_id=?').bind(
       user.id,
       body.mutationId,

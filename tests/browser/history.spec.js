@@ -121,6 +121,41 @@ test('purchase and sale details survive reload and the previously owned gallery 
   await expect(tile).toHaveCount(0);
 });
 
+test('an accidental owned copy can be removed and its history deleted', async ({
+  page,
+  request,
+}) => {
+  await save(request, { quantity: 0, wanted: true, history: emptyHistory(), historyChoice: true });
+  await page.goto(cardUrl());
+  await expect(page.locator('#detail-quantity')).toHaveValue('0');
+  await page.locator('#detail-plus').click();
+  await expect(page.locator('#detail-quantity')).toHaveValue('1');
+  await page.locator('#detail-minus').click();
+  await page.getByRole('button', { name: 'Remove from owned', exact: true }).click();
+  await expect(page.locator('#card-history')).toContainText('Previously owned');
+  await page.getByRole('button', { name: 'Edit details not recorded entry' }).click();
+  const deleteEntry = page.getByRole('button', { name: 'Delete entry', exact: true });
+  page.once('dialog', (dialog) => dialog.dismiss());
+  await deleteEntry.click();
+  await expect(deleteEntry).toBeVisible();
+  page.once('dialog', (dialog) => dialog.accept());
+  await deleteEntry.click();
+  await expect(page.locator('#detail-message')).toHaveText('History entry deleted.');
+  await expect
+    .poll(() => state(request))
+    .toMatchObject({
+      quantity: 0,
+      wanted: true,
+      history: emptyHistory(),
+    });
+  await page.reload();
+  await expect(page.locator('#detail-quantity')).toHaveValue('0');
+  await expect(
+    page.getByRole('button', { name: 'Remove from wishlist', exact: true }),
+  ).toBeVisible();
+  await expect(page.locator('#card-history')).toHaveCount(0);
+});
+
 test('offline history stays queued and later edits keep the count and private details', async ({
   page,
   context,

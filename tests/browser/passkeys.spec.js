@@ -38,6 +38,9 @@ test('the existing owner can sign in, manage passkeys, and invite a member', asy
     401,
   );
   expect((await inviteRequest(api, 'member@example.test')).status()).toBe(401);
+  expect(
+    (await api.put(origin + '/api/profile', { data: { avatarId: 'ash' }, headers })).status(),
+  ).toBe(401);
   expect((await api.get(auth + 'generate-register-options?context=owner-setup')).status()).toBe(
     403,
   );
@@ -62,7 +65,7 @@ test('the existing owner can sign in, manage passkeys, and invite a member', asy
   await page.getByRole('link', { name: 'Set up owner passkey' }).click();
   await page.getByLabel('Setup code').fill(token);
   await page.getByRole('button', { name: 'Create owner passkey' }).click();
-  await expect(page).toHaveURL(origin + '/');
+  await expect(page).toHaveURL(origin + '/#/pokedex');
   const { user } = await (await api.get(session)).json();
   expect(user).toMatchObject({ id: 'legacy-owner-id', role: 'admin' });
   const progress = await api.get(origin + '/api/pokedex', {
@@ -107,7 +110,7 @@ test('the existing owner can sign in, manage passkeys, and invite a member', asy
     const link = await inviteLink.inputValue();
     await memberPage.goto(link);
     await memberPage.getByRole('button', { name: 'Create passkey' }).click();
-    await expect(memberPage).toHaveURL(origin + '/');
+    await expect(memberPage).toHaveURL(origin + '/#/pokedex');
     const { user: member } = await (await guest.request.get(session)).json();
     expect(member).toMatchObject({ role: 'member', email: 'member@example.test' });
     expect(member.id).not.toBe(user.id);
@@ -144,6 +147,6 @@ test('the existing owner can sign in, manage passkeys, and invite a member', asy
   await expect(page).toHaveURL(origin + '/login');
   expect((await api.get(session)).status()).toBe(401);
   await page.getByRole('button', { name: 'Sign in with a passkey' }).click();
-  await expect(page).toHaveURL(origin + '/');
+  await expect(page).toHaveURL(origin + '/#/pokedex');
   expect((await (await api.get(session)).json()).user.id).toBe(user.id);
 });

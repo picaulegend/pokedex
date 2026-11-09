@@ -1,77 +1,87 @@
-:root {
-  color-scheme: light;
-  font:
-    16px/1.5 system-ui,
-    sans-serif;
-  color: #233a34;
-  background: #f7f8f3;
-}
-body {
-  margin: 0;
-  padding: clamp(20px, 8vw, 96px) 20px;
-}
-main {
-  max-width: 420px;
-  margin: auto;
-  padding: clamp(20px, 6vw, 36px);
-  border: 1px solid #dce4d7;
-  border-radius: 18px;
-  background: #fff;
-}
-.brand {
-  font-weight: 750;
-  margin: 0;
-}
-h1 {
-  margin: 8px 0 12px;
-  line-height: 1.2;
-}
-form {
-  display: grid;
-  gap: 8px;
-  margin: 18px 0;
-}
-button,
-input {
+.account-page,
+.account-page * {
   box-sizing: border-box;
-  min-height: 44px;
-  padding: 8px 14px;
-  font: inherit;
-  border: 1px solid #8a9a90;
-  border-radius: 8px;
 }
-button {
-  background: #233a34;
-  color: #fff;
+.account-page {
+  margin: 0;
+  padding: calc(var(--app-header) + clamp(28px, 7vw, 80px)) 16px 32px;
+  background: var(--paper);
+  color: var(--ink);
+}
+.account-panel {
+  width: min(100%, 460px);
+  margin: 0 auto;
+  padding: clamp(20px, 5vw, 32px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.account-panel button,
+.account-panel input {
+  font-family: inherit;
+}
+.account-panel button {
   cursor: pointer;
 }
-button:disabled {
-  opacity: 0.55;
-  cursor: default;
+.account-panel > .primary-button {
+  width: 100%;
 }
-a {
-  color: #233a34;
+.account-panel form,
+#invite-result {
+  display: grid;
+  gap: 12px;
 }
-ul {
+#passkey-list {
+  margin: 0 0 20px;
   padding: 0;
   list-style: none;
 }
-li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  margin-block: 8px;
-  overflow-wrap: anywhere;
-}
+#passkey-list:empty,
 #passkey-status:empty {
   display: none;
 }
-#invite {
-  margin-top: 24px;
-  border-top: 1px solid #dce4d7;
+#passkey-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
 }
-#invite-result:not([hidden]) {
-  display: grid;
-  gap: 8px;
+#passkey-list button {
+  flex: none;
+}
+#invite,
+.account-links {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+#invite h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  line-height: 1.2;
+}
+#invite p {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 14px;
+}
+#invite-result {
+  margin-top: 16px;
+}
+#passkey-status {
+  margin: 16px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--rail);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.account-links a {
+  color: var(--ink);
+  font-size: 14px;
+  text-underline-offset: 3px;
 }

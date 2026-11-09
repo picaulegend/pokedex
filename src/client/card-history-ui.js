@@ -10,6 +10,7 @@ import {
   unrecordedCount,
   pastCount,
   removeCopies,
+  deleteHistoryEntry,
   currencies,
 } from './card-history-model.js';
 
@@ -229,7 +230,7 @@ const entryTemplate = `<dialog
         </div>
         <footer class="sheet-footer">
           <button type="button" id="delete-entry" class="text-button delete-button" hidden>
-            Delete details</button
+            Delete entry</button
           ><button class="secondary-button" id="cancel-entry" type="button">Cancel</button
           ><button class="primary-button" id="save-entry" type="submit">
             <svg class="icon"><use href="#history-i-check" /></svg><span>Save entry</span>
@@ -312,7 +313,7 @@ const removalTemplate = `<dialog
                 </select></label
               >
             </div>
-            <p class="field-hint">The total received for the copies in this change.</p>
+            <p class="field-hint">The total received for the sale or trade.</p>
           </div>
           <label
             ><span>Notes <span class="optional">optional</span></span
@@ -363,19 +364,19 @@ export function createCardHistory({ getContext, canEdit, commit, refresh }) {
         'This card changed while this form was open. Close it and open it again before saving.',
       );
   }
-  async function submit(form, errorId, makeChange) {
+  async function submit(form, errorId, makeChange, deleteButton) {
     const error = $(errorId);
     error.hidden = true;
     try {
-      if (!canEdit() || !form.reportValidity()) return;
+      if (!canEdit() || (!deleteButton && !form.reportValidity())) return;
       assertCurrent();
       const data = makeChange();
       data.history = validateHistory(data.history, data.quantity);
-      const button = form.querySelector('[type="submit"]');
+      const button = deleteButton || form.querySelector('[type="submit"]');
       button.disabled = true;
       button.setAttribute('aria-busy', 'true');
       try {
-        if (await commit(data)) form.closest('dialog').close();
+        if (await commit(data, Boolean(deleteButton))) form.closest('dialog').close();
         else throw new Error('The change could not be saved. Try again.');
       } finally {
         button.disabled = false;
@@ -421,7 +422,7 @@ export function createCardHistory({ getContext, canEdit, commit, refresh }) {
     $('entry-currency').value = entry?.currency || history.plan?.currency || 'EUR';
     $('entry-notes').value = entry?.notes || '';
     $('remove-wanted-label').hidden = Boolean(entry) || !own.wanted;
-    $('delete-entry').hidden = !entry || removedFrom(entry, history) > 0;
+    $('delete-entry').hidden = !entry;
     $('save-entry').querySelector('span').textContent = entry ? 'Save changes' : 'Save entry';
     $('entry-card-name').textContent = card.name;
     $('entry-card-reference').textContent = `${card.setName} · ${card.number}`;
@@ -501,16 +502,19 @@ export function createCardHistory({ getContext, canEdit, commit, refresh }) {
       };
     });
   };
-  $('delete-entry').onclick = () =>
-    void submit($('entry-form'), 'entry-error', () => {
-      const own = current().own,
-        history = structuredClone(historyOf(own));
-      const entry = history.entries.find((item) => item.id === editing);
-      if (entry && removedFrom(entry, history))
-        throw new Error('Keep the history of copies you no longer own.');
-      history.entries = history.entries.filter((item) => item.id !== editing);
-      return { quantity: own.quantity, wanted: own.wanted, history };
-    });
+  $('delete-entry').onclick = (event) => {
+    if (
+      !canEdit() ||
+      !confirm('Delete this entry and its related history? Your owned count stays the same.')
+    )
+      return;
+    void submit(
+      $('entry-form'),
+      'entry-error',
+      () => deleteHistoryEntry(current().own, editing),
+      event.currentTarget,
+    );
+  };
 
   function allocations() {
     const history = historyOf(active.context.own);
@@ -699,7 +703,7 @@ export function createCardHistory({ getContext, canEdit, commit, refresh }) {
           .slice(0, limit)
           .map((change) => {
             const part = change.allocations.find((allocation) => allocation.entryId === entry.id);
-            return `<div class="history-change"><div class="history-entry-top"><h4>${escape(changeNames[change.reason])}</h4><span>${escape(dateLabel(change.date))}</span><button data-history-change="${change.id}" class="history-edit" aria-label="Edit ${escape(changeNames[change.reason].toLowerCase())} details" ${disabled ? 'disabled' : ''}>${symbol('edit')}</button></div><p>${escape(change.person)}${change.person ? ' · ' : ''}${copies(part.quantity)}${change.amount !== '' ? ` · ${escape(money(change.amount, change.currency))} received${change.quantity > part.quantity ? ` in total for ${copies(change.quantity)}` : ''}` : ''}</p>${change.notes ? `<p class="history-note">${escape(change.notes)}</p>` : ''}</div>`;
+            return `<div class="history-change"><div class="history-entry-top"><h4>${escape(changeNames[change.reason])}</h4><span>${escape(dateLabel(change.date))}</span><button data-history-change="${change.id}" class="history-edit" aria-label="Edit ${escape(changeNames[change.reason].toLowerCase())} details" ${disabled ? 'disabled' : ''}>${symbol('edit')}</button></div><p>${escape(change.person)}${change.person ? ' · ' : ''}${copies(part.quantity)}${change.amount !== '' ? ` · ${escape(money(change.amount, change.currency))} received in total` : ''}</p>${change.notes ? `<p class="history-note">${escape(change.notes)}</p>` : ''}</div>`;
           })
           .join(
             '',

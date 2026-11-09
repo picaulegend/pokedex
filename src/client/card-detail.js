@@ -19,6 +19,8 @@ export function createCardDetail({
   getInventory,
   getCollections,
   canEdit,
+  isFeatured,
+  saveShowcase,
   save,
   admit,
 }) {
@@ -55,7 +57,11 @@ export function createCardDetail({
       image: imageUrl(record.card),
     }),
     canEdit: () => canEdit() && !busy,
-    commit: (data) => action(() => saveInventory(data), 'Card history saved.'),
+    commit: (data, deleting) =>
+      action(
+        () => (deleting ? save('inventory', selected, data) : saveInventory(data)),
+        deleting ? 'History entry deleted.' : 'Card history saved.',
+      ),
     refresh: () => render(),
   });
   const currentVariant = () => record?.card.variants.find((v) => v.id === selected);
@@ -145,6 +151,7 @@ export function createCardDetail({
       own = inventory(),
       groups = getCollections(),
       linkedGoal = goal(),
+      featured = isFeatured(selected),
       disabled = busy || !canEdit();
     updateMarkup(
       screen,
@@ -152,7 +159,8 @@ export function createCardDetail({
       <dl class="detail-record"><div><dt>Set</dt><dd>${escape(card.setName || 'Not recorded')}</dd></div><div><dt>Card number</dt><dd>${escape(card.number)}${card.officialCount ? `/${escape(card.officialCount)}` : ''}</dd></div><div><dt>Language</dt><dd>${languageName(card.language)}</dd></div><div><dt>Illustrator</dt><dd>${escape(card.artist || 'Not recorded')}</dd></div></dl>
       <label class="finish-field">Finish<select id="detail-finish" ${disabled ? 'disabled' : ''}>${card.variants.map((v) => `<option value="${v.id}" ${v.id === selected ? 'selected' : ''}>${escape(variantName(v))}</option>`).join('')}</select></label>
       ${linkedGoal ? `<div class="goal-context"><button id="detail-add-goal" class="primary-button" aria-pressed="${linkedGoal.variantIds.includes(selected)}" aria-disabled="${disabled || linkedGoal.variantIds.includes(selected)}" aria-busy="${busy && pendingAction.control === 'detail-add-goal'}">${busy && pendingAction.control === 'detail-add-goal' ? 'Adding…' : linkedGoal.variantIds.includes(selected) ? `In ${escape(linkedGoal.name)}` : `Add to ${escape(linkedGoal.name)}`}</button></div>` : ''}
-      <div class="detail-actions"><div class="detail-owned"><span class="field-label" id="detail-owned-label">Owned</span><div class="quantity-stepper"><button id="detail-minus" class="icon-button" aria-label="Remove one owned copy" ${disabled || !own.quantity ? 'disabled' : ''}>−</button><input id="detail-quantity" data-quantity="${selected}" aria-label="Owned copies of ${escape(card.name)}" type="number" inputmode="numeric" min="0" max="999" step="1" value="${escape(draft ?? own.quantity)}" ${disabled || !record.saved ? 'disabled' : ''}><button id="detail-plus" class="icon-button" aria-label="Add one owned copy" aria-busy="${busy && pendingAction.control === 'detail-plus'}" ${disabled || own.quantity >= 999 ? 'disabled' : ''}>＋</button></div></div><button id="detail-want" class="secondary-button want-button" data-want="${selected}" aria-pressed="${own.wanted}" ${disabled ? 'disabled' : ''}>${busy && pendingAction.control === 'detail-want' ? 'Saving…' : own.wanted ? 'On wishlist' : 'Add to wishlist'}</button></div>
+      <div class="detail-actions"><div class="detail-owned"><span class="field-label" id="detail-owned-label">Owned</span><div class="quantity-stepper"><button id="detail-minus" class="icon-button" aria-label="Remove one owned copy" ${disabled || !own.quantity ? 'disabled' : ''}>−</button><input id="detail-quantity" data-quantity="${selected}" aria-label="Owned copies of ${escape(card.name)}" type="number" inputmode="numeric" min="0" max="999" step="1" value="${escape(draft ?? own.quantity)}" ${disabled || !record.saved ? 'disabled' : ''}><button id="detail-plus" class="icon-button" aria-label="Add one owned copy" aria-busy="${busy && pendingAction.control === 'detail-plus'}" ${disabled || own.quantity >= 999 ? 'disabled' : ''}>＋</button></div></div><button id="detail-want" class="secondary-button want-button${own.wanted ? ' is-wanted' : ''}" data-want="${selected}" ${disabled ? 'disabled' : ''}>${busy && pendingAction.control === 'detail-want' ? 'Saving…' : own.wanted ? 'Remove from wishlist' : 'Add to wishlist'}</button></div>
+      ${own.quantity ? `<button id="detail-feature" class="secondary-button detail-feature" ${disabled ? 'disabled' : ''}>${busy && pendingAction.control === 'detail-feature' ? 'Saving…' : featured ? 'Remove from Trainer Card' : 'Feature on Trainer Card'}</button>` : ''}
       <div class="detail-save-state"><p id="detail-message" role="status" class="${messageError ? 'is-error' : ''}">${escape(message)}</p>${message && !messageError && own.quantity && unrecordedCount(own) > 0 ? `<button id="detail-record-history" class="history-text-button" ${disabled ? 'disabled' : ''}>Add details</button>` : ''}</div>
       ${historyControls.markup(own, record.saved)}
       <details id="detail-collections" class="filter-panel"><summary>Collections <span>${groups.filter((g) => g.variantIds.includes(selected)).length}</span></summary><div class="membership-list">${groups.length ? groups.map((group) => `<label><input id="member-${group.id}" type="checkbox" data-membership="${group.id}" ${(busy && pendingAction.membership?.id === group.id ? pendingAction.membership.included : group.variantIds.includes(selected)) ? 'checked' : ''} ${disabled ? 'disabled' : ''}><span>${escape(group.name)}</span></label>`).join('') : '<p>Create a collection to give these cards a goal.</p>'}</div></details>
@@ -246,6 +254,12 @@ export function createCardDetail({
         linkedGoal.variantIds.includes(selected)
           ? undefined
           : void action(() => attachGoal(), `Added to ${linkedGoal.name}.`);
+    if ($('detail-feature'))
+      $('detail-feature').onclick = () =>
+        void action(
+          () => saveShowcase(selected, !featured),
+          featured ? 'Card removed from your Trainer Card.' : 'Card featured on your Trainer Card.',
+        );
     for (const input of screen.querySelectorAll('[data-membership]'))
       input.onchange = () => {
         const group = groups.find((g) => g.id === input.dataset.membership);

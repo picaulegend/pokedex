@@ -1,0 +1,160 @@
+.cloud-app:root {
+  color-scheme: light dark;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Consolas, monospace;
+  --ink: light-dark(#1b1b1b, #f2f1ee);
+  --on-ink: light-dark(#fff, #1b1b1b);
+  --ink-hover: light-dark(#383838, #d4d3d0);
+  --muted: light-dark(#60605e, #b6b6b2);
+  --paper: light-dark(#fcfcfb, #181818);
+  --surface: light-dark(#fff, #1c1c1c);
+  --rail: light-dark(#f5f5f3, #1f1f1f);
+  --mat: light-dark(#efefed, #262625);
+  --hover: light-dark(#e3e3df, #363634);
+  --line: light-dark(#dbdbd8, #3b3b39);
+  --field-line: light-dark(#838381, #898987);
+  --warning: light-dark(#805020, #e4b781);
+  --error: light-dark(#8b382b, #f1a596);
+  --radius: 3px;
+  --app-header: 56px;
+}
+.cloud-app body {
+  font-size: 16px;
+  line-height: 1.5;
+}
+.cloud-app [hidden] {
+  display: none !important;
+}
+.cloud-app button,
+.cloud-app summary,
+.cloud-app input,
+.cloud-app select {
+  touch-action: manipulation;
+}
+.cloud-app button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.cloud-app button:focus-visible,
+.cloud-app a:focus-visible,
+.cloud-app summary:focus-visible,
+.cloud-app input:focus-visible,
+.cloud-app select:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+.cloud-app .app-header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 30;
+  height: var(--app-header);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+.cloud-app .app-brand {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-right: 8px;
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: 0.12em;
+  text-decoration: none;
+}
+.cloud-app .primary-button,
+.cloud-app .secondary-button {
+  min-height: 44px;
+  padding: 11px 16px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 650;
+}
+.cloud-app .primary-button {
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  color: var(--on-ink);
+}
+.cloud-app .secondary-button {
+  background: var(--surface);
+  border: 1px solid var(--field-line);
+  color: var(--ink);
+}
+.cloud-app .primary-button:hover {
+  background: var(--ink-hover);
+}
+.cloud-app .secondary-button:hover:not(:disabled) {
+  background: var(--hover);
+}
+.cloud-app label,
+.cloud-app .field-label {
+  font-size: 14px;
+  color: var(--muted);
+}
+.cloud-app label:not(.species-check),
+.cloud-app .search-set-field {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+.cloud-app input:not([type='checkbox']):not([type='radio']),
+.cloud-app select,
+.cloud-app .mobile-generation select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 9px 12px;
+  border: 1px solid var(--field-line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.4;
+}
+.cloud-app input::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+.cloud-app .screen-intro {
+  margin-bottom: 24px;
+}
+.cloud-app .screen-intro :is(h1, h2),
+.cloud-app .view-heading h2 {
+  font-size: clamp(28px, 4vw, 42px);
+  letter-spacing: -0.04em;
+  margin: 0 0 8px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.cloud-app .screen-intro p,
+.cloud-app .view-heading p {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0;
+}
+@media (max-width: 900px) {
+  .cloud-app:root {
+    --app-header: 60px;
+  }
+  .cloud-app .app-header {
+    padding: 0 16px;
+    gap: 8px;
+  }
+}
+@media (max-width: 600px) {
+  .cloud-app .app-header {
+    padding: 0 12px;
+  }
+  .cloud-app .view-heading h2,
+  .cloud-app .screen-intro :is(h1, h2) {
+    font-size: 25px;
+  }
+  .cloud-app .screen-intro {
+    margin-bottom: 20px;
+  }
+}

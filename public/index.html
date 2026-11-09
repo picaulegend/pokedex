@@ -200,10 +200,12 @@ function visiblePokemon(){
 function card(p){
   const badges=p.types.map(t=>`<span class="type-badge" style="--type-bg:${TYPES[t][0]};--type-fg:${TYPES[t][1]}">${t}</span>`).join('');
   const cloud=window.CARDDEX_CLOUD,tag=cloud?'div':'label';
-  const name=cloud?`<button class="pokemon-name pokemon-open" data-open-pokemon="${p.id}" aria-label="View cards for ${escapeHTML(p.name)}">${escapeHTML(p.name)}<small data-card-count="${p.id}">${cardCountText(p.id)}</small></button>`:`<span class="pokemon-name" style="display:block">${escapeHTML(p.name)}</span>`;
+  const favorite=cloud&&p.id===cloudFavoritePokemon;
+  const name=cloud?`<button class="pokemon-name pokemon-open" data-open-pokemon="${p.id}" aria-label="View cards for ${escapeHTML(p.name)}" ${favorite?'aria-description="Favorite Pokémon"':''}>${escapeHTML(p.name)}<span class="favorite-heart" aria-hidden="true" title="Favorite Pokémon" ${favorite?'':'hidden'}>♥</span><small data-card-count="${p.id}">${cardCountText(p.id)}</small></button>`:`<span class="pokemon-name" style="display:block">${escapeHTML(p.name)}</span>`;
   return `<${tag} class="pokemon-card" data-card="${p.id}"><span class="card-top"><span class="dex-number">${dex(p.id)}</span>${cloud?'<label class="species-check">':''}<input type="checkbox" data-id="${p.id}" aria-label="Have a card for ${escapeHTML(p.name)}, number ${p.id}" ${owned.has(p.id)?'checked':''}>${cloud?'</label>':''}</span><span class="have-flag" aria-hidden="true">HAVE IT</span><span class="card-main"><img class="sprite" src="${p.image}" alt="" width="86" height="77" loading="lazy" decoding="async"><span class="card-info">${name}<span class="type-list">${badges}</span></span></span></${tag}>`;
 }
 let cloudDrawKey='',cloudShown=0,cloudLimit=48,cloudMore,cloudObserver,cloudCardCounts=new Map();
+let cloudFavoritePokemon=null;
 function cardCountText(id){const n=cloudCardCounts.get(id)||0;return n?`${n} ${n===1?'card':'cards'}`:'';}
 function renderCloudPokemon(visible){
   const root=$('#collection'),key=view+':'+visible.map(p=>p.id).join(',');
@@ -271,9 +273,14 @@ function applyCheck(id,checked,offerUndo=true){
   const p=POKEMON[id-1];
   if(offerUndo)toast(`${p.name} ${checked?'added to':'removed from'} your collection.`,()=>applyCheck(id,!checked,false));
 }
+function pokemonMatches(raw){
+  const query=normalize(raw);
+  if(/^#?\s*\d+$/.test(raw))return p=>p.id===Number(query);
+  return p=>!raw||(query&&searchNames.get(p.id).includes(query));
+}
 function scopedPokemon(){
-  const raw=$('#search').value.trim(),query=normalize(raw),numeric=/^#?\s*\d+$/.test(raw);
-  return POKEMON.filter(p=>(!generation||p.gen===generation)&&(!raw||(numeric?p.id===Number(raw.replace(/[\s#]/g,'')):query&&searchNames.get(p.id).includes(query))));
+  const matches=pokemonMatches($('#search').value.trim());
+  return POKEMON.filter(p=>(!generation||p.gen===generation)&&matches(p));
 }
 function loadView(){
   try{
@@ -451,7 +458,18 @@ window.carddex={
     showStorageState();if(changed||countsChanged){render();if(focused)$(`[data-id="${focused}"]`)?.focus({preventScroll:true});}
   },
   pokemonName(id){return POKEMON[id-1]?.name||`Pokémon ${id}`;},
+  pokemonTotal:TOTAL,
   pokemonImage(id){return POKEMON[id-1]?.image||'';},
+  searchPokemon(query,limit){return POKEMON.filter(pokemonMatches(query.trim())).slice(0,limit);},
+  isFavoritePokemon(id){return id===cloudFavoritePokemon;},
+  setFavoritePokemon(id){
+    if(!window.CARDDEX_CLOUD||id===cloudFavoritePokemon)return;
+    const old=$(`[data-open-pokemon="${cloudFavoritePokemon}"]`);
+    if(old){old.removeAttribute('aria-description');old.querySelector('.favorite-heart').hidden=true;}
+    cloudFavoritePokemon=id??null;
+    const current=$(`[data-open-pokemon="${cloudFavoritePokemon}"]`);
+    if(current){current.setAttribute('aria-description','Favorite Pokémon');current.querySelector('.favorite-heart').hidden=false;}
+  },
   findPokemon(name){const value=normalize(name);return POKEMON.find(p=>normalize(p.name)===value||String(p.id)===value)?.id||null;},
   notify(message){toast(message);},
   setEditing(enabled){

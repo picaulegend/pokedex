@@ -22,7 +22,7 @@ The current scope is physical Pokémon cards in English and Japanese. Trainer ca
 
 The app has a $0 monthly operating budget. It uses Workers Free and D1 Free. It has no R2 binding. Read [AGENTS.md](AGENTS.md) for the project rules and [the cloud guide](docs/cloud-preview.md) for setup, current limits, and operation.
 
-Use the main navigation for **Pokédex**, **Cards**, **Collections**, and **Wishlist**. **Cards** shows all the cards you own. **Add card** starts a search. Open a card image for its details, finish, quantity, and collection membership. The Back button returns to the previous view. Account, save status, and backup tools are in the header menu.
+Use the main navigation for **Pokédex**, **Cards**, **Collections**, and **Wishlist**. **Cards** shows all the cards you own. **Add card** starts a search. Open a card image for its details, finish, quantity, and collection membership. The Back button returns to the previous view. Select the header avatar to open your private **Profile**, choose an avatar, or manage your account. Select the save status in the header to open sync and backup tools.
 
 In card details, **+** adds a copy quickly. **Add details** records how you got copies already counted. **Add entry** can also record new copies. **−** lets you choose the copy and record what happened; it lowers the owned count and keeps its history. Each finish has separate quantities, history, and wishlist notes. Dates, places, people, prices, and notes are optional and stay private on shared pages.
 
@@ -123,6 +123,6 @@ The script saves source replies, a SQLite database, SQL, and a JSON report in `w
 
 The checklist covers National Pokédex numbers #0001 to #1025. This range was checked on 29 October 2026.
 
-Names and types come from [PokéAPI data](https://github.com/PokeAPI/pokeapi/tree/master/data/v2/csv). Sprites come from [PokéAPI sprites](https://github.com/PokeAPI/sprites). Card and set details come from [TCGdex](https://tcgdex.dev/); its data licence is included in `scripts/TCGdex-LICENSE.txt` and the cloud build.
+Names and types come from [PokéAPI data](https://github.com/PokeAPI/pokeapi/tree/master/data/v2/csv). Pokémon sprites come from [PokéAPI sprites](https://github.com/PokeAPI/sprites). Trainer avatars come from [Pokémon Showdown](https://play.pokemonshowdown.com/sprites/trainers/). Card and set details come from [TCGdex](https://tcgdex.dev/); its data licence is included in `scripts/TCGdex-LICENSE.txt` and the cloud build.
 
 This is an unofficial fan tool. Pokémon © Nintendo / Creatures / GAME FREAK. Pokémon names and artwork belong to their owners.
