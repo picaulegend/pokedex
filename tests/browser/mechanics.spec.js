@@ -49,27 +49,41 @@ test('large card galleries add another page without replacing existing cards and
   expect(await page.evaluate(() => firstGalleryCard === document.querySelector('.tcg-card'))).toBe(
     true,
   );
-  await page.locator('#library-filter-panel > summary').click();
+  await page.locator('#library-filter-toggle').click();
   await page.locator('#card-language').selectOption('ja');
   await expect(page.locator('.tcg-card')).toHaveCount(31);
   await expect(page.locator('[data-more-cards]')).toHaveCount(0);
   await expect(page.locator('#library-sprite')).toBeVisible();
+  await page.setViewportSize({ width: 320, height: 740 });
   for (const view of ['cards', 'wishlist']) {
     await page.locator(`#open-${view}`).click();
     await expect(page.locator('#library-sprite')).toBeHidden();
     await expect(page.locator('.tcg-card')).toHaveCount(48);
-    await page.locator('#library-filter-panel > summary').click();
-    const name = page.getByRole('textbox', { name: 'Card name' });
+    const name = page.getByRole('searchbox', { name: 'Search cards by name' });
+    const filters = page.getByRole('button', { name: 'Filters', exact: true });
+    const count = page.locator('#library-results');
+    await expect(count).toHaveText('63 cards in view');
+    await expect(name).toBeVisible();
+    const searchBox = await name.boundingBox();
+    const filterBox = await filters.boundingBox();
+    expect(filterBox.x).toBeGreaterThanOrEqual(searchBox.x + searchBox.width);
+    expect(filterBox.y).toBeLessThan(searchBox.y + searchBox.height);
     await name.fill(' FIXTURE 62 ');
     await expect(page.locator('.tcg-card')).toHaveCount(1);
     await expect(page.locator('.tcg-card strong')).toHaveText('Render fixture 62');
+    await expect(count).toHaveText('1 card in view');
+    await filters.click();
     await page.locator('#card-language').selectOption('ja');
     await expect(page.locator('.tcg-card')).toHaveCount(0);
-    await expect(page.locator('#library-filter-count')).toHaveText('2 active');
+    await expect(count).toHaveText('0 cards in view');
+    await expect(page.locator('#library-filter-toggle')).toHaveAccessibleName('Filters, 1 active');
     await page.locator('#library-clear-filters').click();
+    await expect(name).toHaveValue(/FIXTURE 62/);
+    await expect(page.locator('#card-language')).toHaveValue('');
+    await expect(page.locator('.tcg-card')).toHaveCount(1);
+    await page.getByRole('button', { name: 'Clear card search' }).click();
     await expect(name).toBeFocused();
     await expect(name).toHaveValue('');
-    await expect(page.locator('#card-language')).toHaveValue('');
     await expect(page.locator('.tcg-card')).toHaveCount(48);
   }
 });
@@ -171,12 +185,22 @@ test('saved results update as you type while set details are still loading', asy
     await held;
     await route.continue();
   });
+  await page.route('**/api/catalogue?**', async (route) => {
+    const response = await route.fetch();
+    const data = await response.json();
+    for (const card of data.cards) card.officialCount = null;
+    await route.fulfill({ response, json: data });
+  });
   try {
     await page.goto('/#/search');
     await expect(page.locator('#app-save-state')).toHaveText('Saved');
     await page.getByRole('searchbox', { name: 'Filter saved cards' }).fill('Bulbasaur');
     await expect(page.locator('.search-card').first()).toContainText('Bulbasaur');
     await expect(page.locator('#card-search')).not.toHaveAttribute('aria-busy', 'true');
+    const caption = page.locator('.search-card[data-source-id="sv03.5-001"] .card-meta');
+    await expect(caption).toHaveText('151 · 001 · English');
+    release();
+    await expect(caption).toHaveText('151 · 001/165 · English');
     expect(externalCalls).toBe(0);
   } finally {
     release();

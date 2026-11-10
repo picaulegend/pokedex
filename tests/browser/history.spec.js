@@ -112,7 +112,7 @@ test('purchase and sale details survive reload and the previously owned gallery 
   await page.screenshot({ path: 'test-results/card-history-desktop.png', fullPage: false });
   await page.goto('/#/pokemon?pokemon=1');
   await expect(page.locator('#library-title')).toHaveText('Bulbasaur');
-  await page.locator('#library-filter-panel > summary').click();
+  await page.locator('#library-filter-toggle').click();
   await page.locator('#collection-status').selectOption('past');
   const tile = page.locator('[data-open-card="en:sv03.5-166"]');
   await expect(tile).toBeVisible();

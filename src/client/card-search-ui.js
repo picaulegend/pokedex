@@ -193,7 +193,7 @@ export function createCardSearch({
             button.querySelector('[data-set-name]').textContent =
               card.setName || 'Set not recorded';
             button.querySelector('[data-card-number]').textContent =
-              `${card.number}${card.officialCount ? `/${card.officialCount}` : ''} · ${languageName(card.language)}`;
+              `${card.number}${card.officialCount ? `/${card.officialCount}` : ''}`;
           }
         }
       });

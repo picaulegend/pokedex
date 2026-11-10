@@ -1,35 +1,33 @@
-import { emptyBinder, maxSpreads, sameBinder } from './binder-model.js';
-import { bindImages, escape, picture, plural, updateMarkup, variantName } from './ui.js';
+import { emptyBinder, maxSpreads } from './binder-model.js';
+import { bindImages, escape, picture, updateMarkup, variantName } from './ui.js';
 
 const firstLayout = emptyBinder();
 const trayBatch = 24;
 
-export function createCollectionBinder({ root, getCard, save, onError }) {
-  root.innerHTML = `<div class="binder-toolbar">
+export function createCollectionBinder({ root, manageButton, getCard, save, onError }) {
+  root.innerHTML = `<div class="binder-settings" id="binder-settings" hidden>
       <div class="binder-format"><span>Pockets per page</span><div class="binder-buttons" role="group" aria-label="Pockets per page">
         <button type="button" class="filter" data-binder-size="4" aria-pressed="false">4</button>
         <button type="button" class="filter" data-binder-size="9" aria-pressed="true">9</button>
       </div></div>
-      <div class="binder-buttons">
-        <button type="button" class="secondary-button" id="binder-undo">Undo</button>
+      <p>Each pocket size has its own layout.</p>
+      <div class="binder-buttons binder-page-actions">
         <button type="button" class="secondary-button" id="binder-add-pages">Add pages</button>
+        <button type="button" class="secondary-button" id="binder-remove-pages" aria-describedby="binder-remove-help">Remove pages</button>
       </div>
+      <p id="binder-remove-help">Cards on removed pages return to the tray. The binder keeps at least two pages.</p>
     </div>
     <div class="binder-stage">
-      <div class="binder-book" id="binder-book" aria-label="Binder pockets"></div>
-      <div class="binder-page-nav" role="group" aria-label="Turn pages">
+      <div class="binder-page-nav" role="group" aria-label="Binder pages">
         <button type="button" class="icon-button" id="binder-previous" aria-label="Previous pages"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
-        <p id="binder-page-count" aria-live="polite"></p>
+        <div class="binder-book" id="binder-book" aria-label="Binder pockets"></div>
         <button type="button" class="icon-button" id="binder-next" aria-label="Next pages"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
       </div>
+      <p id="binder-page-count" aria-live="polite"></p>
     </div>
-    <section class="binder-tray" id="binder-tray" aria-labelledby="binder-tray-title">
-      <div class="binder-tray-heading">
-        <div><h3 id="binder-tray-title">Unplaced cards <span id="binder-tray-count"></span></h3>
-        <p id="binder-instruction"></p></div>
-        <button type="button" class="secondary-button" id="binder-return" hidden>Return to tray</button>
-      </div>
-      <label id="binder-filter-label" hidden>Find an unplaced card<input id="binder-filter" type="search" autocomplete="off"></label>
+    <section class="binder-tray" id="binder-tray" aria-label="Unplaced cards">
+      <button type="button" class="secondary-button" id="binder-return" hidden>Return to tray</button>
+      <label id="binder-filter-label" hidden>Search cards<input id="binder-filter" type="search" autocomplete="off"></label>
       <div class="binder-tray-cards" id="binder-tray-cards"></div>
       <button type="button" class="secondary-button" id="binder-more" hidden>Show more cards</button>
     </section>
@@ -43,14 +41,18 @@ export function createCollectionBinder({ root, getCard, save, onError }) {
     dragged = null,
     dropTarget = null,
     limit = trayBatch,
-    pages = { 4: 0, 9: 0 },
-    history = { 4: [], 9: [] };
+    pages = { 4: 0, 9: 0 };
   const layout = () => group?.binder || firstLayout;
   const slots = () => layout().layouts[layout().size];
   const visiblePages = () => (compact.matches ? 1 : 2);
   const pageCount = () => slots().length / layout().size;
+  const spreadStart = () => pages[layout().size] - (pages[layout().size] % 2);
   const canChange = () => Boolean(group && editable && !pending);
   const setStatus = (message) => ($('status').textContent = message);
+  const showSettings = (open) => {
+    $('settings').hidden = !open;
+    manageButton.setAttribute('aria-expanded', String(open));
+  };
 
   function cardInfo(id) {
     const card = getCard(id);
@@ -101,7 +103,6 @@ export function createCollectionBinder({ root, getCard, save, onError }) {
           })
           .join('');
         return `<section class="binder-page" id="binder-page-${page}" aria-label="Page ${page + 1}">
-          <div class="binder-page-label" aria-hidden="true"><span>Page ${page + 1}</span><span>${size === 4 ? '2 × 2' : '3 × 3'}</span></div>
           <div class="binder-pocket-grid">${pockets}</div></section>`;
       }).join(''),
     );
@@ -113,6 +114,8 @@ export function createCollectionBinder({ root, getCard, save, onError }) {
     $('next').disabled = first + visiblePages() >= pageCount();
     $('previous').setAttribute('aria-label', compact.matches ? 'Previous page' : 'Previous pages');
     $('next').setAttribute('aria-label', compact.matches ? 'Next page' : 'Next pages');
+    const removeLabel = `Remove pages ${spreadStart() + 1}–${spreadStart() + 2}`;
+    if ($('remove-pages').textContent !== removeLabel) $('remove-pages').textContent = removeLabel;
     bindImages(book);
   }
 
@@ -123,15 +126,11 @@ export function createCollectionBinder({ root, getCard, save, onError }) {
     const matches = query
       ? unplaced.filter((id) => cardInfo(id).label.toLowerCase().includes(query))
       : unplaced;
-    $('tray-count').textContent = unplaced.length;
-    $('filter-label').hidden = unplaced.length <= trayBatch && !query;
     $('return').hidden = !selected || !placed.has(selected);
     $('return').disabled = !canChange();
+    tray.hidden = !unplaced.length && $('return').hidden && !(dragged && placed.has(dragged));
+    $('filter-label').hidden = !unplaced.length || (unplaced.length <= trayBatch && !query);
     $('more').hidden = matches.length <= limit;
-    const instructions = selected
-      ? `${cardInfo(selected).name} selected. Choose a pocket.`
-      : 'Drag a card into a pocket, or select a card and then a pocket.';
-    if ($('instruction').textContent !== instructions) $('instruction').textContent = instructions;
     updateMarkup(
       $('tray-cards'),
       matches
@@ -143,8 +142,7 @@ export function createCollectionBinder({ root, getCard, save, onError }) {
           aria-label="${escape(info.label + (info.missing ? ', missing' : ''))}">
           ${cardFace(info)}<span>${escape(info.name)}</span><small>${escape(info.finish)}</small></button>`;
         })
-        .join('') ||
-        `<p>${query ? 'No unplaced cards match this search.' : group.variantIds.length ? 'All cards are in the binder.' : 'Add cards to this collection to start your binder.'}</p>`,
+        .join('') || (unplaced.length ? '<p>No matching cards.</p>' : ''),
     );
     bindImages($('tray-cards'));
   }
@@ -161,9 +159,11 @@ export function createCollectionBinder({ root, getCard, save, onError }) {
     }
     $('add-pages').disabled = pageCount() >= maxSpreads * 2 || !editable;
     $('add-pages').setAttribute('aria-disabled', String(!canChange() || $('add-pages').disabled));
-    const change = history[size].at(-1);
-    $('undo').disabled = !change || !sameBinder(change.after, slots()) || !editable;
-    $('undo').setAttribute('aria-disabled', String(!canChange() || $('undo').disabled));
+    $('remove-pages').disabled = pageCount() <= 2 || !editable;
+    $('remove-pages').setAttribute(
+      'aria-disabled',
+      String(!canChange() || $('remove-pages').disabled),
+    );
   }
 
   async function commit(next, message, finish) {
@@ -193,11 +193,7 @@ export function createCollectionBinder({ root, getCard, save, onError }) {
 
   function changeSlots(next, page, message) {
     const { size, layouts } = layout();
-    const before = layouts[size];
-    const beforePage = pages[size];
     return commit({ size, layouts: { ...layouts, [size]: next } }, message, () => {
-      history[size].push({ before, after: next, page: beforePage });
-      if (history[size].length > 30) history[size].shift();
       pages[size] = page;
       selected = null;
     });
@@ -244,6 +240,7 @@ export function createCollectionBinder({ root, getCard, save, onError }) {
     const source = event.target.closest('[data-binder-card]');
     if (!source || !canChange()) return;
     dragged = source.dataset.binderCard;
+    if (slots().includes(dragged)) tray.hidden = false;
     event.dataTransfer.setData('text/plain', dragged);
     event.dataTransfer.effectAllowed = 'move';
   });
@@ -272,6 +269,7 @@ export function createCollectionBinder({ root, getCard, save, onError }) {
   root.addEventListener('dragend', () => {
     dragged = null;
     highlight(null);
+    if (group && !root.hidden) renderTray();
   });
   root.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && selected && !pending) select(selected);
@@ -318,24 +316,19 @@ export function createCollectionBinder({ root, getCard, save, onError }) {
   compact.addEventListener('change', () => {
     if (!root.hidden && group) renderBook();
   });
+  manageButton.onclick = () => showSettings($('settings').hidden);
   $('add-pages').onclick = () => {
-    if (!canChange()) return;
+    if (!canChange() || $('add-pages').disabled) return;
     const next = [...slots(), ...Array(layout().size * 2).fill(null)];
     void changeSlots(next, pageCount(), 'Two empty pages added.');
   };
-  $('undo').onclick = () => {
-    const { size, layouts } = layout();
-    const change = history[size].at(-1);
-    if (!canChange() || !change || !sameBinder(change.after, slots())) return;
-    void commit(
-      { size, layouts: { ...layouts, [size]: change.before } },
-      'Last binder edit undone.',
-      () => {
-        history[size].pop();
-        pages[size] = change.page;
-        selected = null;
-      },
-    );
+  $('remove-pages').onclick = () => {
+    if (!canChange() || $('remove-pages').disabled) return;
+    const { size } = layout();
+    const first = spreadStart();
+    const next = [...slots()];
+    next.splice(first * size, size * 2);
+    void changeSlots(next, first, `Pages ${first + 1}–${first + 2} removed.`);
   };
   for (const button of root.querySelectorAll('[data-binder-size]'))
     button.onclick = () => {
@@ -350,10 +343,11 @@ export function createCollectionBinder({ root, getCard, save, onError }) {
     update(next, inventory, canEdit) {
       if (group?.id !== next?.id) {
         selected = null;
+        dragged = null;
+        showSettings(false);
         limit = trayBatch;
         $('filter').value = '';
         pages = { 4: 0, 9: 0 };
-        history = { 4: [], 9: [] };
         setStatus('');
       }
       group = next;

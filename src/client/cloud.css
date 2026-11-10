@@ -189,7 +189,8 @@
   font-size: 14px;
   color: var(--muted);
 }
-.cloud-app .dex-progress-text strong {
+.cloud-app .dex-progress-text strong,
+.cloud-app #library-summary strong {
   color: var(--ink);
 }
 .cloud-app .progress-track {
@@ -487,6 +488,10 @@
   flex: 1;
   min-width: 0;
 }
+.cloud-app [data-cloud-view='collection'] #card-library .view-heading {
+  gap: 12px;
+  margin-bottom: 12px;
+}
 .cloud-app .library-sprite {
   flex: none;
   width: 96px;
@@ -538,24 +543,47 @@
   border-radius: var(--radius);
   background: var(--rail);
 }
-.cloud-app #library-filter-panel:not([open]) {
+.cloud-app .library-controls {
   margin-bottom: 16px;
-  border-color: transparent;
-  background: transparent;
 }
-.cloud-app #library-filter-panel:not([open]) > summary {
-  color: var(--muted);
-  font-weight: var(--font-medium);
+.cloud-app .library-controls:has(#collection-binder-view[aria-pressed='true']) {
+  margin-bottom: 14px;
 }
-.cloud-app #library-filter-panel:not([open]):has(#library-filter-count:not(:empty)),
-.cloud-app #library-filter-panel[open] {
-  border-color: var(--line);
-  background: var(--rail);
+.cloud-app .library-controls:has(.search-box:not([hidden])) {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
 }
-.cloud-app #library-filter-panel:not([open]):has(#library-filter-count:not(:empty)) > summary,
-.cloud-app #library-filter-panel[open] > summary {
-  color: var(--ink);
-  font-weight: var(--font-semibold);
+.cloud-app .library-controls-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cloud-app .library-controls .search-box {
+  flex: 1;
+  min-width: 0;
+}
+.cloud-app #card-name {
+  padding-inline-end: 10px;
+}
+.cloud-app #card-name::-webkit-search-cancel-button {
+  display: none;
+}
+.cloud-app .library-controls .search-box:has(.search-clear:not([hidden])) #card-name {
+  padding-inline-end: var(--control);
+}
+.cloud-app #library-clear-search {
+  right: 0;
+  width: var(--control);
+  height: var(--control);
+}
+.cloud-app #library-filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.cloud-app #library-filter-count {
+  font-size: var(--text-meta);
 }
 .cloud-app .filter-panel > summary {
   min-height: var(--control);
@@ -568,32 +596,14 @@
   color: var(--ink);
   font-size: var(--text-meta);
 }
-.cloud-app #library-filters {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: 12px;
-  padding: 4px 14px 16px;
-}
-.cloud-app #library-clear-filters {
-  grid-column: 2;
-  grid-row: 1;
-  border-color: var(--field-line);
-}
-.cloud-app #library-clear-filters svg {
-  width: 18px;
-  height: 18px;
+.cloud-app #library-filter-panel {
+  margin: 8px 0 0;
+  padding: 12px 14px 0;
 }
 .cloud-app #library-filter-options {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
   gap: 12px;
-}
-.cloud-app #library-filter-options:not(:has(> label:not([hidden]))) {
-  display: none;
-}
-.cloud-app #card-name-label:not([hidden]) ~ #library-filter-options {
-  grid-column: 1 / -1;
 }
 .cloud-app .search-number-fields {
   display: grid;
@@ -607,6 +617,7 @@
   font-size: 14px;
 }
 .cloud-app #library-message:empty,
+.cloud-app #library-results:empty,
 .cloud-app #library-summary:empty,
 .cloud-app #search-context:empty,
 .cloud-app .search-pages:has(#search-page:empty):not(:has(button:not([hidden]))) {
@@ -837,8 +848,11 @@
   border-radius: var(--radius);
 }
 .cloud-app .collection-progress {
-  margin-top: 12px;
+  margin-top: 8px;
   max-width: 420px;
+}
+.cloud-app .collection-progress progress {
+  height: 6px;
 }
 .cloud-app #collection-form {
   display: grid;
@@ -1007,37 +1021,47 @@
 }
 .cloud-app .card-detail-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 48px;
+  grid-template-areas:
+    'art title'
+    'art info';
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  grid-template-rows: auto 1fr;
+  gap: 14px 40px;
   align-items: start;
 }
 .cloud-app .detail-art {
+  grid-area: art;
   position: sticky;
   top: calc(var(--app-header) + 24px);
+  max-width: 420px;
 }
 .cloud-app .image-open {
   display: block;
   width: 100%;
   padding: 0;
 }
-.cloud-app .detail-info h2 {
-  font-size: clamp(34px, 5vw, 60px);
-  letter-spacing: -0.055em;
-  line-height: 1;
-  margin: 0 0 20px;
+.cloud-app #detail-title {
+  grid-area: title;
+  font-size: var(--text-page);
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+  margin: 0;
   overflow-wrap: anywhere;
 }
+.cloud-app .detail-info {
+  grid-area: info;
+}
 .cloud-app .detail-record {
-  margin: 0 0 20px;
+  margin: 0 0 16px;
   border-top: 1px solid var(--line);
 }
 .cloud-app .detail-record > div {
   display: grid;
   grid-template-columns: minmax(92px, 1fr) 2fr;
   gap: 12px;
-  padding: 9px 0;
+  padding: 8px 0;
   border-bottom: 1px solid var(--line);
-  font-size: 14px;
+  font-size: var(--text-ui);
 }
 .cloud-app .detail-record dt {
   color: var(--muted);
@@ -1068,15 +1092,15 @@
   white-space: nowrap;
 }
 .cloud-app .detail-price {
-  margin-bottom: 20px;
-  font-size: 14px;
+  margin-bottom: 16px;
+  font-size: var(--text-ui);
   color: var(--muted);
 }
 .cloud-app .detail-price:empty {
   margin: 0;
 }
 .cloud-app .finish-field:has(+ .detail-price:empty) {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 .cloud-app .detail-price p {
   margin: 6px 0 0;
@@ -1105,24 +1129,29 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px 16px;
+  gap: 10px 12px;
   margin-top: 4px;
 }
 .cloud-app .detail-actions > button {
-  flex: 1;
-  min-width: 150px;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.cloud-app .want-button .ui-icon {
+  display: none;
+}
+.cloud-app .want-button.is-wanted .ui-icon {
+  fill: currentColor;
 }
 .cloud-app .goal-context {
-  margin: 16px 0;
-  padding: 12px;
-  background: var(--mat);
+  margin: 12px 0 4px;
+  padding: 0;
+  background: transparent;
   color: var(--ink);
-  border-radius: var(--radius);
-  font-size: 14px;
+  font-size: var(--text-ui);
 }
 .cloud-app .goal-context button {
-  min-width: 160px;
-  width: 100%;
+  width: auto;
+  max-width: 100%;
 }
 .cloud-app button[aria-disabled='true'] {
   cursor: default;
@@ -1160,12 +1189,34 @@
 }
 .cloud-app .card-source-details {
   color: var(--muted);
-  font-size: 13px;
+  font-size: var(--text-action);
 }
 .cloud-app .card-source-details summary {
-  min-height: 44px;
+  min-height: var(--control);
   cursor: pointer;
-  padding: 10px 0;
+  padding: 8px 0;
+  font-weight: var(--font-medium);
+}
+.cloud-app #detail-collections.filter-panel {
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+.cloud-app #detail-collections:not([open]) {
+  border-color: transparent;
+  background: transparent;
+}
+.cloud-app #detail-collections:not([open]) > summary {
+  padding-inline: 0;
+  color: var(--muted);
+  font-weight: var(--font-medium);
+}
+.cloud-app #detail-collections[open] {
+  border-color: var(--line);
+  background: var(--rail);
+}
+.cloud-app #detail-collections[open] > summary {
+  color: var(--ink);
+  font-weight: var(--font-semibold);
 }
 .cloud-app .utility-dialog,
 .cloud-app #cloud-review {
@@ -1416,8 +1467,7 @@
   font-size: 12px;
 }
 .cloud-app .detail-feature {
-  margin-top: 4px;
-  font-weight: 600;
+  margin-top: 2px;
 }
 .cloud-app .profile-intro {
   display: flex;
@@ -1708,7 +1758,7 @@
     gap: 14px;
   }
   .cloud-app .card-detail-layout {
-    gap: 28px;
+    column-gap: 28px;
   }
   .cloud-app .toast {
     bottom: calc(86px + env(safe-area-inset-bottom));
@@ -1773,6 +1823,22 @@
     width: 100%;
     flex-wrap: wrap;
   }
+  .cloud-app [data-cloud-view='cards'] #library-title {
+    display: flex;
+    align-items: center;
+    min-height: var(--control);
+    margin-bottom: 0;
+  }
+  .cloud-app [data-cloud-view='cards'] #card-library .view-actions {
+    width: auto;
+    align-self: flex-start;
+  }
+  .cloud-app .collection-list-view .library-controls-row {
+    flex-wrap: wrap;
+  }
+  .cloud-app .collection-list-view #collection-view-controls {
+    flex-basis: 100%;
+  }
   .cloud-app .tcg-grid,
   .cloud-app .search-results {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1800,11 +1866,15 @@
     font-size: 18px;
   }
   .cloud-app .card-detail-layout {
-    grid-template-columns: 1fr;
-    gap: 28px;
+    grid-template-areas: 'title' 'art' 'info';
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    gap: 16px;
   }
   .cloud-app .detail-art {
     position: static;
+    width: min(100%, 280px);
+    justify-self: center;
   }
   .cloud-app #card-detail {
     padding-bottom: calc(180px + env(safe-area-inset-bottom));
@@ -1829,11 +1899,14 @@
     width: 60px;
   }
   .cloud-app .detail-actions > button {
-    min-width: 0;
+    flex: 1;
     padding-inline: 12px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  }
+  .cloud-app #detail-title {
+    font-size: var(--text-page-phone);
+  }
+  .cloud-app .detail-feature {
+    margin-bottom: 8px;
   }
   .cloud-app #card-detail input,
   .cloud-app #card-detail select {
@@ -1842,6 +1915,21 @@
   .cloud-app #library-legacy {
     flex-direction: column;
     align-items: start;
+  }
+}
+@media (max-width: 400px) {
+  .cloud-app .detail-actions .want-button {
+    display: grid;
+    place-items: center;
+    flex: 0 0 var(--control);
+    padding: 0;
+    margin-inline-start: auto;
+  }
+  .cloud-app .want-button .ui-icon {
+    display: block;
+  }
+  .cloud-app .want-button > span {
+    display: none;
   }
 }
 @media print {
@@ -1868,7 +1956,7 @@
 }
 .cloud-app .card-history,
 .cloud-app .card-history-plan {
-  margin: 28px 0;
+  margin: 20px 0;
 }
 .cloud-app .history-heading {
   display: flex;
@@ -2308,25 +2396,30 @@
   }
 }
 
-.cloud-app .collection-view-controls {
-  margin-bottom: 14px;
+.cloud-app #binder-manage {
+  margin-inline-start: auto;
 }
-.cloud-app .binder-toolbar,
 .cloud-app .binder-format,
-.cloud-app .binder-buttons,
-.cloud-app .binder-page-nav,
-.cloud-app .binder-tray-heading {
+.cloud-app .binder-buttons {
   display: flex;
   align-items: center;
   gap: 8px;
 }
-.cloud-app .binder-toolbar,
-.cloud-app .binder-tray-heading {
-  justify-content: space-between;
-  flex-wrap: wrap;
-}
-.cloud-app .binder-toolbar {
+.cloud-app .binder-settings {
   margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.cloud-app .binder-settings p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: var(--text-meta);
+}
+.cloud-app .binder-page-actions {
+  flex-wrap: wrap;
+  margin-top: 12px;
 }
 .cloud-app .binder-format > span {
   color: var(--muted);
@@ -2336,10 +2429,18 @@
   margin: 0;
 }
 .cloud-app .binder-stage {
-  padding: 16px 12px 8px;
+  padding: 12px 8px 8px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--mat);
+}
+.cloud-app .binder-page-nav {
+  --binder-book-width: 740px;
+  display: grid;
+  grid-template-columns: var(--control) minmax(0, var(--binder-book-width)) var(--control);
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 .cloud-app .binder-book {
   --binder-columns: 3;
@@ -2349,8 +2450,7 @@
   --binder-page: light-dark(#373a36, #30322f);
   --binder-edge: light-dark(#5f625a, #565952);
   --binder-label: #dedfd8;
-  width: min(100%, 740px);
-  margin: 0 auto;
+  min-width: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   border: 4px solid var(--binder-cover);
@@ -2372,14 +2472,6 @@
 .cloud-app .binder-page + .binder-page {
   border-radius: 0 5px 5px 0;
   background: linear-gradient(270deg, var(--binder-page) 90%, var(--binder-cover));
-}
-.cloud-app .binder-page-label {
-  display: flex;
-  justify-content: space-between;
-  max-width: calc(var(--binder-columns) * var(--pocket-width) + (var(--binder-columns) - 1) * 6px);
-  margin: 0 auto 8px;
-  color: var(--binder-label);
-  font: 12px var(--mono);
 }
 .cloud-app .binder-pocket-grid {
   display: grid;
@@ -2462,18 +2554,14 @@
   font-size: 10px;
   font-weight: 600;
 }
-.cloud-app .binder-page-nav {
-  justify-content: center;
-  margin-top: 8px;
-}
 .cloud-app #binder-page-count {
-  min-width: 112px;
-  margin: 0;
+  margin: 8px 0 0;
   text-align: center;
   font: 12px var(--mono);
 }
 .cloud-app .binder-tray {
   margin-top: 12px;
+  min-height: var(--control);
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -2482,16 +2570,6 @@
 .cloud-app .binder-tray.binder-drop-target {
   outline: 2px solid var(--ink);
 }
-.cloud-app .binder-tray h3 {
-  margin: 0;
-  font-size: 16px;
-}
-.cloud-app #binder-tray-count {
-  margin-left: 2px;
-  color: var(--muted);
-  font: 12px var(--mono);
-}
-.cloud-app #binder-instruction,
 .cloud-app #binder-status,
 .cloud-app .binder-tray-cards p {
   margin: 4px 0 0;
@@ -2507,6 +2585,9 @@
   gap: 8px;
   overflow-x: auto;
   padding: 9px 4px 6px;
+}
+.cloud-app .binder-tray-cards:empty {
+  padding: 0;
 }
 .cloud-app .binder-tray-card {
   display: grid;
@@ -2543,18 +2624,15 @@
   }
 }
 @media (max-width: 700px) {
-  .cloud-app .binder-toolbar {
-    align-items: end;
-  }
-  .cloud-app .binder-format {
-    display: grid;
-    gap: 4px;
-  }
   .cloud-app .binder-stage {
-    padding: 10px 8px 6px;
+    margin-inline: -8px;
+    padding: 8px 0;
+  }
+  .cloud-app .binder-page-nav {
+    --binder-book-width: 360px;
+    gap: 2px;
   }
   .cloud-app .binder-book {
-    width: min(100%, 360px);
     grid-template-columns: minmax(0, 1fr);
   }
   .cloud-app .binder-page {

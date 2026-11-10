@@ -5,6 +5,7 @@ export const escape = (value) =>
   );
 const iconPaths = {
   close: 'm6 6 12 12M18 6 6 18',
+  heart: 'M20 5a4.5 4.5 0 0 0-6.4 0L12 6.6 10.4 5A4.5 4.5 0 0 0 4 11.4l8 8 8-8A4.5 4.5 0 0 0 20 5Z',
   minus: 'M5 12h14',
   plus: 'M12 5v14M5 12h14',
 };
@@ -51,13 +52,20 @@ export function imageUrl(card, quality = 'low') {
   return null;
 }
 export function picture(card, quality = 'low') {
-  const url = imageUrl(card, quality);
-  return `<span class="tcg-picture">${url ? `<img src="${escape(url)}" alt="${escape(card.name)}${card.setName ? ` — ${escape(card.setName)}` : ''}" loading="lazy" width="245" height="342">` : '<span>Image unavailable</span>'}</span>`;
+  const url = imageUrl(card);
+  const preferred = quality === 'low' ? url : imageUrl(card, quality);
+  return `<span class="tcg-picture">${url ? `<img src="${escape(url)}"${preferred !== url ? ` srcset="${escape(preferred)}"` : ''} alt="${escape(card.name)}${card.setName ? ` — ${escape(card.setName)}` : ''}" loading="lazy" width="245" height="342">` : '<span>Image unavailable</span>'}</span>`;
 }
 const failedImages = new WeakMap();
+const failedImageSources = new WeakMap();
 export function bindImages(root) {
   for (const image of root.querySelectorAll('img:not([data-plain-image])')) {
     const fallback = () => {
+      if (image.srcset) {
+        failedImageSources.set(image, image.srcset);
+        image.removeAttribute('srcset');
+        return;
+      }
       failedImages.set(image, image.getAttribute('src'));
       image.hidden = true;
       if (!image.parentElement?.querySelector('[data-image-fallback]')) {
@@ -108,8 +116,11 @@ export function updateMarkup(root, html) {
             !(node.tagName === 'DETAILS' && attr.name === 'open')
           )
             node.removeAttribute(attr.name);
-        for (const attr of [...next.attributes])
+        for (const attr of [...next.attributes]) {
+          // Keep the lower resolution image in place after the preferred image fails.
+          if (attr.name === 'srcset' && failedImageSources.get(node) === attr.value) continue;
           if (node.getAttribute(attr.name) !== attr.value) node.setAttribute(attr.name, attr.value);
+        }
         patch(node, next);
         if (node.tagName === 'INPUT') {
           if (node.value !== next.value) node.value = next.value;

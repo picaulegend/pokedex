@@ -274,7 +274,12 @@ test('collection binder places and swaps cards and syncs separate layouts after 
     deleted: false,
   });
   await page.goto(`/#/collection?collection=${group}`);
+  const search = page.getByRole('searchbox', { name: 'Search cards by name' });
+  await expect(page.locator('#library-results')).toHaveText('2 cards in view');
+  await search.fill('Bulbasaur');
+  await expect(page.locator('#library-results')).toHaveText('1 card in view');
   await page.getByRole('button', { name: 'Binder', exact: true }).click();
+  await expect(search).toBeHidden();
   const slot = (index) => page.locator(`#binder-slot-${index}`);
   const unplaced = (id) => page.locator(`#binder-card-${id}`);
   const pocketSize = (size) => page.locator(`button[data-binder-size="${size}"]`);
@@ -292,11 +297,23 @@ test('collection binder places and swaps cards and syncs separate layouts after 
   await expect(slot(1).getByText('Missing', { exact: true })).toBeVisible();
   await slot(1).dragTo(slot(0));
   await expect(slot(0)).toHaveAttribute('data-binder-card', ja);
-  await page.getByRole('button', { name: 'Undo', exact: true }).click();
+  await slot(0).dragTo(slot(1));
   await expect(slot(0)).toHaveAttribute('data-binder-card', en);
+  const manage = page.getByRole('button', { name: 'Manage binder', exact: true });
+  await manage.click();
+  const removePages = page.getByRole('button', { name: 'Remove pages 1–2', exact: true });
+  await expect(removePages).toBeDisabled();
   await page.getByRole('button', { name: 'Add pages' }).click();
   await expect(page.locator('#binder-page-count')).toHaveText('Pages 3–4 of 4');
   await page.getByRole('button', { name: 'Previous pages' }).click();
+  await removePages.click();
+  await expect(page.locator('#binder-page-count')).toHaveText('Pages 1–2 of 2');
+  await expect(unplaced(en)).toBeVisible();
+  await expect(unplaced(ja)).toBeVisible();
+  await unplaced(en).dragTo(slot(0));
+  await unplaced(ja).dragTo(slot(1));
+  await expect(slot(0)).toHaveAttribute('data-binder-card', en);
+  await expect(slot(1)).toHaveAttribute('data-binder-card', ja);
   await expect(page.locator('#app-save-state')).toHaveText('Saved');
   await context.setOffline(true);
   await pocketSize(4).click();
@@ -313,6 +330,7 @@ test('collection binder places and swaps cards and syncs separate layouts after 
   await expect(slot(3)).toHaveAttribute('data-binder-card', ja);
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('.binder-pocket')).toHaveCount(4);
+  await manage.click();
   await pocketSize(9).click();
   await expect(page.locator('.binder-pocket')).toHaveCount(9);
   await expect(slot(0)).toHaveAttribute('data-binder-card', en);
@@ -320,6 +338,7 @@ test('collection binder places and swaps cards and syncs separate layouts after 
   await page.getByRole('button', { name: 'List', exact: true }).click();
   await expect(page.locator('#library-content')).toBeVisible();
   await expect(page.locator('#collection-binder')).toBeHidden();
+  await expect(search).toBeVisible();
 });
 
 test('card galleries, finishes, wanted cards, quantities, and collection membership work together', async ({
@@ -339,7 +358,7 @@ test('card galleries, finishes, wanted cards, quantities, and collection members
   await expect(page.locator('#library-title')).toHaveText('My Bulbasaur artwork');
   await page.locator('#open-pokedex').click();
   await page.getByRole('button', { name: 'View cards for Bulbasaur', exact: true }).click();
-  await page.locator('#library-filter-panel > summary').click();
+  await page.locator('#library-filter-toggle').click();
   await page.locator('#card-language').selectOption('ja');
   await expect(page.locator('.tcg-language').first()).toHaveText('Japanese');
   await page.locator('#card-language').selectOption('en');
@@ -368,6 +387,7 @@ test('card galleries, finishes, wanted cards, quantities, and collection members
   await expect(page.locator('#app-title')).toHaveText('Cards');
   const ownedCard = page.locator('[data-open-card="en:sv03.5-001"]');
   await expect(ownedCard.locator('.owned-badge')).toHaveText('2 owned');
+  await expect(ownedCard.getByText('Wanted', { exact: true })).toHaveCount(0);
   await expect(page.locator('[data-open-card="ja:SV2a-001"]')).toHaveCount(0);
   await ownedCard.click();
   await expect(nav.locator('#open-cards')).toHaveAttribute('aria-current', 'page');
@@ -376,12 +396,12 @@ test('card galleries, finishes, wanted cards, quantities, and collection members
   await page.locator('#open-pokedex').click();
   await expect(page.locator('[data-id="1"]')).toBeChecked();
   await page.locator('#open-wishlist').click();
-  await page.locator('#library-filter-panel > summary').click();
+  await page.locator('#library-filter-toggle').click();
   await page.locator('#wishlist-collection').selectOption(group.id);
   await expect(page.locator(`[data-variant="${id}"]`)).toBeVisible();
   await page.locator('#open-collections').click();
   await page.locator(`[data-open-collection="${group.id}"]`).click();
-  await expect(page.locator('#library-summary')).toContainText('1 / 1 owned');
+  await expect(page.locator('#library-summary')).toHaveText('1 of 1 owned · 100%');
   await page.screenshot({ path: 'test-results/card-collection-desktop.png', fullPage: false });
 });
 

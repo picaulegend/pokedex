@@ -6,6 +6,7 @@ import { createShareControls } from './share-controls.js';
 import { createCollectionBinder } from './collection-binder.js';
 import {
   escape,
+  icon,
   imageUrl,
   picture,
   bindImages,
@@ -39,15 +40,17 @@ export function createCardLibrary({
   screen.innerHTML = `<header class="view-heading"><img id="library-sprite" class="library-sprite" data-plain-image alt="" width="96" height="96" hidden><div><span id="library-dex" class="library-dex" hidden></span><span id="library-favorite" class="favorite-heart" hidden><span aria-hidden="true">♥</span> Favorite</span><h2 id="library-title"></h2><p id="library-summary"></p><div id="collection-progress" class="collection-progress" hidden></div></div><div class="view-actions"><button class="primary-button" id="library-add">Add cards</button><button class="primary-button" id="new-collection" hidden>New collection</button><details id="collection-menu" class="view-menu" hidden><summary class="secondary-button">Manage</summary><div><button id="collection-rename">Rename</button><button id="collection-delete">Delete collection</button></div></details></div></header>
     <p id="library-message" role="status"></p><div id="library-legacy" hidden></div>
     <form id="collection-form" hidden><label>Collection name<input id="collection-name" maxlength="80" required placeholder="For example: Favourite artwork"></label><div class="form-actions"><button class="primary-button" type="submit">Save collection</button><button class="secondary-button" id="collection-cancel" type="button">Cancel</button></div></form>
-    <div class="binder-buttons collection-view-controls" id="collection-view-controls" role="group" aria-label="Collection view" hidden>
-      <button type="button" class="filter" id="collection-list-view" aria-pressed="true">List</button>
-      <button type="button" class="filter" id="collection-binder-view" aria-pressed="false">Binder</button>
-    </div>
-    <section id="collection-binder" aria-label="Collection binder" hidden></section>
-    <details id="library-filter-panel" class="filter-panel"><summary>Filters <span id="library-filter-count"></span></summary>
-      <div id="library-filters">
-        <label id="card-name-label" hidden>Card name<input id="card-name" type="text" autocomplete="off" placeholder="Filter by card name"></label>
-        <button class="icon-button" id="library-clear-filters" type="button" aria-label="Clear filters" title="Clear filters" disabled><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+    <div id="library-controls" class="library-controls" hidden>
+      <div class="library-controls-row">
+        <div class="binder-buttons" id="collection-view-controls" role="group" aria-label="Collection view" hidden>
+          <button type="button" class="filter" id="collection-list-view" aria-pressed="true">List</button>
+          <button type="button" class="filter" id="collection-binder-view" aria-pressed="false">Binder</button>
+        </div>
+        <div id="card-name-search" class="search-box" role="search" aria-label="Saved cards" hidden><svg aria-hidden="true"><use href="#i-search"/></svg><input id="card-name" type="search" aria-label="Search cards by name" placeholder="Search cards" maxlength="100" autocomplete="off" spellcheck="false"><button class="search-clear" id="library-clear-search" type="button" aria-label="Clear card search" hidden>${icon('close')}</button></div>
+        <button class="secondary-button" id="library-filter-toggle" type="button" aria-expanded="false" aria-controls="library-filter-panel">Filters <span id="library-filter-count" hidden></span></button>
+        <button type="button" class="secondary-button" id="binder-manage" aria-expanded="false" aria-controls="binder-settings" hidden>Manage binder</button>
+      </div>
+      <div id="library-filter-panel" class="filter-panel" hidden>
         <div id="library-filter-options">
           <label>Language<select id="card-language"><option value="">All languages</option><option value="en">English</option><option value="ja">Japanese</option></select></label>
           <label>Set<select id="card-set"><option value="">All sets</option></select></label>
@@ -55,11 +58,15 @@ export function createCardLibrary({
           <label id="wishlist-collection-label" hidden>Collection<select id="wishlist-collection"><option value="">All collections</option></select></label>
           <label id="collection-status-label" hidden>Show<select id="collection-status"><option value="">All cards</option><option value="missing">Missing</option><option value="owned">Owned</option><option value="past">Previously owned</option></select></label>
         </div>
+        <button class="text-button" id="library-clear-filters" type="button" disabled>Clear filters</button>
       </div>
-    </details>
+      <div id="library-results" class="results-meta" role="status" hidden></div>
+    </div>
+    <section id="collection-binder" aria-label="Collection binder" hidden></section>
     <div id="library-content"></div>${credits}`;
   document.body.append(screen);
   const $ = (id) => screen.querySelector(`#${id}`);
+  const filterToggle = $('library-filter-toggle');
   const metadata = new Map(),
     cache = new Map(),
     byVariant = new Map(),
@@ -191,6 +198,7 @@ export function createCardLibrary({
   const sharing = createShareControls({ api, canEdit, getState });
   const binder = createCollectionBinder({
     root: $('collection-binder'),
+    manageButton: $('binder-manage'),
     getCard: (id) => byVariant.get(id),
     save: (id, layout, previous) => {
       $('library-message').textContent = '';
@@ -264,9 +272,11 @@ export function createCardLibrary({
     cards = [...result.values()];
     render();
     const missing = ids.filter((id) => !byVariant.has(id));
-    if (!cards.length && missing.length && view.screen !== 'collections')
+    if (!cards.length && missing.length && view.screen !== 'collections') {
+      $('library-results').textContent = '';
       $('library-content').innerHTML =
         '<p class="library-empty" role="status">Loading your cards…</p>';
+    }
     try {
       if (missing.length && view.screen === 'pokemon') {
         const path = `/api/catalogue?${new URLSearchParams({ pokemon: view.pokemon, personal: '1' })}`;
@@ -294,6 +304,7 @@ export function createCardLibrary({
     } catch (error) {
       if (current === generation) {
         loadedKey = '';
+        $('library-results').textContent = '';
         $('library-content').replaceChildren();
         $('library-message').textContent = error.message;
       }
@@ -318,15 +329,16 @@ export function createCardLibrary({
       if (values.some(([value]) => value === previous)) $(id).value = previous;
     }
   }
-  function clearFilters() {
+  function setFiltersOpen(open) {
+    filterToggle.setAttribute('aria-expanded', String(open));
+    $('library-filter-panel').hidden = filterToggle.hidden || !open;
+  }
+  function clearFilters(clearSearch = false) {
     restoreFilters = null;
-    for (const id of filterIds) $(id).value = '';
+    for (const id of selectFilterIds) $(id).value = '';
+    if (clearSearch) $('card-name').value = '';
     render();
-    const panel = $('library-filter-panel');
-    (panel.open && !$('card-name-label').hidden
-      ? $('card-name')
-      : panel.querySelector('summary')
-    ).focus();
+    (clearSearch && !$('card-name-search').hidden ? $('card-name') : filterToggle).focus();
   }
   function showMessage(error) {
     $('library-message').textContent = error.message || 'This change could not be saved.';
@@ -340,7 +352,10 @@ export function createCardLibrary({
       isGoal = route.screen === 'collection',
       isWishlist = route.screen === 'wishlist',
       isCards = route.screen === 'cards';
-    const showBinder = Boolean(isGoal && current && route.view === 'binder');
+    const showCollection = isGoal && Boolean(current);
+    const showBinder = showCollection && route.view === 'binder';
+    const showCollectionList = showCollection && !showBinder;
+    screen.classList.toggle('collection-list-view', showCollectionList);
     const title = isList
       ? 'Collections'
       : isGoal
@@ -365,9 +380,10 @@ export function createCardLibrary({
     $('new-collection').hidden = !isList;
     $('new-collection').disabled = locked || !$('collection-form').hidden;
     $('collection-menu').hidden = !isGoal || !current;
-    $('collection-view-controls').hidden = !isGoal || !current;
+    $('collection-view-controls').hidden = !showCollection;
     $('collection-list-view').setAttribute('aria-pressed', String(!showBinder));
     $('collection-binder-view').setAttribute('aria-pressed', String(showBinder));
+    $('binder-manage').hidden = !showBinder;
     $('collection-binder').hidden = !showBinder;
     $('library-content').hidden = showBinder;
     shareButton.hidden = !(isWishlist || (isGoal && current));
@@ -393,27 +409,32 @@ export function createCardLibrary({
           ? 2
           : 0,
     };
-    const showNameFilter = isCards || isWishlist;
-    $('card-name-label').hidden = !showNameFilter;
-    let anyFilter = showNameFilter;
+    const showNameFilter = isCards || isWishlist || showCollectionList;
+    $('card-name-search').hidden = $('library-results').hidden = !showNameFilter;
+    let anyFilter = false;
     for (const id of selectFilterIds) {
       const shown = !isList && (Boolean($(id).value) || choices[id] > 1);
       $(id).closest('label').hidden = !shown;
       anyFilter ||= shown;
     }
-    $('library-filter-panel').hidden = showBinder || !anyFilter;
+    filterToggle.hidden = showBinder || !anyFilter;
+    $('library-controls').hidden = !showCollection && !showNameFilter && filterToggle.hidden;
+    setFiltersOpen(filterToggle.getAttribute('aria-expanded') === 'true');
     $('collection-progress').hidden = !isGoal || !goalTotal;
-    if (isList) $('library-summary').textContent = '';
+    if (isList || isCards || isWishlist) $('library-summary').textContent = '';
     else if (isGoal) {
-      $('library-summary').textContent = goalTotal ? `${goalOwned} / ${goalTotal} owned` : '';
+      if (goalTotal) {
+        const percent = Math.floor((goalOwned * 1000) / goalTotal) / 10;
+        updateMarkup(
+          $('library-summary'),
+          `<strong>${goalOwned.toLocaleString('en-US')}</strong> of ${goalTotal.toLocaleString('en-US')} owned · <strong>${percent}%</strong>`,
+        );
+      } else $('library-summary').textContent = '';
       updateMarkup(
         $('collection-progress'),
         `<progress aria-label="Collection progress" value="${goalOwned}" max="${goalTotal || 1}"></progress>`,
       );
-    } else if (isWishlist)
-      $('library-summary').textContent = plural(wantedIds().size, 'wanted card');
-    else if (isCards) $('library-summary').textContent = plural(cards.length, 'owned card');
-    else {
+    } else {
       const currentCount = cards.filter((card) =>
         card.variants.some((v) => rows[v.id]?.quantity || wantedIds().has(v.id)),
       ).length;
@@ -440,9 +461,15 @@ export function createCardLibrary({
       $('clear-legacy').onclick = () => void clearLegacy(Number(route.pokemon)).catch(showMessage);
     }
     const nameFilter = $('card-name').value.trim().toLowerCase();
-    const filterCount =
-      selectFilterIds.filter((id) => $(id).value).length + Number(Boolean(nameFilter));
-    $('library-filter-count').textContent = filterCount ? `${filterCount} active` : '';
+    const filterCount = selectFilterIds.filter((id) => $(id).value).length;
+    const isFiltered = nameFilter || filterCount;
+    $('library-clear-search').hidden = !$('card-name').value;
+    $('library-filter-count').textContent = filterCount;
+    $('library-filter-count').hidden = !filterCount;
+    filterToggle.setAttribute(
+      'aria-label',
+      filterCount ? `Filters, ${filterCount} active` : 'Filters',
+    );
     $('library-clear-filters').disabled = !filterCount;
     binder.update(
       isGoal ? current : undefined,
@@ -506,6 +533,10 @@ export function createCardLibrary({
           });
         return variants.length ? [{ card, variants }] : [];
       });
+      if (showNameFilter) {
+        const count = `${plural(entries.length, 'card')} in view`;
+        if ($('library-results').textContent !== count) $('library-results').textContent = count;
+      }
       const nextGalleryKey = JSON.stringify([
         route.screen,
         route.collection,
@@ -528,7 +559,7 @@ export function createCardLibrary({
           const members = memberships.length
             ? `<span class="tcg-members">${memberships.map((c) => escape(c.name)).join(' · ')}</span>`
             : '';
-          return `<article class="tcg-card" data-card-id="${card.id}"><button id="card-${card.id}" class="card-open" data-open-card="${card.language}:${card.sourceId}" data-variant="${selected}">${picture(card)}<span class="card-caption"><strong>${escape(card.name)}</strong><span class="card-meta">${escape(card.setName)} · <span data-card-number>${number}</span> · <span class="tcg-language">${languageName(card.language)}</span></span>${badges(variants, { missing: true, showWanted: !isWishlist, hideSingleOwned: isCards })}${members}</span></button>${isWishlist ? `<button id="acquire-${selected}" data-acquire="${selected}" class="text-button" ${locked || (rows[selected]?.quantity || 0) >= 999 ? 'disabled' : ''}>${rows[selected]?.quantity ? 'Add one copy' : 'Mark as owned'}</button>` : ''}</article>`;
+          return `<article class="tcg-card" data-card-id="${card.id}"><button id="card-${card.id}" class="card-open" data-open-card="${card.language}:${card.sourceId}" data-variant="${selected}">${picture(card)}<span class="card-caption"><strong>${escape(card.name)}</strong><span class="card-meta">${escape(card.setName)} · <span data-card-number>${number}</span> · <span class="tcg-language">${languageName(card.language)}</span></span>${badges(variants, { missing: true, showWanted: !isCards && !isWishlist, hideSingleOwned: isCards })}${members}</span></button>${isWishlist ? `<button id="acquire-${selected}" data-acquire="${selected}" class="text-button" ${locked || (rows[selected]?.quantity || 0) >= 999 ? 'disabled' : ''}>${rows[selected]?.quantity ? 'Add one copy' : 'Mark as owned'}</button>` : ''}</article>`;
         })
         .join('');
       updateMarkup(
@@ -537,7 +568,7 @@ export function createCardLibrary({
           (entries.length > galleryLimit
             ? `<button class="secondary-button library-more" data-more-cards>Show more cards · ${galleryLimit} of ${entries.length} shown</button>`
             : '') ||
-          `<div class="library-empty"><h3>${filterCount ? 'No cards match these filters' : isWishlist ? 'Your wishlist is empty' : isGoal ? (current ? 'No cards in this collection yet' : 'This collection is unavailable') : isCards ? 'No owned cards yet' : 'No cards recorded yet'}</h3><p>${filterCount ? 'Your saved cards are still here. Clear the filters to see them.' : isGoal && !current ? 'It may have been deleted on another device.' : isWishlist ? 'Use Add cards, then choose Add to wishlist on a card.' : isGoal ? 'Use Add cards to choose cards for this collection.' : isCards ? 'Use Add cards to find a card and record the copies you own.' : 'Use Add cards to find a card you own or want.'}</p>${filterCount ? '<button id="empty-clear-filters" class="secondary-button">Clear filters</button>' : ''}</div>`,
+          `<div class="library-empty"><h3>${isFiltered ? 'No cards match these filters' : isWishlist ? 'Your wishlist is empty' : isGoal ? (current ? 'No cards in this collection yet' : 'This collection is unavailable') : isCards ? 'No owned cards yet' : 'No cards recorded yet'}</h3><p>${isFiltered ? 'Your saved cards are still here. Clear the filters to see them.' : isGoal && !current ? 'It may have been deleted on another device.' : isWishlist ? 'Use Add cards, then choose Add to wishlist on a card.' : isGoal ? 'Use Add cards to choose cards for this collection.' : isCards ? 'Use Add cards to find a card and record the copies you own.' : 'Use Add cards to find a card you own or want.'}</p>${isFiltered ? '<button id="empty-clear-filters" class="secondary-button">Clear filters</button>' : ''}</div>`,
       );
     });
     bindImages(screen);
@@ -616,7 +647,13 @@ export function createCardLibrary({
     }
   };
   $('collection-name').oninput = () => $('collection-name').setCustomValidity('');
-  $('library-clear-filters').onclick = clearFilters;
+  filterToggle.onclick = () => setFiltersOpen($('library-filter-panel').hidden);
+  $('library-clear-filters').onclick = () => clearFilters();
+  $('library-clear-search').onclick = () => {
+    $('card-name').value = '';
+    render();
+    $('card-name').focus();
+  };
   $('card-name').oninput = render;
   for (const id of selectFilterIds) $(id).onchange = render;
   $('library-content').onclick = async (event) => {
@@ -655,14 +692,14 @@ export function createCardLibrary({
         showMessage(error);
       }
     }
-    if (event.target.closest('#empty-clear-filters')) clearFilters();
+    if (event.target.closest('#empty-clear-filters')) clearFilters(true);
   };
   async function show(next) {
     sharing.close();
     if (route && !screen.hidden && filtersKey)
       filterSnapshots.set(filtersKey, {
         values: Object.fromEntries(filterIds.map((id) => [id, $(id).value])),
-        open: $('library-filter-panel').open,
+        open: filterToggle.getAttribute('aria-expanded') === 'true',
       });
     route = next;
     generation++;
@@ -699,7 +736,7 @@ export function createCardLibrary({
       restoreFilters = savedFilters?.values;
       for (const id of selectFilterIds) $(id).value = '';
       $('card-name').value = savedFilters?.values['card-name'] || '';
-      $('library-filter-panel').open = savedFilters?.open || false;
+      setFiltersOpen(savedFilters?.open || false);
       $('collection-form').hidden = true;
       $('library-message').textContent = '';
     }

@@ -138,25 +138,39 @@ test('a card can be added directly to a collection goal without an unwanted owne
   await expect(page.locator('#detail-message')).toContainText('saved as owned');
   await page.locator('#open-collections').click();
   await page.locator(`[data-open-collection="${id}"]`).click();
-  await expect(page.locator('#library-summary')).toHaveText('1 / 1 owned');
+  await expect(page.locator('#library-summary')).toHaveText('1 of 1 owned · 100%');
 });
 
 test('wanted edits keep keyboard focus and show offline save status in card details', async ({
   page,
   context,
 }) => {
+  await page.setViewportSize({ width: 320, height: 740 });
   await page.goto('/#/card?language=en&sourceId=sv03.5-001');
-  await expect(page.locator('#detail-title')).toHaveText('Bulbasaur');
+  const title = page.locator('#detail-title');
+  const want = page.locator('#detail-want');
+  const heart = want.locator('svg');
+  await expect(title).toHaveText('Bulbasaur');
   await expect(page.locator('#app-save-state')).toHaveText('Saved');
-  await page.locator('#detail-want').focus();
+  expect((await title.boundingBox()).y).toBeLessThan(
+    (await page.locator('#detail-image').boundingBox()).y,
+  );
+  expect((await want.boundingBox()).width).toBeGreaterThanOrEqual(44);
+  await expect(want.locator('span')).toBeHidden();
+  await expect(heart).toBeVisible();
+  const wasWanted = (await want.getAttribute('aria-label')) === 'Remove from wishlist';
+  await expect(heart).toHaveCSS('fill', wasWanted ? /rgb/ : 'none');
+  await want.focus();
   await page.locator('#detail-reference > summary').click();
   await page.evaluate(() => {
     window.savedDetailImage = document.querySelector('#detail-image img');
     window.savedQuantity = document.querySelector('#detail-quantity');
   });
-  await page.locator('#detail-want').focus();
+  await want.focus();
   await page.keyboard.press('Space');
-  await expect(page.locator('#detail-want')).toBeFocused();
+  await expect(want).toBeFocused();
+  await expect(want).toHaveAccessibleName(wasWanted ? 'Add to wishlist' : 'Remove from wishlist');
+  await expect(heart).toHaveCSS('fill', wasWanted ? 'none' : /rgb/);
   await expect(page.locator('#detail-message')).not.toBeEmpty();
   await expect(page.locator('#detail-reference')).toHaveAttribute('open', '');
   expect(
@@ -174,6 +188,38 @@ test('wanted edits keep keyboard focus and show offline save status in card deta
   await page.locator('#app-save-state').click();
   await page.locator('#cloud-retry').click();
   await expect(page.locator('#cloud-status')).toHaveText('All changes saved online.');
+});
+
+test('card details use the sharper image and retain the standard image if it fails', async ({
+  page,
+}) => {
+  const image = (width, height) =>
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><rect width="100%" height="100%" fill="green"/></svg>`;
+  await page.route('https://assets.tcgdex.net/**/166/high.webp', (route) =>
+    route.fulfill({ contentType: 'image/svg+xml', body: image(734, 1024) }),
+  );
+  let failedRequests = 0;
+  await page.route('https://assets.tcgdex.net/**/001/high.webp', (route) => {
+    failedRequests++;
+    return route.abort();
+  });
+  await page.route('https://assets.tcgdex.net/**/001/low.webp', (route) =>
+    route.fulfill({ contentType: 'image/svg+xml', body: image(245, 342) }),
+  );
+
+  const art = page.locator('#detail-image img');
+  const imageWidth = () => art.evaluate((img) => img.naturalWidth);
+  await page.goto('/#/card?language=en&sourceId=sv03.5-166');
+  await expect.poll(imageWidth).toBe(734);
+  await page.goto('/#/card?language=en&sourceId=sv03.5-001');
+  await expect.poll(imageWidth).toBe(245);
+  await expect(art).not.toHaveAttribute('srcset');
+
+  await page.locator('#detail-finish').selectOption({ index: 1 });
+  await expect(page).toHaveURL(/variant=/);
+  await expect(art).not.toHaveAttribute('srcset');
+  await expect.poll(imageWidth).toBe(245);
+  expect(failedRequests).toBe(1);
 });
 
 test('filter empty states keep saved cards and offer a clear reset', async ({ page, request }) => {
@@ -212,7 +258,7 @@ test('filter empty states keep saved cards and offer a clear reset', async ({ pa
   await page.goto('/');
   await expect(page.locator('#app-save-state')).toHaveText('Saved');
   await page.getByRole('button', { name: 'View cards for Bulbasaur', exact: true }).click();
-  await page.locator('#library-filter-panel > summary').click();
+  await page.locator('#library-filter-toggle').click();
   await page.locator('#card-language').selectOption('ja');
   await page.locator('#card-set').selectOption({ label: 'Base Set' });
   await expect(page.locator('#library-content')).toContainText('No cards match these filters');
