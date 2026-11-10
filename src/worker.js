@@ -4,6 +4,7 @@ import { passkeyRequest, passkeyUser } from './passkeys.js';
 import { accountPage } from './account-page.js';
 import { syncRecords, catalogue, saveRecord } from './records.js';
 import { searchCards, previewCard, addCard, resolveSources } from './card-search.js';
+import { checkCardPrice, readCardPrice } from './card-price.js';
 import { manageShare, previewShare, publicShare } from './sharing.js';
 import { avatars } from './client/avatars.js';
 import { saveShowcase } from './showcase.js';
@@ -134,7 +135,7 @@ async function privatePage(request, env, path) {
     const allowSetup =
       new URL(request.url).origin === env.PASSKEY_ORIGIN && Boolean(env.OWNER_SETUP_TOKEN);
     if (path === '/setup' && !allowSetup) throw new HttpError(404, 'Owner setup is unavailable.');
-    return accountPage(path, request.method, { allowSetup });
+    return accountPage(path, request.method);
   }
   let user;
   try {
@@ -232,6 +233,10 @@ export default {
         return await searchCards(request, env, url);
       if (url.pathname === '/api/cards/detail' && request.method === 'GET')
         return await previewCard(request, env, url);
+      if (url.pathname === '/api/cards/price') {
+        if (request.method === 'GET') return await readCardPrice(env, url);
+        if (request.method === 'POST') return await checkCardPrice(request, env);
+      }
       if (url.pathname === '/api/cards/resolve' && request.method === 'GET')
         return await resolveSources(env, url);
       if (url.pathname === '/api/cards/add' && request.method === 'POST')

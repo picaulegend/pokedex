@@ -1044,7 +1044,34 @@
   font-weight: 650;
 }
 .cloud-app .finish-field {
+  display: flex;
+  gap: 8px;
+  align-items: end;
+}
+.cloud-app .finish-field > label {
+  flex: 1;
+  min-width: 0;
+}
+.cloud-app .finish-field > button {
+  min-height: 44px;
+  white-space: nowrap;
+}
+.cloud-app .detail-price {
   margin-bottom: 20px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.cloud-app .detail-price:empty {
+  margin: 0;
+}
+.cloud-app .finish-field:has(+ .detail-price:empty) {
+  margin-bottom: 20px;
+}
+.cloud-app .detail-price p {
+  margin: 6px 0 0;
+}
+.cloud-app .detail-price strong {
+  color: var(--ink);
 }
 .cloud-app .quantity-stepper {
   display: flex;
@@ -2288,5 +2315,262 @@
   .cloud-app .history-dialog .sheet-body,
   .cloud-app .history-dialog .sheet-footer {
     padding-inline: 20px;
+  }
+}
+
+.cloud-app .collection-view-controls {
+  margin-bottom: 14px;
+}
+.cloud-app .binder-toolbar,
+.cloud-app .binder-format,
+.cloud-app .binder-buttons,
+.cloud-app .binder-page-nav,
+.cloud-app .binder-tray-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cloud-app .binder-toolbar,
+.cloud-app .binder-tray-heading {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.cloud-app .binder-toolbar {
+  margin-bottom: 12px;
+}
+.cloud-app .binder-format > span,
+.cloud-app .binder-format small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.cloud-app .binder-buttons .filter {
+  margin: 0;
+}
+.cloud-app .binder-stage {
+  padding: 16px 12px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--mat);
+}
+.cloud-app .binder-book {
+  --binder-columns: 3;
+  --pocket-base: 86px;
+  --pocket-width: var(--pocket-base);
+  --binder-cover: light-dark(#292b28, #20211f);
+  --binder-page: light-dark(#373a36, #30322f);
+  --binder-edge: light-dark(#5f625a, #565952);
+  --binder-label: #dedfd8;
+  width: min(100%, 740px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border: 4px solid var(--binder-cover);
+  border-radius: 9px;
+  background: var(--binder-cover);
+  box-shadow: 0 4px 8px #0003;
+}
+.cloud-app .binder-book[data-pockets='4'] {
+  --binder-columns: 2;
+  --pocket-width: calc(var(--pocket-base) * 1.5);
+}
+.cloud-app .binder-page {
+  min-width: 0;
+  padding: 10px 12px 12px;
+  border: 1px solid var(--binder-edge);
+  border-radius: 5px 0 0 5px;
+  background: linear-gradient(90deg, var(--binder-page) 90%, var(--binder-cover));
+}
+.cloud-app .binder-page + .binder-page {
+  border-radius: 0 5px 5px 0;
+  background: linear-gradient(270deg, var(--binder-page) 90%, var(--binder-cover));
+}
+.cloud-app .binder-page-label {
+  display: flex;
+  justify-content: space-between;
+  max-width: calc(var(--binder-columns) * var(--pocket-width) + (var(--binder-columns) - 1) * 6px);
+  margin: 0 auto 8px;
+  color: var(--binder-label);
+  font: 12px var(--mono);
+}
+.cloud-app .binder-pocket-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--binder-columns), minmax(0, var(--pocket-width)));
+  justify-content: center;
+  gap: 6px;
+}
+.cloud-app .binder-pocket {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 63 / 88;
+  min-width: 0;
+  padding: 3px;
+  border: 1px solid var(--binder-edge);
+  border-radius: var(--radius);
+  background: var(--binder-cover);
+  color: var(--binder-label);
+  font-size: 18px;
+  scroll-margin-top: calc(var(--app-header) + 12px);
+}
+.cloud-app .binder-placing .binder-pocket:not([data-binder-card]),
+.cloud-app .binder-pocket:not([data-binder-card]):hover {
+  border-color: var(--binder-label);
+  background: var(--binder-page);
+}
+.cloud-app .binder-pocket[aria-pressed='true'],
+.cloud-app .binder-pocket.binder-drop-target,
+.cloud-app .binder-pocket:focus-visible {
+  outline: 2px solid #f2f1ee;
+  outline-offset: 1px;
+  z-index: 1;
+}
+.cloud-app [data-binder-card][draggable='true'] {
+  cursor: grab;
+}
+.cloud-app [data-binder-card][draggable='true']:active {
+  cursor: grabbing;
+}
+.cloud-app #collection-binder [aria-disabled='true'] {
+  cursor: default;
+}
+.cloud-app .binder-card-face {
+  display: block;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 63 / 88;
+  overflow: hidden;
+  border-radius: var(--radius);
+  pointer-events: none;
+}
+.cloud-app .binder-pocket .binder-card-face {
+  height: 100%;
+  aspect-ratio: auto;
+}
+.cloud-app .binder-card-face .tcg-picture {
+  height: 100%;
+  aspect-ratio: auto;
+  padding: 0;
+  font-size: 10px;
+}
+.cloud-app .binder-card-face .tcg-picture > span {
+  padding: 4px;
+}
+.cloud-app .binder-card-face img {
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.cloud-app .binder-missing .tcg-picture {
+  filter: grayscale(1) brightness(0.72);
+}
+.cloud-app .binder-missing-label {
+  position: absolute;
+  left: 50%;
+  bottom: 8%;
+  transform: translateX(-50%);
+  padding: 1px 4px;
+  border-radius: var(--radius);
+  color: #fff;
+  background: #262625;
+  font-size: 10px;
+  font-weight: 650;
+}
+.cloud-app .binder-page-nav {
+  justify-content: center;
+  margin-top: 8px;
+}
+.cloud-app #binder-page-count {
+  min-width: 112px;
+  margin: 0;
+  text-align: center;
+  font: 12px var(--mono);
+}
+.cloud-app .binder-tray {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.cloud-app .binder-tray.binder-drop-target {
+  outline: 2px solid var(--ink);
+}
+.cloud-app .binder-tray h3 {
+  margin: 0;
+  font-size: 16px;
+}
+.cloud-app #binder-tray-count {
+  margin-left: 2px;
+  color: var(--muted);
+  font: 12px var(--mono);
+}
+.cloud-app #binder-instruction,
+.cloud-app #binder-status,
+.cloud-app .binder-tray-cards p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.cloud-app #binder-filter-label {
+  max-width: 300px;
+  margin-top: 8px;
+}
+.cloud-app .binder-tray-cards {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 9px 4px 6px;
+}
+.cloud-app .binder-tray-card {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 3px;
+  flex: 0 0 92px;
+  padding: 4px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  font-size: 12px;
+  line-height: 1.2;
+  text-align: center;
+}
+.cloud-app .binder-tray-card small {
+  color: var(--muted);
+  font-size: 11px;
+}
+.cloud-app .binder-tray-card:hover,
+.cloud-app .binder-tray-card[aria-pressed='true'] {
+  border-color: var(--field-line);
+  background: var(--mat);
+}
+.cloud-app .binder-tray-card .binder-card-face {
+  width: 63px;
+}
+.cloud-app #binder-status:empty {
+  margin: 0;
+}
+@media (min-width: 701px) {
+  .cloud-app .binder-book {
+    --pocket-base: clamp(56px, calc((100svh - 440px) / 4.3), 86px);
+  }
+}
+@media (max-width: 700px) {
+  .cloud-app .binder-toolbar {
+    align-items: end;
+  }
+  .cloud-app .binder-format {
+    display: grid;
+    gap: 4px;
+  }
+  .cloud-app .binder-stage {
+    padding: 10px 8px 6px;
+  }
+  .cloud-app .binder-book {
+    width: min(100%, 360px);
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cloud-app .binder-page {
+    padding-inline: 8px;
+    border-radius: 5px;
+    background: var(--binder-page);
   }
 }

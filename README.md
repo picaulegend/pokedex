@@ -30,13 +30,15 @@ Cloud JSON backups use version 3 and include zero-owned cards with saved history
 
 The cloud page starts with 48 Pokémon and adds more as you scroll. Card galleries show 48 cards at a time, with **Show more cards**. Filters use the full saved list. Saves keep existing images and controls in place. Search details stay in the URL for reloads, and card results appear before set details finish loading.
 
+Open a collection and select **Binder** to arrange its cards. Choose **4** or **9** pockets per page. Drag a card from **Unplaced cards** to a pocket, or select the card and then the pocket. A missing card can hold its place. Each pocket size has a separate layout that syncs with the collection.
+
 The cloud build includes browser icons, Apple and Android home screen icons, and a web app manifest. Icon shapes are in `scripts/lib/app-icons.mjs`; generated image files stay in `dist/`. Shared pages use the same icons through `/s/assets/`. The standalone checklist keeps an embedded icon so its downloaded HTML needs no extra files.
 
 ## Read-only sharing
 
 Open a collection or the wishlist and select **Share**. Use **Preview page** to check the saved online view. **Create link** creates a public link that needs no visitor account. **Stop sharing** blocks future visits. Re-enabling creates a new link.
 
-Shared pages show the latest saved online cards, with filters and image enlargement. They hide email addresses, exact copy quantities, card history, prices, private notes, and other collection names. A shared wishlist includes wanted cards and missing cards from collection goals.
+Shared pages show the latest saved online cards, with filters and image enlargement. They hide email addresses, exact copy quantities, card history, prices, private notes, binder layouts, and other collection names. A shared wishlist includes wanted cards and missing cards from collection goals.
 
 ## Local cloud preview
 

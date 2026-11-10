@@ -61,8 +61,21 @@ test('the existing owner can sign in, manage passkeys, and invite a member', asy
   const first = await cdp.send('WebAuthn.addVirtualAuthenticator', { options: authenticator });
 
   await page.goto(origin);
-  await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible();
-  await page.getByRole('link', { name: 'Set up owner passkey' }).click();
+  await expect(page.getByRole('banner')).toHaveText('Collect');
+  await expect(page.getByRole('main', { name: 'Sign in' })).toBeVisible();
+  await expect(page.getByRole('link', { name: /owner passkey/i })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Sign in with a passkey' })).toBeVisible();
+  await expect(
+    page.getByText('New account creation is currently closed', { exact: true }),
+  ).toBeVisible();
+  const sprites = page.locator('.login-sprite');
+  await expect(sprites).toHaveCount(3);
+  for (const sprite of await sprites.all()) {
+    const image = await sprite.evaluate((element) => getComputedStyle(element).backgroundImage);
+    expect(image).toMatch(/\/sprites\/[147]-[0-9a-f]{12}\.png/);
+    expect((await api.get(new URL(image.match(/"([^"]+)"/)[1], origin).href)).ok()).toBe(true);
+  }
+  await page.goto(origin + '/setup');
   await page.getByLabel('Setup code').fill(token);
   await page.getByRole('button', { name: 'Create owner passkey' }).click();
   await expect(page).toHaveURL(origin + '/#/pokedex');

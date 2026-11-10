@@ -14,6 +14,7 @@ import { plural } from './ui.js';
 import { createNavigation } from './navigation.js';
 import { createShell } from './shell.js';
 import { createProfile } from './profile.js';
+import { pruneBinder, sameBinder, validateBinder } from './binder-model.js';
 import {
   hasDetails,
   historyOf,
@@ -82,6 +83,26 @@ const library = createCardLibrary({
       }
     });
     show(next);
+    announce();
+    void flush();
+  },
+  saveBinder: async (id, binder, previous) => {
+    let queued = false;
+    const next = await updateAccount(user.id, (state) => {
+      const group = visibleRecords(state, 'collection')[id];
+      if (
+        !group ||
+        group.deleted ||
+        state.recordConflicts[`collection:${id}`] ||
+        !sameBinder(group.binder, previous) ||
+        pruneBinder(binder, group.variantIds) !== binder
+      )
+        return false;
+      queueRecord(state, 'collection', id, { binder });
+      queued = true;
+    });
+    show(next);
+    if (!queued) throw new Error('The collection changed. Check the binder and try again.');
     announce();
     void flush();
   },
@@ -417,8 +438,9 @@ async function drain() {
           state.recordPending = state.recordPending.filter(
             (item) => item.mutationId !== change.mutationId,
           );
-          state[change.kind === 'inventory' ? 'inventory' : 'collections'][change.id] =
-            result.state;
+          const table = state[change.kind === 'inventory' ? 'inventory' : 'collections'];
+          if (!table[change.id] || table[change.id].revision <= result.state.revision)
+            table[change.id] = result.state;
           mergeRemote(state, result.progress);
         });
         message = '';
@@ -431,13 +453,22 @@ async function drain() {
             (item) => item.kind === change.kind && item.id === change.id,
           );
           const wanted = same.at(-1) || change;
+          const data =
+            change.kind === 'collection'
+              ? Object.assign({}, ...(same.length ? same : [change]).map((item) => item.data))
+              : wanted.data;
+          if (data.binder && data.variantIds) {
+            const local = visibleRecords(state, 'collection')[change.id];
+            if (local?.binder) data.binder = local.binder;
+            else delete data.binder;
+          }
           state.recordPending = state.recordPending.filter(
             (item) => !(item.kind === change.kind && item.id === change.id),
           );
           const table = state[change.kind === 'inventory' ? 'inventory' : 'collections'];
           if (error.body.state) table[change.id] = error.body.state;
           else delete table[change.id];
-          state.recordConflicts[`${change.kind}:${change.id}`] = wanted;
+          state.recordConflicts[`${change.kind}:${change.id}`] = { ...wanted, data };
         });
         message = '';
         show(next);
@@ -572,28 +603,49 @@ $('cloud-conflicts').onclick = () => {
     const section = document.createElement('section');
     section.className = 'cloud-conflict';
     const title = document.createElement('strong');
-    title.textContent = item.kind === 'collection' ? item.data.name : 'Card ownership';
     const detail = document.createElement('p');
     const remote = saved[item.kind === 'inventory' ? 'inventory' : 'collections'][item.id];
+    const binderOnly = item.kind === 'collection' && item.data.name === undefined;
+    title.textContent =
+      item.kind === 'collection' ? item.data.name || remote?.name || 'Binder' : 'Card ownership';
     detail.textContent =
       item.kind === 'inventory'
         ? `This device: ${item.data.quantity} owned, ${item.data.wanted ? 'wanted' : 'not wanted'}, ${pastCount(historyOf(item.data))} past copies. Online: ${remote?.quantity || 0} owned, ${remote?.wanted ? 'wanted' : 'not wanted'}, ${pastCount(historyOf(remote))} past copies. The selected record keeps its card history and notes.`
-        : `This device: ${plural(item.data.variantIds.length, 'card')}${item.data.deleted ? ', deleted' : ''}. Online: ${plural(remote?.variantIds.length || 0, 'card')}${remote?.deleted ? ', deleted' : ''}.`;
+        : binderOnly
+          ? remote && !remote.deleted
+            ? 'Keep the binder layout from this device or use the online layout. Cards removed online stay out of the binder.'
+            : 'This collection is no longer available online.'
+          : `This device: ${plural(item.data.variantIds.length, 'card')}${item.data.deleted ? ', deleted' : ''}. Online: ${plural(remote?.variantIds.length || 0, 'card')}${remote?.deleted ? ', deleted' : ''}.`;
     section.append(title, detail);
     for (const [label, keepLocal] of [
       ['Keep this device', true],
       ['Use online record', false],
     ]) {
+      if (keepLocal && binderOnly && (!remote || remote.deleted)) continue;
       const button = document.createElement('button');
       button.className = 'secondary-button';
       button.textContent = label;
       button.onclick = async () => {
         const next = await updateAccount(user.id, (state) => {
           if (keepLocal)
-            queueRecord(state, item.kind, item.id, {
-              ...item.data,
-              ...(item.kind === 'inventory' && item.data.history ? { historyChoice: true } : {}),
-            });
+            queueRecord(
+              state,
+              item.kind,
+              item.id,
+              binderOnly
+                ? {
+                    binder: pruneBinder(
+                      item.data.binder,
+                      state.collections[item.id]?.variantIds || [],
+                    ),
+                  }
+                : {
+                    ...item.data,
+                    ...(item.kind === 'inventory' && item.data.history
+                      ? { historyChoice: true }
+                      : {}),
+                  },
+            );
           else delete state.recordConflicts[`${item.kind}:${item.id}`];
         });
         show(next);
@@ -636,7 +688,12 @@ window.addEventListener('carddex:backup', async () => {
       })),
     collections: Object.values(visibleRecords(current, 'collection'))
       .filter((c) => !c.deleted)
-      .map((c) => ({ id: c.id, name: c.name, variantIds: c.variantIds })),
+      .map((c) => ({
+        id: c.id,
+        name: c.name,
+        variantIds: c.variantIds,
+        ...(c.binder ? { binder: c.binder } : {}),
+      })),
   };
   const references = new Map(library.sourceReferences().map((r) => [r.variantId, r]));
   for (const row of Object.values(visibleRecords(current, 'inventory')))
@@ -716,6 +773,11 @@ window.addEventListener('carddex:restore', async (event) => {
           )))
     )
       throw new Error('Choose a valid Collect backup.');
+    for (const group of data.collections)
+      if (group.binder !== undefined) {
+        const members = new Set(group.variantIds);
+        group.binder = validateBinder(group.binder, (id) => members.has(id));
+      }
     data.inventory = data.inventory
       .map((row) => ({ ...row, history: validateHistory(historyOf(row), row.quantity) }))
       .filter((r) => r.quantity || r.wanted || hasDetails(r));
@@ -801,6 +863,7 @@ window.addEventListener('carddex:restore', async (event) => {
           name: existing && !existing.deleted ? existing.name : group.name.trim(),
           deleted: false,
           variantIds,
+          ...(!existing?.binder && group.binder ? { binder: group.binder } : {}),
         });
       }
     });

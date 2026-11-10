@@ -2,6 +2,7 @@ import { openAccount, syncNow, openOwnedCard } from './helpers.js';
 import { test, expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+import { emptyBinder } from '../../src/client/binder-model.js';
 
 const origin = 'http://127.0.0.1:8788';
 const friend = { 'X-Carddex-Dev-Email': 'friend@example.test' };
@@ -212,6 +213,115 @@ test('collections share ownership and remain private; deleting a goal keeps the 
   expect(result.collections.find((c) => c.id === a).deleted).toBe(true);
 });
 
+test('binder writes check membership and revisions and keep gaps when a card leaves', async ({
+  request,
+}) => {
+  const en = await variant(request),
+    ja = await variant(request, 'ja'),
+    group = randomUUID();
+  const name = 'Binder membership check';
+  const created = await save(request, 'collections', group, {
+    name,
+    variantIds: [en, ja],
+    deleted: false,
+  });
+  const binder = emptyBinder();
+  binder.layouts[9][1] = en;
+  binder.layouts[9][3] = ja;
+  const placed = await save(request, 'collections', group, { binder });
+  expect(placed.body.state.binder).toEqual(binder);
+  const h = await headers(request);
+  const url = `/api/collections/${group}`;
+  const put = (data) =>
+    request.put(url, { headers: h, data: { mutationId: randomUUID(), ...data } });
+  expect((await put({ binder, baseRevision: created.body.state.revision })).status()).toBe(409);
+  const renamed = await save(request, 'collections', group, {
+    name: 'Renamed binder',
+    variantIds: [ja, en],
+    deleted: false,
+  });
+  expect(renamed.body.state.binder).toEqual(binder);
+  const removed = await save(request, 'collections', group, {
+    name,
+    variantIds: [ja],
+    deleted: false,
+  });
+  expect(removed.body.state.binder.layouts[9].slice(0, 4)).toEqual([null, null, null, ja]);
+  expect((await put({ binder, baseRevision: removed.body.state.revision })).status()).toBe(400);
+  expect((await put(placed.payload)).ok()).toBe(true);
+  const added = await save(request, 'collections', group, {
+    name,
+    variantIds: [en, ja],
+    deleted: false,
+  });
+  expect(added.body.state.binder).toEqual(removed.body.state.binder);
+  expect((await sync(request, friend)).collections.some((c) => c.id === group)).toBe(false);
+});
+
+test('collection binder places and swaps cards and syncs separate layouts after offline edits', async ({
+  page,
+  context,
+  request,
+}) => {
+  const en = await variant(request),
+    ja = await variant(request, 'ja'),
+    group = randomUUID();
+  await save(request, 'inventory', en, { quantity: 1, wanted: false });
+  await save(request, 'inventory', ja, { quantity: 0, wanted: false });
+  await save(request, 'collections', group, {
+    name: 'Binder interaction check',
+    variantIds: [en, ja],
+    deleted: false,
+  });
+  await page.goto(`/#/collection?collection=${group}`);
+  await page.getByRole('button', { name: 'Binder', exact: true }).click();
+  const slot = (index) => page.locator(`#binder-slot-${index}`);
+  const unplaced = (id) => page.locator(`#binder-card-${id}`);
+  const pocketSize = (size) => page.locator(`button[data-binder-size="${size}"]`);
+  await expect(page.locator('.binder-pocket')).toHaveCount(18);
+  await expect(unplaced(en)).toHaveAccessibleName(/Bulbasaur/);
+  await expect(unplaced(en)).toBeEnabled();
+  await unplaced(en).dragTo(slot(0));
+  await expect(slot(0)).toHaveAttribute('data-binder-card', en);
+  await unplaced(ja).focus();
+  await page.keyboard.press('Enter');
+  await expect(slot(0)).toBeFocused();
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Enter');
+  await expect(slot(1)).toHaveAttribute('data-binder-card', ja);
+  await expect(slot(1).getByText('Missing', { exact: true })).toBeVisible();
+  await slot(1).dragTo(slot(0));
+  await expect(slot(0)).toHaveAttribute('data-binder-card', ja);
+  await page.getByRole('button', { name: 'Undo', exact: true }).click();
+  await expect(slot(0)).toHaveAttribute('data-binder-card', en);
+  await page.getByRole('button', { name: 'Add pages' }).click();
+  await expect(page.locator('#binder-page-count')).toHaveText('Pages 3–4 of 4');
+  await page.getByRole('button', { name: 'Previous pages' }).click();
+  await expect(page.locator('#app-save-state')).toHaveText('Saved');
+  await context.setOffline(true);
+  await pocketSize(4).click();
+  await expect(page.locator('.binder-pocket')).toHaveCount(8);
+  await unplaced(ja).click();
+  await slot(3).click();
+  await expect(slot(3)).toHaveAttribute('data-binder-card', ja);
+  await context.setOffline(false);
+  await syncNow(page);
+  await expect
+    .poll(async () => (await sync(request)).collections.find((c) => c.id === group)?.binder)
+    .toMatchObject({ size: 4, layouts: { 4: [null, null, null, ja, null, null, null, null] } });
+  await page.reload();
+  await expect(slot(3)).toHaveAttribute('data-binder-card', ja);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('.binder-pocket')).toHaveCount(4);
+  await pocketSize(9).click();
+  await expect(page.locator('.binder-pocket')).toHaveCount(9);
+  await expect(slot(0)).toHaveAttribute('data-binder-card', en);
+  await expect(slot(1)).toHaveAttribute('data-binder-card', ja);
+  await page.getByRole('button', { name: 'List', exact: true }).click();
+  await expect(page.locator('#library-content')).toBeVisible();
+  await expect(page.locator('#collection-binder')).toBeHidden();
+});
+
 test('card galleries, finishes, wanted cards, quantities, and collection membership work together', async ({
   page,
   request,
@@ -338,11 +448,14 @@ test('backups include exact cards and collections and can be restored into a sep
 }) => {
   const id = await variant(request),
     group = randomUUID();
+  const binder = emptyBinder();
+  binder.layouts[9][4] = id;
   await save(request, 'inventory', id, { quantity: 5, wanted: true });
   await save(request, 'collections', group, {
     name: 'Backup goal',
     variantIds: [id],
     deleted: false,
+    binder,
   });
   await page.goto('/');
   await expect(page.locator('#cloud-status')).toHaveText('All changes saved online.');
@@ -354,6 +467,7 @@ test('backups include exact cards and collections and can be restored into a sep
   expect(data.version).toBe(3);
   expect(data.inventory.find((r) => r.variantId === id).quantity).toBe(5);
   expect(data.collections.find((c) => c.id === group).variantIds).toEqual([id]);
+  expect(data.collections.find((c) => c.id === group).binder).toEqual(binder);
   await context.setExtraHTTPHeaders(friend);
   await page.reload();
   await expect(page.locator('#cloud-account')).toContainText('friend@example.test');
@@ -364,8 +478,8 @@ test('backups include exact cards and collections and can be restored into a sep
   });
   await page.locator('#restore-review-confirm').click();
   await expect
-    .poll(async () => (await sync(request, friend)).collections.find((c) => c.id === group)?.name)
-    .toBe('Backup goal');
+    .poll(async () => (await sync(request, friend)).collections.find((c) => c.id === group))
+    .toMatchObject({ name: 'Backup goal', binder });
   await expect
     .poll(
       async () => (await sync(request, friend)).inventory.find((r) => r.variantId === id)?.quantity,

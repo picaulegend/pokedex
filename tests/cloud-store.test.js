@@ -1,9 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { emptyBinder } from '../src/client/binder-model.js';
 
 // These checks use pure state functions; browser tests cover the actual database.
 globalThis.indexedDB = { open: () => ({}) };
-const { emptyState, visibleOwned, queueRecord, queueChange } =
+const { emptyState, visibleOwned, visibleRecords, queueRecord, queueChange } =
   await import('../src/client/cloud-store.js');
 delete globalThis.indexedDB;
 
@@ -26,4 +27,15 @@ test('offline quantities update linked Pokémon and clearing an old check keeps 
   assert.deepEqual(visibleOwned(state), [1, 25]);
   queueRecord(state, 'inventory', 'card', { quantity: 0, wanted: false });
   assert.deepEqual(visibleOwned(state), []);
+});
+
+test('removing and adding a collection card offline leaves its former pocket empty', () => {
+  const state = emptyState();
+  const binder = emptyBinder();
+  binder.layouts[9][3] = 'card';
+  state.collections.goal = { id: 'goal', revision: 1, name: 'Goal', variantIds: ['card'], binder };
+  queueRecord(state, 'collection', 'goal', { name: 'Goal', deleted: false, variantIds: [] });
+  queueRecord(state, 'collection', 'goal', { name: 'Goal', deleted: false, variantIds: ['card'] });
+  assert.equal(visibleRecords(state, 'collection').goal.binder.layouts[9][3], null);
+  assert.equal(state.collections.goal.binder.layouts[9][3], 'card');
 });

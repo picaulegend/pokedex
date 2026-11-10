@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile, copyFile, rm } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { build } from 'esbuild';
 import { iconDataUrl, writeAppIcons } from './lib/app-icons.mjs';
+import { loginSpriteIds } from '../src/sign-in-art.js';
 
 await rm('dist', { recursive: true, force: true });
 await mkdir('dist');
@@ -54,6 +55,8 @@ const appModules = [
   'cloud.js',
   'cloud-store.js',
   'library.js',
+  'collection-binder.js',
+  'binder-model.js',
   'navigation.js',
   'shell.js',
   'profile.js',
@@ -63,6 +66,7 @@ const appModules = [
   'ui.js',
   'card-search-ui.js',
   'card-detail.js',
+  'card-price-ui.js',
   'card-history-ui.js',
   'card-history-model.js',
   'set-picker.js',
@@ -118,7 +122,16 @@ await writeFile(
     ),
 );
 for (const file of ['share.js', 'share.css']) await copyFile(`src/client/${file}`, `dist/${file}`);
-await writeFile('dist/passkeys.css', await themedStyles('passkeys.css'));
+const loginSprites = pokemon
+  .filter(({ id }) => loginSpriteIds.includes(id))
+  .map(
+    ({ id, image }) => `.login-sprite[data-pokemon="${id}"] { --starter-image: url("${image}"); }`,
+  )
+  .join('\n');
+await writeFile(
+  'dist/passkeys.css',
+  Buffer.concat([await themedStyles('passkeys.css'), Buffer.from(loginSprites + '\n')]),
+);
 await build({
   entryPoints: ['src/client/passkey-ui.js'],
   bundle: true,

@@ -1,4 +1,5 @@
 import { inventoryChange, reconcileQuantity, emptyHistory } from './card-history-model.js';
+import { pruneBinder } from './binder-model.js';
 
 const database = new Promise((resolve, reject) => {
   const request = indexedDB.open('carddex-cloud-v1', 1);
@@ -97,12 +98,16 @@ export function visibleRecords(state, kind) {
           ),
         }
       : item.data;
-  for (const item of state.recordPending)
-    if (item.kind === kind)
-      rows[item.id] = { ...rows[item.id], ...value(item), id: item.id, variantId: item.id };
-  for (const item of Object.values(state.recordConflicts))
-    if (item.kind === kind)
-      rows[item.id] = { ...rows[item.id], ...value(item), id: item.id, variantId: item.id };
+  for (const item of [...state.recordPending, ...Object.values(state.recordConflicts)]) {
+    if (item.kind !== kind) continue;
+    const row = { ...rows[item.id], ...value(item), id: item.id, variantId: item.id };
+    if (kind === 'collection') {
+      if (!row.variantIds) continue;
+      if (row.deleted) delete row.binder;
+      else if (row.binder) row.binder = pruneBinder(row.binder, row.variantIds);
+    }
+    rows[item.id] = row;
+  }
   return rows;
 }
 

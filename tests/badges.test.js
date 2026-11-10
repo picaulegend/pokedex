@@ -84,6 +84,10 @@ test('badge checks backfill, skip unrelated writes, and keep awards after a sale
   member.run(goal, extraFinish);
   own.run(extraFinish, 0);
   db.exec(readFileSync(`migrations/${migration}`, 'utf8'));
+  for (const name of readdirSync('migrations')
+    .sort()
+    .filter((name) => name > migration))
+    db.exec(readFileSync(`migrations/${name}`, 'utf8'));
 
   let inventoryReads = 0;
   const env = {

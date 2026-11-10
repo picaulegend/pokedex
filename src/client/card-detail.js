@@ -10,11 +10,13 @@ import {
 } from './ui.js';
 import { createCardHistory } from './card-history-ui.js';
 import { hasHistory, unrecordedCount } from './card-history-model.js';
+import { createCardPrice } from './card-price-ui.js';
 
 export function createCardDetail({
   app,
   navigation,
   shell,
+  api,
   getCard,
   getInventory,
   getCollections,
@@ -65,6 +67,7 @@ export function createCardDetail({
     refresh: () => render(),
   });
   const currentVariant = () => record?.card.variants.find((v) => v.id === selected);
+  const cardPrice = createCardPrice({ api, render });
   const inventory = () => getInventory()[selected] || { quantity: 0, wanted: false };
   const goal = () => getCollections().find((c) => c.id === route?.collection);
   async function ensureKnown(group) {
@@ -148,6 +151,8 @@ export function createCardDetail({
     )
       return;
     const card = record.card,
+      variant = currentVariant(),
+      checkingPrice = cardPrice.checking(selected),
       own = inventory(),
       groups = getCollections(),
       linkedGoal = goal(),
@@ -157,7 +162,8 @@ export function createCardDetail({
       screen,
       `<div class="card-detail-layout"><div class="detail-art"><button id="detail-image" class="image-open" aria-label="Enlarge ${escape(card.name)} card image">${picture(card)}</button></div><section class="detail-info"><h2 id="detail-title">${escape(card.name)}</h2>
       <dl class="detail-record"><div><dt>Set</dt><dd>${escape(card.setName || 'Not recorded')}</dd></div><div><dt>Card number</dt><dd>${escape(card.number)}${card.officialCount ? `/${escape(card.officialCount)}` : ''}</dd></div><div><dt>Language</dt><dd>${languageName(card.language)}</dd></div><div><dt>Illustrator</dt><dd>${escape(card.artist || 'Not recorded')}</dd></div></dl>
-      <label class="finish-field">Finish<select id="detail-finish" ${disabled ? 'disabled' : ''}>${card.variants.map((v) => `<option value="${v.id}" ${v.id === selected ? 'selected' : ''}>${escape(variantName(v))}</option>`).join('')}</select></label>
+      <div class="finish-field"><label>Finish<select id="detail-finish" ${disabled ? 'disabled' : ''}>${card.variants.map((v) => `<option value="${v.id}" ${v.id === selected ? 'selected' : ''}>${escape(variantName(v))}</option>`).join('')}</select></label><button id="detail-check-price" class="secondary-button" type="button" ${!canEdit() ? 'disabled' : ''} aria-disabled="${checkingPrice}" aria-busy="${checkingPrice}">${checkingPrice ? 'Checking…' : 'Check price'}</button></div>
+      ${cardPrice.markup(card, variant, record.saved)}
       ${linkedGoal ? `<div class="goal-context"><button id="detail-add-goal" class="primary-button" aria-pressed="${linkedGoal.variantIds.includes(selected)}" aria-disabled="${disabled || linkedGoal.variantIds.includes(selected)}" aria-busy="${busy && pendingAction.control === 'detail-add-goal'}">${busy && pendingAction.control === 'detail-add-goal' ? 'Adding…' : linkedGoal.variantIds.includes(selected) ? `In ${escape(linkedGoal.name)}` : `Add to ${escape(linkedGoal.name)}`}</button></div>` : ''}
       <div class="detail-actions"><div class="detail-owned"><span class="field-label" id="detail-owned-label">Owned</span><div class="quantity-stepper"><button id="detail-minus" class="icon-button" aria-label="Remove one owned copy" ${disabled || !own.quantity ? 'disabled' : ''}>−</button><input id="detail-quantity" data-quantity="${selected}" aria-label="Owned copies of ${escape(card.name)}" type="number" inputmode="numeric" min="0" max="999" step="1" value="${escape(draft ?? own.quantity)}" ${disabled || !record.saved ? 'disabled' : ''}><button id="detail-plus" class="icon-button" aria-label="Add one owned copy" aria-busy="${busy && pendingAction.control === 'detail-plus'}" ${disabled || own.quantity >= 999 ? 'disabled' : ''}>＋</button></div></div><button id="detail-want" class="secondary-button want-button${own.wanted ? ' is-wanted' : ''}" data-want="${selected}" ${disabled ? 'disabled' : ''}>${busy && pendingAction.control === 'detail-want' ? 'Saving…' : own.wanted ? 'Remove from wishlist' : 'Add to wishlist'}</button></div>
       ${own.quantity ? `<button id="detail-feature" class="secondary-button detail-feature" ${disabled ? 'disabled' : ''}>${busy && pendingAction.control === 'detail-feature' ? 'Saving…' : featured ? 'Remove from Trainer Card' : 'Feature on Trainer Card'}</button>` : ''}
@@ -168,6 +174,7 @@ export function createCardDetail({
     );
     bindImages(screen);
     const $ = (id) => screen.querySelector(`#${id}`);
+    $('detail-check-price').onclick = () => void cardPrice.check(card, variant);
     $('detail-finish').onchange = (event) => {
       historyControls.close();
       draft = undefined;
@@ -298,6 +305,7 @@ export function createCardDetail({
         record = result;
         selected = cardVariant(next.variant, record.card);
         render();
+        if (record.saved) void cardPrice.load(selected);
       } catch (error) {
         if (current === loading) {
           screen.innerHTML = `<p class="error-message" role="status">${escape(error.message)}</p><button id="detail-retry" class="primary-button">Try again</button>`;

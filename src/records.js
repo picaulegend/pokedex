@@ -2,6 +2,7 @@ import { HttpError } from './auth.js';
 import { isId, json, progressState, readBody } from './api.js';
 import { cardDetails, cardStatements } from './card-source.js';
 import { emptyHistory, inventoryChange, validateHistory } from './client/card-history-model.js';
+import { pruneBinder, validateBinder } from './client/binder-model.js';
 import { showcaseQuery } from './showcase.js';
 import { badgeQuery, badgeSnapshot, markBadgeChange } from './badges.js';
 
@@ -31,6 +32,7 @@ export const collectionState = (row) =>
         name: row.name,
         deleted: Boolean(row.deleted),
         variantIds: JSON.parse(row.variant_ids),
+        ...(row.binder_json ? { binder: JSON.parse(row.binder_json) } : {}),
         revision: row.revision,
       }
     : null;
@@ -168,7 +170,7 @@ export async function catalogue(env, url, user) {
   const paged = url.searchParams.has('search');
   const { results: cards } = await env.DB.prepare(
     `SELECT c.id,c.language,c.source_id,c.local_number,c.name,c.artist,c.image_url,c.source_url,
-    c.set_id,s.name AS set_name,s.official_count,(SELECT json_group_array(pokedex_number) FROM catalogue_card_pokemon WHERE card_id=c.id) AS pokemon_ids
+    c.set_id,s.source_id AS set_source_id,s.name AS set_name,s.official_count,(SELECT json_group_array(pokedex_number) FROM catalogue_card_pokemon WHERE card_id=c.id) AS pokemon_ids
     FROM catalogue_cards c JOIN catalogue_sets s ON s.id=c.set_id WHERE ${condition} ORDER BY c.language,s.name,c.local_number ${paged ? 'LIMIT 24 OFFSET ?' : ''}`,
   )
     .bind(...parameters, ...(paged ? [(page - 1) * 24] : []))
@@ -203,6 +205,7 @@ export async function catalogue(env, url, user) {
       image: c.image_url,
       sourceUrl: c.source_url,
       setId: c.set_id,
+      setSourceId: c.set_source_id,
       setName: c.set_name,
       officialCount: c.official_count,
       pokemonIds: JSON.parse(c.pokemon_ids),
@@ -250,11 +253,14 @@ export async function prepareInventoryHistory(env, user, id, body) {
 
 export async function saveRecord(request, env, user, kind, id, preparedCard) {
   if (!isId(id)) throw new HttpError(400, 'Choose a valid record.');
-  const body = await readBody(request, kind === 'collection' ? 90000 : 1000000);
+  const body = await readBody(request, kind === 'collection' ? 290000 : 1000000);
+  const binderOnly = kind === 'collection' && body?.binder !== undefined && body.name === undefined;
   const fields =
     kind === 'inventory'
       ? ['quantity', 'wanted', 'history', 'historyChoice', 'baseRevision', 'mutationId']
-      : ['name', 'variantIds', 'deleted', 'baseRevision', 'mutationId'];
+      : binderOnly
+        ? ['binder', 'baseRevision', 'mutationId']
+        : ['name', 'variantIds', 'deleted', 'binder', 'baseRevision', 'mutationId'];
   if (
     !body ||
     Object.keys(body).some((key) => !fields.includes(key)) ||
@@ -263,7 +269,7 @@ export async function saveRecord(request, env, user, kind, id, preparedCard) {
     body.baseRevision < 0
   )
     throw new HttpError(400, 'Send a valid change.');
-  let data, history;
+  let data, history, binderJson;
   if (kind === 'inventory') {
     if (
       !Number.isInteger(body.quantity) ||
@@ -298,6 +304,16 @@ export async function saveRecord(request, env, user, kind, id, preparedCard) {
     history = await prepareInventoryHistory(env, user, id, body);
     if (body.history !== undefined) data.history = history;
     if (body.historyChoice !== undefined) data.historyChoice = body.historyChoice;
+  } else if (binderOnly) {
+    const current = await env.DB.prepare(`${collectionSelect} WHERE c.user_id=? AND c.id=?`)
+      .bind(user.id, id)
+      .first();
+    const members =
+      current && !current.deleted && current.revision === body.baseRevision
+        ? new Set(JSON.parse(current.variant_ids))
+        : null;
+    data = { binder: checkedBinder(body.binder, members) };
+    binderJson = JSON.stringify(data.binder);
   } else {
     if (
       typeof body.name !== 'string' ||
@@ -322,6 +338,18 @@ export async function saveRecord(request, env, user, kind, id, preparedCard) {
       variantIds: [...body.variantIds].sort(),
       deleted: body.deleted,
     };
+    if (body.binder !== undefined)
+      data.binder = checkedBinder(body.binder, new Set(data.variantIds));
+    if (!data.deleted && body.baseRevision && !data.binder) {
+      const current = await env.DB.prepare(
+        'SELECT binder_json FROM collections WHERE user_id=? AND id=? AND revision=?',
+      )
+        .bind(user.id, id, body.baseRevision)
+        .first();
+      if (current?.binder_json)
+        binderJson = JSON.stringify(pruneBinder(JSON.parse(current.binder_json), data.variantIds));
+    }
+    if (!data.deleted && data.binder) binderJson = JSON.stringify(data.binder);
   }
   const payload = JSON.stringify({ ...data, baseRevision: body.baseRevision });
   const requestId = crypto.randomUUID();
@@ -350,18 +378,26 @@ export async function saveRecord(request, env, user, kind, id, preparedCard) {
         body.baseRevision,
       ),
     );
+  } else if (binderOnly) {
+    statements.push(
+      env.DB.prepare(
+        `UPDATE collections SET binder_json=?,revision=revision+1
+        WHERE user_id=? AND id=? AND deleted=0 AND revision=? AND ${eligible}`,
+      ).bind(binderJson, user.id, id, body.baseRevision, user.id, body.mutationId),
+    );
   } else {
     statements.push(
       env.DB.prepare(
-        `INSERT INTO collections(user_id,id,name,deleted,revision)
-      SELECT ?,?,?,?,?+1 WHERE ${eligible} AND (?=0 OR EXISTS(SELECT 1 FROM collections WHERE user_id=? AND id=? AND revision=?))
-      ON CONFLICT(user_id,id) DO UPDATE SET name=excluded.name,deleted=excluded.deleted,revision=excluded.revision
+        `INSERT INTO collections(user_id,id,name,deleted,binder_json,revision)
+      SELECT ?,?,?,?,?,?+1 WHERE ${eligible} AND (?=0 OR EXISTS(SELECT 1 FROM collections WHERE user_id=? AND id=? AND revision=?))
+      ON CONFLICT(user_id,id) DO UPDATE SET name=excluded.name,deleted=excluded.deleted,binder_json=excluded.binder_json,revision=excluded.revision
       WHERE collections.revision=?`,
       ).bind(
         user.id,
         id,
         data.name,
         Number(data.deleted),
+        binderJson ?? null,
         body.baseRevision,
         user.id,
         body.mutationId,
@@ -379,7 +415,7 @@ export async function saveRecord(request, env, user, kind, id, preparedCard) {
     SELECT ?,?,?,?,?,? WHERE changes()=1 ON CONFLICT DO NOTHING`,
     ).bind(user.id, body.mutationId, kind, id, payload, requestId),
   );
-  if (kind === 'collection') {
+  if (kind === 'collection' && !binderOnly) {
     const gate =
       'EXISTS(SELECT 1 FROM record_mutations WHERE user_id=? AND mutation_id=? AND request_id=?)';
     statements.push(
@@ -438,4 +474,12 @@ export async function saveRecord(request, env, user, kind, id, preparedCard) {
     progress: kind === 'inventory' ? result.at(-1).results.map((row) => progressState(row)) : [],
     mutationId: body.mutationId,
   });
+}
+
+function checkedBinder(binder, members) {
+  try {
+    return validateBinder(binder, members ? (id) => members.has(id) : isId);
+  } catch (error) {
+    throw new HttpError(400, error.message);
+  }
 }

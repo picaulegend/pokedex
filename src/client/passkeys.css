@@ -85,3 +85,73 @@
   font-size: 14px;
   text-underline-offset: 3px;
 }
+
+.login-page {
+  --login-gutter: clamp(16px, 5vw, 40px);
+  color-scheme: dark;
+  display: grid;
+  place-items: center;
+  min-height: 100svh;
+  padding: calc(var(--app-header) + var(--login-gutter)) var(--login-gutter) var(--login-gutter);
+  background: #000;
+}
+.login-page .app-header {
+  background: inherit;
+}
+.login-page .app-brand {
+  gap: 9px;
+}
+.login-layout {
+  width: min(100%, 480px);
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+.login-layout .primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 48px;
+  margin-top: 24px;
+  padding-inline: 24px;
+  cursor: pointer;
+}
+.login-layout .primary-button svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+.login-notice {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.login-landscape {
+  position: relative;
+  width: 100%;
+  outline: 1px solid light-dark(#c6cabb, #53604d);
+  outline-offset: 4px;
+  box-shadow: 0 0 0 4px light-dark(#fffdf3, #293229);
+}
+.login-landscape svg {
+  display: block;
+  width: 100%;
+}
+.login-starters {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.login-sprite {
+  --sprite-position: 80%;
+  background: var(--starter-image, none) center var(--sprite-position) / 92% no-repeat;
+  image-rendering: pixelated;
+}
+.login-sprite[data-pokemon='4'] {
+  --sprite-position: 73%;
+}
+.login-sprite[data-pokemon='7'] {
+  --sprite-position: 96%;
+}

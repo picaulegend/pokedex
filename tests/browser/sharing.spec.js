@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+import { emptyBinder } from '../../src/client/binder-model.js';
 
 const origin = 'http://127.0.0.1:8788';
 const friend = { 'X-Carddex-Dev-Email': 'friend@example.test' };
@@ -63,6 +64,9 @@ test('collection links expose selected cards and boolean progress without privat
   const en = await variant(request),
     ja = await variant(request, 'ja'),
     id = await collection(request, 'Shared artwork', [en, ja]);
+  const binder = emptyBinder();
+  binder.layouts[9][5] = en;
+  await save(request, 'collections', id, { binder });
   await save(request, 'inventory', en, { quantity: 731, wanted: false });
   await save(request, 'inventory', ja, { quantity: 0, wanted: false });
   const secret = await variant(request, 'en', 'base1-44');
@@ -82,6 +86,7 @@ test('collection links expose selected cards and boolean progress without privat
   const body = JSON.stringify(page);
   for (const hidden of [
     'quantity',
+    'binder',
     'user_id',
     'owner@example.test',
     'friend@example.test',

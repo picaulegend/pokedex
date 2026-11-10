@@ -3,6 +3,7 @@ import { createCardSearch } from './card-search-ui.js';
 import { createCardDetail } from './card-detail.js';
 import { hasHistory } from './card-history-model.js';
 import { createShareControls } from './share-controls.js';
+import { createCollectionBinder } from './collection-binder.js';
 import {
   escape,
   imageUrl,
@@ -26,6 +27,7 @@ export function createCardLibrary({
   getState,
   canEdit,
   save,
+  saveBinder,
   clearLegacy,
   admit,
 }) {
@@ -37,6 +39,11 @@ export function createCardLibrary({
   screen.innerHTML = `<header class="view-heading"><img id="library-sprite" class="library-sprite" data-plain-image alt="" width="96" height="96" hidden><div><span id="library-dex" class="library-dex" hidden></span><span id="library-favorite" class="favorite-heart" hidden><span aria-hidden="true">♥</span> Favorite</span><h2 id="library-title"></h2><p id="library-summary"></p><div id="collection-progress" class="collection-progress" hidden></div></div><div class="view-actions"><button class="primary-button" id="library-add">Add cards</button><button class="primary-button" id="new-collection" hidden>New collection</button><details id="collection-menu" class="view-menu" hidden><summary class="secondary-button">Manage</summary><div><button id="collection-rename">Rename</button><button id="collection-delete">Delete collection</button></div></details></div></header>
     <p id="library-message" role="status"></p><div id="library-legacy" hidden></div>
     <form id="collection-form" hidden><label>Collection name<input id="collection-name" maxlength="80" required placeholder="For example: Favourite artwork"></label><div class="form-actions"><button class="primary-button" type="submit">Save collection</button><button class="secondary-button" id="collection-cancel" type="button">Cancel</button></div></form>
+    <div class="binder-buttons collection-view-controls" id="collection-view-controls" role="group" aria-label="Collection view" hidden>
+      <button type="button" class="filter" id="collection-list-view" aria-pressed="true">List</button>
+      <button type="button" class="filter" id="collection-binder-view" aria-pressed="false">Binder</button>
+    </div>
+    <section id="collection-binder" aria-label="Collection binder" hidden></section>
     <details id="library-filter-panel" class="filter-panel"><summary>Filters <span id="library-filter-count"></span></summary>
       <div id="library-filters">
         <label id="card-name-label" hidden>Card name<input id="card-name" type="text" autocomplete="off" placeholder="Filter by card name"></label>
@@ -165,6 +172,7 @@ export function createCardLibrary({
   });
   const detail = createCardDetail({
     app,
+    api,
     navigation,
     shell,
     getCard,
@@ -177,6 +185,15 @@ export function createCardLibrary({
     admit,
   });
   const sharing = createShareControls({ api, canEdit, getState });
+  const binder = createCollectionBinder({
+    root: $('collection-binder'),
+    getCard: (id) => byVariant.get(id),
+    save: (id, layout, previous) => {
+      $('library-message').textContent = '';
+      return saveBinder(id, layout, previous);
+    },
+    onError: showMessage,
+  });
   const shareButton = document.createElement('button');
   shareButton.id = 'library-share';
   shareButton.className = 'secondary-button';
@@ -319,6 +336,7 @@ export function createCardLibrary({
       isGoal = route.screen === 'collection',
       isWishlist = route.screen === 'wishlist',
       isCards = route.screen === 'cards';
+    const showBinder = Boolean(isGoal && current && route.view === 'binder');
     const title = isList
       ? 'Collections'
       : isGoal
@@ -343,6 +361,11 @@ export function createCardLibrary({
     $('new-collection').hidden = !isList;
     $('new-collection').disabled = locked;
     $('collection-menu').hidden = !isGoal || !current;
+    $('collection-view-controls').hidden = !isGoal || !current;
+    $('collection-list-view').setAttribute('aria-pressed', String(!showBinder));
+    $('collection-binder-view').setAttribute('aria-pressed', String(showBinder));
+    $('collection-binder').hidden = !showBinder;
+    $('library-content').hidden = showBinder;
     shareButton.hidden = !(isWishlist || (isGoal && current));
     shareButton.disabled = locked;
     const goalOwned = current?.variantIds.filter((id) => rows[id]?.quantity > 0).length || 0,
@@ -374,7 +397,7 @@ export function createCardLibrary({
       $(id).closest('label').hidden = !shown;
       anyFilter ||= shown;
     }
-    $('library-filter-panel').hidden = !anyFilter;
+    $('library-filter-panel').hidden = showBinder || !anyFilter;
     $('collection-progress').hidden = !isGoal || !goalTotal;
     if (isList) $('library-summary').textContent = '';
     else if (isGoal) {
@@ -417,6 +440,12 @@ export function createCardLibrary({
       selectFilterIds.filter((id) => $(id).value).length + Number(Boolean(nameFilter));
     $('library-filter-count').textContent = filterCount ? `${filterCount} active` : '';
     $('library-clear-filters').disabled = !filterCount;
+    binder.update(
+      isGoal ? current : undefined,
+      rows,
+      !locked && !getState()?.recordConflicts[`collection:${current?.id}`],
+    );
+    if (showBinder) return;
     preserveFocus($('library-content'), () => {
       if (isList) {
         $('library-content').className = 'collection-list';
@@ -512,6 +541,16 @@ export function createCardLibrary({
     });
   }
   $('library-add').onclick = addCards;
+  for (const view of ['list', 'binder'])
+    $(`collection-${view}-view`).onclick = () => {
+      if (route.screen !== 'collection') return;
+      navigation.update({
+        collection: route.collection,
+        view: view === 'binder' ? view : undefined,
+      });
+      route = navigation.route;
+      render();
+    };
   $('new-collection').onclick = () => {
     $('collection-form').hidden = false;
     $('collection-name').value = '';

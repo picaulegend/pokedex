@@ -1,8 +1,12 @@
+import { loginArt } from './sign-in-art.js';
+
 const pages = {
   '/login': {
     title: 'Sign in',
-    description: 'Open your private Pokémon card collection.',
-    content: '<button class="primary-button" id="passkey-login">Sign in with a passkey</button>',
+    content: `<button class="primary-button" id="passkey-login">
+<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a5 5 0 0 1-6.6 4.7L8 19H4v-4l6.3-6.4A5 5 0 1 1 21 8Z"/><path d="M17 8h.01"/></svg>
+Sign in with a passkey</button>
+<p class="login-notice">New account creation is currently closed</p>`,
   },
   '/setup': {
     title: 'Set up your owner passkey',
@@ -45,10 +49,18 @@ const inviteSection = `<section id="invite">
 </div>
 </section>`;
 
-export function accountPage(path, method, { allowSetup, canInvite } = {}) {
+const passkeyStatus = '<p id="passkey-status" role="status" aria-live="polite"></p>';
+
+export function accountPage(path, method, { canInvite } = {}) {
   const { title, description, content, link } = pages[path];
-  const nextLink =
-    path === '/login' && allowSetup ? '<a href="/setup">Set up owner passkey</a>' : link;
+  const login = path === '/login';
+  const main = login
+    ? `<main class="login-layout" aria-label="${title}">${loginArt}${content}${passkeyStatus}</main>`
+    : `<main class="account-panel">
+<header class="screen-intro"><h1>${title}</h1><p>${description}</p></header>
+${content}${canInvite ? inviteSection : ''}${passkeyStatus}
+<footer class="account-links">${link}</footer>
+</main>`;
   return new Response(
     method === 'HEAD'
       ? null
@@ -58,14 +70,9 @@ export function accountPage(path, method, { allowSetup, canInvite } = {}) {
 <meta name="color-scheme" content="light dark">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <title>${title} · Collect</title><link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="/passkeys.css"></head>
-<body class="account-page">
-<header class="app-header"><span class="app-brand">Collect</span></header>
-<main class="account-panel">
-<header class="screen-intro"><h1>${title}</h1><p>${description}</p></header>
-${content}${canInvite ? inviteSection : ''}
-<p id="passkey-status" role="status" aria-live="polite"></p>
-${nextLink ? `<footer class="account-links">${nextLink}</footer>` : ''}
-</main>
+<body class="account-page${login ? ' login-page' : ''}">
+<header class="app-header"><span class="app-brand">${login ? '<img src="/favicon.svg" width="26" height="26" alt="">' : ''}Collect</span></header>
+${main}
 <script type="module" src="/passkey-ui.js"></script></body></html>`,
     {
       headers: {
