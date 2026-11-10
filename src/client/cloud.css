@@ -538,16 +538,35 @@
   border-radius: var(--radius);
   background: var(--rail);
 }
+.cloud-app #library-filter-panel:not([open]) {
+  margin-bottom: 16px;
+  border-color: transparent;
+  background: transparent;
+}
+.cloud-app #library-filter-panel:not([open]) > summary {
+  color: var(--muted);
+  font-weight: var(--font-medium);
+}
+.cloud-app #library-filter-panel:not([open]):has(#library-filter-count:not(:empty)),
+.cloud-app #library-filter-panel[open] {
+  border-color: var(--line);
+  background: var(--rail);
+}
+.cloud-app #library-filter-panel:not([open]):has(#library-filter-count:not(:empty)) > summary,
+.cloud-app #library-filter-panel[open] > summary {
+  color: var(--ink);
+  font-weight: var(--font-semibold);
+}
 .cloud-app .filter-panel > summary {
-  min-height: 44px;
+  min-height: var(--control);
   padding: 10px 14px;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--text-ui);
+  font-weight: var(--font-semibold);
   cursor: pointer;
 }
 .cloud-app .filter-panel > summary > span {
   color: var(--ink);
-  font-size: 12px;
+  font-size: var(--text-meta);
 }
 .cloud-app #library-filters {
   display: grid;
@@ -616,7 +635,7 @@
 .cloud-app .search-results {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: 20px;
+  gap: 24px 20px;
   align-items: start;
 }
 .cloud-app .search-results.is-stale {
@@ -627,8 +646,6 @@
 .cloud-app .tcg-card,
 .cloud-app .search-card {
   min-width: 0;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--line);
 }
 .cloud-app .card-open {
   display: block;
@@ -642,53 +659,60 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  aspect-ratio: 1;
-  padding: 10%;
+  aspect-ratio: 63 / 88;
+  padding: 0;
   overflow: hidden;
-  background: var(--mat);
+  background: transparent;
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--text-ui);
   line-height: 1.5;
   text-align: center;
 }
 .cloud-app .card-open:hover .tcg-picture,
 .cloud-app .image-open:hover .tcg-picture {
-  background: var(--hover);
+  background: var(--mat);
 }
 .cloud-app .tcg-picture > span {
   padding: 20px 12px;
+  background: var(--mat);
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
 }
 .cloud-app .tcg-picture img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
+  border-radius: 2px;
 }
 .cloud-app .card-caption {
   display: grid;
-  gap: 3px;
-  padding: 10px 0 2px;
+  gap: 4px;
+  padding: 10px 0 0;
 }
 .cloud-app .card-caption strong {
   font-size: var(--text-card);
-  line-height: 1.35;
+  line-height: 1.3;
   overflow-wrap: anywhere;
 }
-.cloud-app .card-caption > span {
-  font-size: 13px;
+.cloud-app .card-meta,
+.cloud-app .card-caption > span:not(.ownership-badges):not(.tcg-members):not(.card-meta) {
+  font-size: var(--text-meta);
   color: var(--muted);
-  line-height: 1.5;
+  line-height: 1.4;
   overflow-wrap: anywhere;
 }
 .cloud-app .ownership-badges {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 .cloud-app .ownership-badges > span {
-  font-size: 12px;
-  padding: 3px 7px;
+  font-size: var(--text-meta);
+  padding: 2px 6px;
   border-radius: var(--radius);
   background: var(--mat);
 }
@@ -701,10 +725,13 @@
   color: var(--warning);
 }
 .cloud-app .tcg-members {
-  font-size: 12px;
+  font-size: var(--text-meta);
   color: var(--muted);
-  margin: 10px 0 0;
+  margin: 0;
   overflow-wrap: anywhere;
+}
+.cloud-app .view-heading:not(:has(.library-sprite:not([hidden]))) .view-actions {
+  align-self: center;
 }
 .cloud-app [data-acquire] {
   width: 100%;
@@ -1752,11 +1779,10 @@
   .cloud-app .card-caption strong {
     font-size: 15px;
   }
-  .cloud-app .card-caption > span {
-    font-size: 12px;
-  }
+  .cloud-app .card-meta,
+  .cloud-app .tcg-members,
   .cloud-app .ownership-badges > span {
-    font-size: 12px;
+    font-size: 11px;
   }
   .cloud-app .collection-list {
     grid-template-columns: 1fr;

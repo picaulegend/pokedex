@@ -179,7 +179,7 @@ export function createCardSearch({
           const card = setDetails(brief, reference);
           const key = String(index);
           cardsByKey.set(key, card);
-          return `<article class="search-card" data-source-id="${escape(card.sourceId)}"><button class="card-open" id="search-card-${index}" data-preview="${key}">${picture(card)}<span class="card-caption"><strong>${escape(card.name)}</strong><span data-set-name>${escape(card.setName || 'Set not recorded')}</span><span data-card-number>${escape(card.number)}${card.officialCount ? `/${card.officialCount}` : ''} · ${languageName(card.language)}</span>${ownership(card)}</span></button></article>`;
+          return `<article class="search-card" data-source-id="${escape(card.sourceId)}"><button class="card-open" id="search-card-${index}" data-preview="${key}">${picture(card)}<span class="card-caption"><strong>${escape(card.name)}</strong><span class="card-meta"><span data-set-name>${escape(card.setName || 'Set not recorded')}</span> · <span data-card-number>${escape(card.number)}${card.officialCount ? `/${card.officialCount}` : ''}</span> · ${languageName(card.language)}</span>${ownership(card)}</span></button></article>`;
         })
         .join('');
       bindImages(screen);

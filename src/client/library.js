@@ -140,12 +140,14 @@ export function createCardLibrary({
       );
     return cardRequests.get(key);
   }
-  function badges(variants, missing = false, showWanted = true) {
+  function badges(variants, { missing = false, showWanted = true, hideSingleOwned = false } = {}) {
     const rows = inventory();
     const copies = variants.reduce((n, v) => n + (rows[v.id]?.quantity || 0), 0),
       wanted = variants.some((v) => rows[v.id]?.wanted);
     const html =
-      (copies ? `<span class="owned-badge">${copies} owned</span>` : '') +
+      (copies && !(hideSingleOwned && copies === 1)
+        ? `<span class="owned-badge">${copies} owned</span>`
+        : '') +
       (!copies && variants.some((v) => hasHistory(rows[v.id]))
         ? '<span class="past-badge">Previously owned</span>'
         : '') +
@@ -522,7 +524,11 @@ export function createCardLibrary({
           const memberships = groups.filter(
             (g) => g !== current && variants.some((v) => g.variantIds.includes(v.id)),
           );
-          return `<article class="tcg-card" data-card-id="${card.id}"><button id="card-${card.id}" class="card-open" data-open-card="${card.language}:${card.sourceId}" data-variant="${selected}">${picture(card)}<span class="card-caption"><strong>${escape(card.name)}</strong><span>${escape(card.setName)}</span><span data-card-number>${escape(card.number)}${card.officialCount ? `/${escape(card.officialCount)}` : ''} · <span class="tcg-language">${languageName(card.language)}</span></span>${badges(variants, true, !isWishlist)}</span></button>${memberships.length ? `<p class="tcg-members">${memberships.map((c) => escape(c.name)).join(' · ')}</p>` : ''}${isWishlist ? `<button id="acquire-${selected}" data-acquire="${selected}" class="secondary-button" ${locked || (rows[selected]?.quantity || 0) >= 999 ? 'disabled' : ''}>${rows[selected]?.quantity ? 'Add one copy' : 'Mark as owned'}</button>` : ''}</article>`;
+          const number = `${escape(card.number)}${card.officialCount ? `/${escape(card.officialCount)}` : ''}`;
+          const members = memberships.length
+            ? `<span class="tcg-members">${memberships.map((c) => escape(c.name)).join(' · ')}</span>`
+            : '';
+          return `<article class="tcg-card" data-card-id="${card.id}"><button id="card-${card.id}" class="card-open" data-open-card="${card.language}:${card.sourceId}" data-variant="${selected}">${picture(card)}<span class="card-caption"><strong>${escape(card.name)}</strong><span class="card-meta">${escape(card.setName)} · <span data-card-number>${number}</span> · <span class="tcg-language">${languageName(card.language)}</span></span>${badges(variants, { missing: true, showWanted: !isWishlist, hideSingleOwned: isCards })}${members}</span></button>${isWishlist ? `<button id="acquire-${selected}" data-acquire="${selected}" class="secondary-button" ${locked || (rows[selected]?.quantity || 0) >= 999 ? 'disabled' : ''}>${rows[selected]?.quantity ? 'Add one copy' : 'Mark as owned'}</button>` : ''}</article>`;
         })
         .join('');
       updateMarkup(
