@@ -636,7 +636,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
   gap: 24px 20px;
-  align-items: start;
+  align-items: stretch;
 }
 .cloud-app .search-results.is-stale {
   opacity: 0.45;
@@ -645,7 +645,10 @@
 }
 .cloud-app .tcg-card,
 .cloud-app .search-card {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
+  height: 100%;
 }
 .cloud-app .card-open {
   display: block;
@@ -734,10 +737,9 @@
   align-self: center;
 }
 .cloud-app [data-acquire] {
-  width: 100%;
-  margin-top: 12px;
-  padding-left: 6px;
-  padding-right: 6px;
+  align-self: start;
+  margin-top: auto;
+  padding-top: 4px;
 }
 .cloud-app .library-empty {
   grid-column: 1/-1;
