@@ -1,5 +1,13 @@
 import { badges } from './badge-definitions.js';
-import { bindImages, escape, languageName, picture, updateMarkup, variantName } from './ui.js';
+import {
+  bindImages,
+  escape,
+  icon,
+  languageName,
+  picture,
+  updateMarkup,
+  variantName,
+} from './ui.js';
 
 export function trainerCardMarkup(avatar) {
   return `<section class="trainer-card" aria-labelledby="trainer-card-title">
@@ -58,9 +66,7 @@ export function createTrainerCard($, { app, navigation, saveShowcase }) {
       </li>`,
     );
     while (featured.length < 3)
-      featured.push(
-        '<li class="trainer-empty-slot"><span aria-hidden="true">＋</span>Open slot</li>',
-      );
+      featured.push('<li class="trainer-empty-slot">' + icon('plus') + 'Open slot</li>');
     updateMarkup(slots, featured.join(''));
     bindImages(slots);
   }
@@ -115,7 +121,7 @@ export function createTrainerCard($, { app, navigation, saveShowcase }) {
       progress.max = app.pokemonTotal;
       progress.value = owned.length;
       $('trainer-progress-count').textContent =
-        `${owned.length.toLocaleString()} / ${app.pokemonTotal.toLocaleString()} species`;
+        `${owned.length.toLocaleString('en-US')} / ${app.pokemonTotal.toLocaleString('en-US')} species`;
     },
     badges(snapshot) {
       const key = `${snapshot?.rulesVersion}:${snapshot?.checkedRevision}`;
@@ -135,7 +141,7 @@ export function createTrainerCard($, { app, navigation, saveShowcase }) {
             ? targets
                 .map(
                   ([target, label], index) =>
-                    `${Math.min(target, values[index]).toLocaleString()} / ${target.toLocaleString()} ${label}`,
+                    `${Math.min(target, values[index]).toLocaleString('en-US')} / ${target.toLocaleString('en-US')} ${label}`,
                 )
                 .join(' · ')
             : '';

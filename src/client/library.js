@@ -140,7 +140,7 @@ export function createCardLibrary({
       );
     return cardRequests.get(key);
   }
-  function badges(variants, missing = false) {
+  function badges(variants, missing = false, showWanted = true) {
     const rows = inventory();
     const copies = variants.reduce((n, v) => n + (rows[v.id]?.quantity || 0), 0),
       wanted = variants.some((v) => rows[v.id]?.wanted);
@@ -150,7 +150,9 @@ export function createCardLibrary({
         ? '<span class="past-badge">Previously owned</span>'
         : '') +
       (wanted
-        ? '<span class="wanted-badge">Wanted</span>'
+        ? showWanted
+          ? '<span class="wanted-badge">Wanted</span>'
+          : ''
         : missing && !copies
           ? '<span class="wanted-badge">Missing</span>'
           : '') +
@@ -359,7 +361,7 @@ export function createCardLibrary({
     $('library-add').hidden = isList || (isGoal && !current);
     $('library-add').disabled = locked;
     $('new-collection').hidden = !isList;
-    $('new-collection').disabled = locked;
+    $('new-collection').disabled = locked || !$('collection-form').hidden;
     $('collection-menu').hidden = !isGoal || !current;
     $('collection-view-controls').hidden = !isGoal || !current;
     $('collection-list-view').setAttribute('aria-pressed', String(!showBinder));
@@ -520,7 +522,7 @@ export function createCardLibrary({
           const memberships = groups.filter(
             (g) => g !== current && variants.some((v) => g.variantIds.includes(v.id)),
           );
-          return `<article class="tcg-card" data-card-id="${card.id}"><button id="card-${card.id}" class="card-open" data-open-card="${card.language}:${card.sourceId}" data-variant="${selected}">${picture(card)}<span class="card-caption"><strong>${escape(card.name)}</strong><span>${escape(card.setName)}</span><span data-card-number>${escape(card.number)}${card.officialCount ? `/${escape(card.officialCount)}` : ''} · <span class="tcg-language">${languageName(card.language)}</span></span>${badges(variants, true)}</span></button>${memberships.length ? `<p class="tcg-members">${memberships.map((c) => escape(c.name)).join(' · ')}</p>` : ''}${isWishlist ? `<button id="acquire-${selected}" data-acquire="${selected}" class="secondary-button" ${locked || (rows[selected]?.quantity || 0) >= 999 ? 'disabled' : ''}>${rows[selected]?.quantity ? 'Add one copy' : 'Mark as owned'}</button>` : ''}</article>`;
+          return `<article class="tcg-card" data-card-id="${card.id}"><button id="card-${card.id}" class="card-open" data-open-card="${card.language}:${card.sourceId}" data-variant="${selected}">${picture(card)}<span class="card-caption"><strong>${escape(card.name)}</strong><span>${escape(card.setName)}</span><span data-card-number>${escape(card.number)}${card.officialCount ? `/${escape(card.officialCount)}` : ''} · <span class="tcg-language">${languageName(card.language)}</span></span>${badges(variants, true, !isWishlist)}</span></button>${memberships.length ? `<p class="tcg-members">${memberships.map((c) => escape(c.name)).join(' · ')}</p>` : ''}${isWishlist ? `<button id="acquire-${selected}" data-acquire="${selected}" class="secondary-button" ${locked || (rows[selected]?.quantity || 0) >= 999 ? 'disabled' : ''}>${rows[selected]?.quantity ? 'Add one copy' : 'Mark as owned'}</button>` : ''}</article>`;
         })
         .join('');
       updateMarkup(
@@ -554,10 +556,12 @@ export function createCardLibrary({
   $('new-collection').onclick = () => {
     $('collection-form').hidden = false;
     $('collection-name').value = '';
+    render();
     $('collection-name').focus();
   };
   $('collection-cancel').onclick = () => {
     $('collection-form').hidden = true;
+    render();
     $('new-collection').focus();
   };
   $('collection-rename').onclick = () => {
@@ -693,8 +697,7 @@ export function createCardLibrary({
       $('collection-form').hidden = true;
       $('library-message').textContent = '';
     }
-    if (next.screen === 'collections') render();
-    else await loadView();
+    await loadView();
   }
   navigation.subscribe(show);
   document.querySelector('#collection').addEventListener('click', (event) => {
@@ -727,7 +730,7 @@ export function createCardLibrary({
       }
       detail.update();
       if (!screen.hidden) {
-        if (route.screen !== 'collections' && loadedKey !== recordKey()) void loadView();
+        if (loadedKey !== recordKey()) void loadView();
         else render();
       }
     },

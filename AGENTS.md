@@ -4,6 +4,14 @@
 
 - Use ASD-STE100 Simplified Technical English for technical topics.
 
+## Design system
+
+- Shared look and controls live in `src/client/app-theme.css`. Feature CSS (`cloud.css`, `passkeys.css`, `share.css`) may add layout only; do not invent a second type scale or button family.
+- Type tokens: `--text-page`, `--text-dialog` (20px), `--text-section` (18px), `--text-card` (17px), `--text-body` (16px), `--text-ui` (14px), `--text-action` (13px), `--text-meta` (12px). Touch target: `--control` (44px).
+- Buttons: `.primary-button`, `.secondary-button`, `.text-button`, `.icon-button`. Use `.text-button` for inline actions such as history and “Feature on Trainer Card”. Disabled primary/secondary buttons stay muted outlines, not grey fills.
+- Custom radio or tile choices that hide the native control must fill the control hit area (see `.choice-input`). Do not use a 1×1 px invisible input.
+- Reuse `icon()` from `ui.js` for close, plus, and minus. Keep SVG stroke icons at a shared size through `.ui-icon`.
+
 ## Cost
 
 - Keep this a small, private app with a $0 monthly operating budget.

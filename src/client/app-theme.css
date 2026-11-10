@@ -1,3 +1,8 @@
+/* Collect design system
+   Type: page → dialog → section → card → body → ui → action → meta
+   Buttons: primary, secondary, text, icon
+   Disabled filled buttons stay as muted outlines (opacity 1)
+   Custom radios/check faces use .choice-input so the hit area fills the control */
 .cloud-app:root {
   color-scheme: light dark;
   font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -16,10 +21,25 @@
   --warning: light-dark(#805020, #e4b781);
   --error: light-dark(#8b382b, #f1a596);
   --radius: 3px;
+  --control: 44px;
+  --text-page: clamp(28px, 4vw, 42px);
+  --text-page-phone: 25px;
+  --text-dialog: 20px;
+  --text-section: 18px;
+  --text-card: 17px;
+  --text-body: 16px;
+  --text-ui: 14px;
+  --text-action: 13px;
+  --text-meta: 12px;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --icon-close: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='m6 6 12 12M18 6 6 18'/%3E%3C/svg%3E");
+  --icon-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 6 6 6-6 6'/%3E%3C/svg%3E");
   --app-header: 56px;
 }
 .cloud-app body {
-  font-size: 16px;
+  font-size: var(--text-body);
   line-height: 1.5;
 }
 .cloud-app [hidden] {
@@ -34,6 +54,21 @@
 .cloud-app button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+.cloud-app a {
+  color: var(--ink);
+  text-underline-offset: 3px;
+}
+.cloud-app a:is(.primary-button, .secondary-button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+.cloud-app .ui-icon {
+  width: 18px;
+  height: 18px;
+  flex: none;
 }
 .cloud-app button:focus-visible,
 .cloud-app a:focus-visible,
@@ -58,22 +93,22 @@
 .cloud-app .app-brand {
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
+  min-height: var(--control);
   margin-right: 8px;
   color: var(--ink);
   font-weight: 800;
-  font-size: 17px;
+  font-size: var(--text-card);
   letter-spacing: 0.12em;
   text-decoration: none;
 }
 .cloud-app .primary-button,
 .cloud-app .secondary-button {
-  min-height: 44px;
+  min-height: var(--control);
   padding: 11px 16px;
   border-radius: var(--radius);
-  font-size: 14px;
+  font-size: var(--text-ui);
   line-height: 1.4;
-  font-weight: 650;
+  font-weight: var(--font-semibold);
 }
 .cloud-app .primary-button {
   background: var(--ink);
@@ -85,20 +120,76 @@
   border: 1px solid var(--field-line);
   color: var(--ink);
 }
-.cloud-app .primary-button:hover {
+.cloud-app .primary-button:hover:not(:disabled) {
   background: var(--ink-hover);
+}
+.cloud-app :is(.primary-button, .secondary-button):disabled {
+  background: transparent;
+  border-color: var(--line);
+  color: var(--muted);
+  opacity: 1;
 }
 .cloud-app .secondary-button:hover:not(:disabled) {
   background: var(--hover);
 }
+.cloud-app .text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--control);
+  padding: 5px 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font-size: var(--text-action);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+}
+.cloud-app .text-button:hover:not(:disabled) {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.cloud-app .icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: var(--control);
+  height: var(--control);
+  min-width: var(--control);
+  padding: 0;
+  border: 1px solid var(--field-line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--text-dialog);
+  line-height: 1;
+}
+.cloud-app .icon-button .ui-icon {
+  width: 20px;
+  height: 20px;
+}
+.cloud-app .icon-button:hover:not(:disabled) {
+  background: var(--hover);
+}
+.cloud-app .choice-input,
+.cloud-app .history-dialog .method-options input,
+.cloud-app .profile-avatar-option input {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
 .cloud-app label,
 .cloud-app .field-label {
-  font-size: 14px;
+  font-size: var(--text-ui);
   color: var(--muted);
 }
 .cloud-app label:not(.species-check),
 .cloud-app .search-set-field {
   display: grid;
+  align-content: start;
   gap: 7px;
   min-width: 0;
 }
@@ -107,14 +198,47 @@
 .cloud-app .mobile-generation select {
   width: 100%;
   min-width: 0;
-  min-height: 44px;
+  min-height: var(--control);
   padding: 9px 12px;
   border: 1px solid var(--field-line);
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--ink);
-  font-size: 16px;
+  font-size: var(--text-body);
   line-height: 1.4;
+}
+.cloud-app input[type='search']::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--muted);
+  -webkit-mask: var(--icon-close) center / contain no-repeat;
+  mask: var(--icon-close) center / contain no-repeat;
+  cursor: pointer;
+}
+.cloud-app summary {
+  list-style: none;
+}
+.cloud-app summary::-webkit-details-marker {
+  display: none;
+}
+.cloud-app :is(.filter-panel, .card-source-details, .trainer-badge-goals) > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cloud-app :is(.filter-panel, .card-source-details, .trainer-badge-goals) > summary::before {
+  content: '';
+  flex: none;
+  width: 12px;
+  height: 12px;
+  background: currentColor;
+  -webkit-mask: var(--icon-chevron) center / contain no-repeat;
+  mask: var(--icon-chevron) center / contain no-repeat;
+  transition: rotate 0.15s;
+}
+.cloud-app details[open] > summary::before {
+  rotate: 90deg;
 }
 .cloud-app input::placeholder {
   color: var(--muted);
@@ -125,15 +249,30 @@
 }
 .cloud-app .screen-intro :is(h1, h2),
 .cloud-app .view-heading h2 {
-  font-size: clamp(28px, 4vw, 42px);
+  font-size: var(--text-page);
   letter-spacing: -0.04em;
   margin: 0 0 8px;
   line-height: 1.2;
   overflow-wrap: anywhere;
 }
+.cloud-app dialog h2 {
+  font-size: var(--text-dialog);
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+.cloud-app .section-heading,
+.cloud-app .section-title h2 {
+  font-size: var(--text-section);
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+.cloud-app .card-title {
+  font-size: var(--text-card);
+  line-height: 1.35;
+}
 .cloud-app .screen-intro p,
 .cloud-app .view-heading p {
-  font-size: 14px;
+  font-size: var(--text-ui);
   color: var(--muted);
   margin: 0;
 }
@@ -152,7 +291,7 @@
   }
   .cloud-app .view-heading h2,
   .cloud-app .screen-intro :is(h1, h2) {
-    font-size: 25px;
+    font-size: var(--text-page-phone);
   }
   .cloud-app .screen-intro {
     margin-bottom: 20px;

@@ -298,13 +298,18 @@ dialog::backdrop {
   position: absolute;
   right: 12px;
   top: 10px;
+  display: grid;
+  place-items: center;
   width: 44px;
   height: 44px;
   border: 0;
   border-radius: 10px;
   background: white;
   color: #233a34;
-  font-size: 24px;
+}
+#close-image svg {
+  width: 20px;
+  height: 20px;
 }
 #large-image {
   display: block;

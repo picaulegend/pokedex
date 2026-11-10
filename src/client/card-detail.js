@@ -7,6 +7,7 @@ import {
   variantName,
   updateMarkup,
   credits,
+  icon,
 } from './ui.js';
 import { createCardHistory } from './card-history-ui.js';
 import { hasHistory, unrecordedCount } from './card-history-model.js';
@@ -37,7 +38,9 @@ export function createCardDetail({
   zoom.dataset.cloudUi = '';
   zoom.className = 'image-dialog';
   zoom.innerHTML =
-    '<button class="icon-button" id="image-close" aria-label="Close card image">×</button><div id="image-content"></div>';
+    '<button class="icon-button" id="image-close" aria-label="Close card image">' +
+    icon('close') +
+    '</button><div id="image-content"></div>';
   document.body.append(zoom);
   zoom.querySelector('button').onclick = () => zoom.close();
   let record,
@@ -165,9 +168,9 @@ export function createCardDetail({
       <div class="finish-field"><label>Finish<select id="detail-finish" ${disabled ? 'disabled' : ''}>${card.variants.map((v) => `<option value="${v.id}" ${v.id === selected ? 'selected' : ''}>${escape(variantName(v))}</option>`).join('')}</select></label><button id="detail-check-price" class="secondary-button" type="button" ${!canEdit() ? 'disabled' : ''} aria-disabled="${checkingPrice}" aria-busy="${checkingPrice}">${checkingPrice ? 'Checking…' : 'Check price'}</button></div>
       ${cardPrice.markup(card, variant, record.saved)}
       ${linkedGoal ? `<div class="goal-context"><button id="detail-add-goal" class="primary-button" aria-pressed="${linkedGoal.variantIds.includes(selected)}" aria-disabled="${disabled || linkedGoal.variantIds.includes(selected)}" aria-busy="${busy && pendingAction.control === 'detail-add-goal'}">${busy && pendingAction.control === 'detail-add-goal' ? 'Adding…' : linkedGoal.variantIds.includes(selected) ? `In ${escape(linkedGoal.name)}` : `Add to ${escape(linkedGoal.name)}`}</button></div>` : ''}
-      <div class="detail-actions"><div class="detail-owned"><span class="field-label" id="detail-owned-label">Owned</span><div class="quantity-stepper"><button id="detail-minus" class="icon-button" aria-label="Remove one owned copy" ${disabled || !own.quantity ? 'disabled' : ''}>−</button><input id="detail-quantity" data-quantity="${selected}" aria-label="Owned copies of ${escape(card.name)}" type="number" inputmode="numeric" min="0" max="999" step="1" value="${escape(draft ?? own.quantity)}" ${disabled || !record.saved ? 'disabled' : ''}><button id="detail-plus" class="icon-button" aria-label="Add one owned copy" aria-busy="${busy && pendingAction.control === 'detail-plus'}" ${disabled || own.quantity >= 999 ? 'disabled' : ''}>＋</button></div></div><button id="detail-want" class="secondary-button want-button${own.wanted ? ' is-wanted' : ''}" data-want="${selected}" ${disabled ? 'disabled' : ''}>${busy && pendingAction.control === 'detail-want' ? 'Saving…' : own.wanted ? 'Remove from wishlist' : 'Add to wishlist'}</button></div>
-      ${own.quantity ? `<button id="detail-feature" class="secondary-button detail-feature" ${disabled ? 'disabled' : ''}>${busy && pendingAction.control === 'detail-feature' ? 'Saving…' : featured ? 'Remove from Trainer Card' : 'Feature on Trainer Card'}</button>` : ''}
-      <div class="detail-save-state"><p id="detail-message" role="status" class="${messageError ? 'is-error' : ''}">${escape(message)}</p>${message && !messageError && own.quantity && unrecordedCount(own) > 0 ? `<button id="detail-record-history" class="history-text-button" ${disabled ? 'disabled' : ''}>Add details</button>` : ''}</div>
+      <div class="detail-actions"><div class="detail-owned"><span class="field-label" id="detail-owned-label">Owned</span><div class="quantity-stepper"><button id="detail-minus" class="icon-button" aria-label="Remove one owned copy" ${disabled || !own.quantity ? 'disabled' : ''}>${icon('minus')}</button><input id="detail-quantity" data-quantity="${selected}" aria-label="Owned copies of ${escape(card.name)}" type="number" inputmode="numeric" min="0" max="999" step="1" value="${escape(draft ?? own.quantity)}" ${disabled || !record.saved ? 'disabled' : ''}><button id="detail-plus" class="icon-button" aria-label="Add one owned copy" aria-busy="${busy && pendingAction.control === 'detail-plus'}" ${disabled || own.quantity >= 999 ? 'disabled' : ''}>${icon('plus')}</button></div></div><button id="detail-want" class="secondary-button want-button${own.wanted ? ' is-wanted' : ''}" data-want="${selected}" ${disabled ? 'disabled' : ''}>${busy && pendingAction.control === 'detail-want' ? 'Saving…' : own.wanted ? 'Remove from wishlist' : 'Add to wishlist'}</button></div>
+      ${own.quantity ? `<button id="detail-feature" class="text-button detail-feature" ${disabled ? 'disabled' : ''}>${busy && pendingAction.control === 'detail-feature' ? 'Saving…' : featured ? 'Remove from Trainer Card' : 'Feature on Trainer Card'}</button>` : ''}
+      <div class="detail-save-state"><p id="detail-message" role="status" class="${messageError ? 'is-error' : ''}">${escape(message)}</p>${message && !messageError && own.quantity && unrecordedCount(own) > 0 ? `<button id="detail-record-history" class="text-button" ${disabled ? 'disabled' : ''}>Add details</button>` : ''}</div>
       ${historyControls.markup(own, record.saved)}
       <details id="detail-collections" class="filter-panel"><summary>Collections <span>${groups.filter((g) => g.variantIds.includes(selected)).length}</span></summary><div class="membership-list">${groups.length ? groups.map((group) => `<label><input id="member-${group.id}" type="checkbox" data-membership="${group.id}" ${(busy && pendingAction.membership?.id === group.id ? pendingAction.membership.included : group.variantIds.includes(selected)) ? 'checked' : ''} ${disabled ? 'disabled' : ''}><span>${escape(group.name)}</span></label>`).join('') : '<p>Create a collection to give these cards a goal.</p>'}</div></details>
       <details id="detail-reference" class="card-source-details"><summary>Card reference</summary><p>${escape(card.sourceId)} · ${escape(variantName(currentVariant()))}</p></details></section></div>${credits}`,

@@ -1,4 +1,4 @@
-import { escape, picture, bindImages, languageName, credits, plural } from './ui.js';
+import { escape, picture, bindImages, languageName, credits, plural, icon } from './ui.js';
 import { createSetPicker } from './set-picker.js';
 
 const filterPrompt = 'Enter a name, set, or card number to filter saved cards.';
@@ -19,7 +19,7 @@ export function createCardSearch({
   screen.hidden = true;
   screen.innerHTML = `<div class="screen-intro"><h2 id="card-search-title">Add a card</h2><p id="search-context"></p></div>
     <form id="card-search-form" aria-label="Filter saved cards"><div class="search-main-fields"><label>Filter saved cards<input id="card-search-name" type="search" maxlength="100" placeholder="Pokémon or card name" autocomplete="off"></label><label>Language<select id="card-search-language"><option value="en">English</option><option value="ja">Japanese</option></select></label></div>
-    <details id="search-by-number" class="filter-panel"><summary>Set and card number <span id="search-set-chip"></span></summary><div class="search-number-fields"><div class="search-set-field"><span>Set</span><div class="selected-set"><button class="secondary-button" id="choose-search-set" type="button">Choose a set</button><button class="icon-button" id="clear-search-set" type="button" aria-label="Clear selected set" hidden>×</button></div><input id="card-search-set" type="hidden"><small id="selected-set-detail"></small></div><label>Card number<input id="card-search-number" maxlength="20" placeholder="For example, 001/165"></label></div></details></form>
+    <details id="search-by-number" class="filter-panel"><summary>Set and card number <span id="search-set-chip"></span></summary><div class="search-number-fields"><div class="search-set-field"><span class="field-label">Set</span><div class="selected-set"><button class="secondary-button" id="choose-search-set" type="button">Choose a set</button><button class="icon-button" id="clear-search-set" type="button" aria-label="Clear selected set" hidden>${icon('close')}</button></div><input id="card-search-set" type="hidden"><small id="selected-set-detail"></small></div><label>Card number<input id="card-search-number" maxlength="20" placeholder="For example, 001/165"></label></div></details></form>
     <div class="search-results-heading"><h2 id="search-scope" tabindex="-1">Saved cards</h2><button class="secondary-button" id="search-external"><svg aria-hidden="true"><use href="#i-search"/></svg>Search TCGdex</button><button class="secondary-button" id="filter-saved" hidden>Back to saved cards</button></div><p id="card-search-status" role="status"></p><button class="secondary-button" id="search-retry" hidden>Try again</button><div id="card-search-results" class="search-results"></div><div class="search-pages"><button class="secondary-button" id="search-previous" hidden>Previous</button><span id="search-page"></span><button class="secondary-button" id="search-next" hidden>Next</button></div>${credits}`;
   document.body.append(screen);
   const $ = (id) => screen.querySelector(`#${id}`);
@@ -204,7 +204,8 @@ export function createCardSearch({
         : result.cards.length
           ? `${plural(result.cards.length, 'saved match', 'saved matches')} in Collect.`
           : 'No saved matches. Search TCGdex for more cards.';
-      $('search-page').textContent = result.cards.length ? `Page ${page}` : '';
+      $('search-page').textContent =
+        result.cards.length && (page > 1 || result.hasMore) ? `Page ${page}` : '';
       $('search-previous').hidden = page === 1;
       $('search-next').hidden = !result.hasMore;
     } catch (error) {

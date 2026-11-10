@@ -41,28 +41,14 @@
 .cloud-app .app-header h1:focus {
   outline: none;
 }
-.cloud-app .icon-button {
-  display: inline-grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  min-width: 44px;
-  padding: 0;
-  font-size: 23px;
-  line-height: 1;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
-  color: var(--ink);
-}
 .cloud-app .save-chip {
-  min-height: 44px;
-  min-width: 44px;
+  min-height: var(--control);
+  min-width: var(--control);
   margin-left: auto;
   padding: 8px;
   color: var(--ink);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--text-meta);
+  font-weight: var(--font-semibold);
   white-space: nowrap;
   border-radius: var(--radius);
 }
@@ -116,7 +102,7 @@
   min-height: 44px;
   padding: 8px;
   text-align: left;
-  font-weight: 550;
+  font-weight: 500;
   font-size: 14px;
   border-radius: var(--radius);
 }
@@ -192,17 +178,19 @@
 }
 .cloud-app .hero-progress {
   display: block;
-  max-width: none;
+  max-width: 420px;
   padding: 0;
 }
+.cloud-app .pokedex-heading {
+  margin-bottom: 8px;
+}
 .cloud-app .dex-progress-text {
-  margin: 0 0 8px;
-  font-size: 15px;
+  margin: 0 0 12px;
+  font-size: 14px;
   color: var(--muted);
 }
 .cloud-app .dex-progress-text strong {
   color: var(--ink);
-  font-size: 15px;
 }
 .cloud-app .progress-track {
   height: 6px;
@@ -249,11 +237,6 @@
   outline: 2px solid var(--ink);
   outline-offset: 3px;
 }
-.cloud-app body[data-cloud-view='cards'] #library-title,
-.cloud-app body[data-cloud-view='collections'] #library-title,
-.cloud-app body[data-cloud-view='wishlist'] #library-title {
-  display: none;
-}
 .cloud-app .filters {
   margin: 0;
   gap: 2px;
@@ -262,9 +245,10 @@
   border-radius: var(--radius);
 }
 .cloud-app .filter {
+  min-width: 44px;
   min-height: 44px;
   padding: 9px 11px;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--ink);
   border-radius: var(--radius);
 }
@@ -288,7 +272,6 @@
   font-size: 14px;
   min-height: 44px;
   padding: 10px 24px 10px 10px;
-  border-color: var(--line);
 }
 .cloud-app .view-switch {
   display: none;
@@ -299,7 +282,7 @@
   width: 44px;
   height: 44px;
   padding: 10px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--field-line);
   border-radius: var(--radius);
   background: var(--surface);
 }
@@ -378,6 +361,7 @@
 }
 .cloud-app .pokemon-open {
   display: block;
+  font-weight: 600;
   width: 100%;
   min-height: 44px;
   margin-top: 3px;
@@ -479,7 +463,7 @@
   margin: 22px 0 12px;
 }
 .cloud-app .section-title h2 {
-  font-size: 18px;
+  font-size: var(--text-section);
 }
 .cloud-app .section-progress {
   color: var(--muted);
@@ -513,7 +497,7 @@
 .cloud-app .library-dex {
   display: inline-block;
   font-size: 13px;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--muted);
 }
 .cloud-app .view-actions {
@@ -543,7 +527,7 @@
 .cloud-app .view-menu button {
   display: block;
   width: 100%;
-  padding: 12px;
+  padding: 11px 12px;
   min-height: 44px;
   font-size: 14px;
   text-align: left;
@@ -555,14 +539,13 @@
   background: var(--rail);
 }
 .cloud-app .filter-panel > summary {
-  min-height: 48px;
-  padding: 12px 14px;
+  min-height: 44px;
+  padding: 10px 14px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
 }
 .cloud-app .filter-panel > summary > span {
-  margin-left: 8px;
   color: var(--ink);
   font-size: 12px;
 }
@@ -612,7 +595,7 @@
 }
 .cloud-app #detail-message {
   min-height: 1.5em;
-  margin: 10px 0 14px;
+  margin: 8px 0 0;
   color: var(--muted);
   font-size: 14px;
 }
@@ -687,7 +670,7 @@
   padding: 10px 0 2px;
 }
 .cloud-app .card-caption strong {
-  font-size: 17px;
+  font-size: var(--text-card);
   line-height: 1.35;
   overflow-wrap: anywhere;
 }
@@ -740,7 +723,7 @@
 }
 .cloud-app .library-empty h3 {
   color: var(--ink);
-  font-size: 20px;
+  font-size: var(--text-section);
   margin: 0 0 8px;
 }
 .cloud-app .library-empty p {
@@ -777,7 +760,7 @@
   background: var(--hover);
 }
 .cloud-app .collection-tile strong {
-  font-size: 19px;
+  font-size: var(--text-card);
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
@@ -861,7 +844,6 @@
   flex: 1;
   text-align: left;
   overflow-wrap: anywhere;
-  font-size: 16px;
 }
 .cloud-app #selected-set-detail {
   font-size: 12px;
@@ -886,7 +868,7 @@
   gap: 8px;
 }
 .cloud-app .search-results-heading h2 {
-  font-size: 20px;
+  font-size: var(--text-section);
   margin: 0;
 }
 .cloud-app #card-search-status {
@@ -1041,7 +1023,7 @@
 .cloud-app .language-badge {
   font-size: 13px;
   color: var(--ink);
-  font-weight: 650;
+  font-weight: 600;
 }
 .cloud-app .finish-field {
   display: flex;
@@ -1089,11 +1071,6 @@
 .cloud-app .quantity-stepper input {
   max-width: 100px;
   text-align: center;
-  min-height: 48px;
-}
-.cloud-app .quantity-stepper .icon-button {
-  height: 48px;
-  width: 48px;
 }
 .cloud-app .detail-actions {
   display: flex;
@@ -1105,12 +1082,6 @@
 .cloud-app .detail-actions > button {
   flex: 1;
   min-width: 150px;
-  min-height: 48px;
-}
-.cloud-app .want-button.is-wanted {
-  color: var(--ink);
-  background: var(--mat);
-  border-color: var(--field-line);
 }
 .cloud-app .goal-context {
   margin: 16px 0;
@@ -1132,7 +1103,7 @@
   display: block;
   width: 100%;
   margin: 24px 0;
-  min-height: 44px;
+  min-height: var(--control);
 }
 .cloud-app .library-more {
   grid-column: 1 / -1;
@@ -1221,7 +1192,7 @@
   text-align: left;
   border-radius: var(--radius);
   font-size: 15px;
-  font-weight: 650;
+  font-weight: 600;
 }
 .cloud-app .account-tools button:hover {
   background: var(--hover);
@@ -1286,7 +1257,7 @@
 }
 .cloud-app :is(.trainer-card, .trainer-showcase) h3 {
   margin: 16px 0 8px;
-  font-size: 17px;
+  font-size: var(--text-section);
 }
 .cloud-app :is(.trainer-badges, .trainer-slots) {
   display: grid;
@@ -1348,7 +1319,7 @@
   background: light-dark(#f9e4a9, #5b4320);
   color: light-dark(#664600, #ffe297);
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
 }
 .cloud-app .trainer-badge-goals summary {
   min-height: 44px;
@@ -1356,7 +1327,7 @@
   padding: 10px 2px;
   cursor: pointer;
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 600;
 }
 .cloud-app .trainer-badge-goals > p {
   margin: 0 0 10px;
@@ -1365,7 +1336,7 @@
 }
 .cloud-app .trainer-badges .badge-progress:not(:empty) {
   margin-top: 4px;
-  font-weight: 650;
+  font-weight: 600;
 }
 @media (max-width: 560px) {
   .cloud-app .trainer-badges {
@@ -1408,6 +1379,7 @@
   display: grid;
   align-content: center;
   justify-items: center;
+  gap: 4px;
   min-height: 100px;
   border: 1px dashed var(--field-line);
   border-radius: 8px;
@@ -1415,7 +1387,8 @@
   font-size: 12px;
 }
 .cloud-app .detail-feature {
-  margin-top: 12px;
+  margin-top: 4px;
+  font-weight: 600;
 }
 .cloud-app .profile-intro {
   display: flex;
@@ -1440,8 +1413,8 @@
 .cloud-app .profile-favorite h3 {
   margin: 0 0 12px;
   padding: 0;
-  font-size: 17px;
-  font-weight: 700;
+  font-size: var(--text-section);
+  font-weight: var(--font-bold);
 }
 .cloud-app .profile-favorite {
   margin-bottom: 28px;
@@ -1487,13 +1460,11 @@
   position: relative;
 }
 .cloud-app .profile-avatar-option input {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  margin: 0;
-  accent-color: var(--ink);
   z-index: 1;
-  cursor: pointer;
+}
+.cloud-app .profile-avatar-option input:focus-visible + span {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
 }
 .cloud-app .profile-avatar-option > span {
   display: grid;
@@ -1580,6 +1551,9 @@
 }
 .cloud-app #sharing-status {
   font-size: 14px;
+}
+.cloud-app #sharing-link-fields {
+  margin-top: 16px;
 }
 .cloud-app #sharing-link-fields label {
   margin-bottom: 12px;
@@ -1756,7 +1730,7 @@
     display: none;
   }
   .cloud-app .section-title h2 {
-    font-size: 18px;
+    font-size: var(--text-section);
   }
   .cloud-app .section-head p {
     font-size: 12px;
@@ -1768,7 +1742,7 @@
   }
   .cloud-app .view-actions {
     width: 100%;
-    justify-content: space-between;
+    flex-wrap: wrap;
   }
   .cloud-app .tcg-grid,
   .cloud-app .search-results {
@@ -1809,16 +1783,14 @@
   }
   .cloud-app .detail-actions {
     position: fixed;
-    bottom: calc(82px + env(safe-area-inset-bottom));
-    left: 16px;
-    right: 16px;
+    bottom: calc(72px + env(safe-area-inset-bottom));
+    left: 0;
+    right: 0;
     z-index: 25;
     margin: 0;
-    padding: 10px;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
+    padding: 10px 16px;
+    border-top: 1px solid var(--line);
     background: var(--paper);
-    box-shadow: 0 6px 24px #0000001a;
     flex-wrap: nowrap;
     gap: 10px;
   }
@@ -1830,6 +1802,10 @@
   }
   .cloud-app .detail-actions > button {
     min-width: 0;
+    padding-inline: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .cloud-app #card-detail input,
   .cloud-app #card-detail select {
@@ -1871,11 +1847,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 .cloud-app .history-heading h3 {
   margin: 0;
-  font-size: 19px;
+  font-size: var(--text-section);
   letter-spacing: -0.3px;
 }
 .cloud-app .history-heading p {
@@ -1883,16 +1859,6 @@
   color: var(--muted);
   font-size: 12px;
 }
-.cloud-app .history-text-button {
-  border: 0;
-  background: none;
-  min-height: 36px;
-  padding: 5px 0;
-  color: var(--ink);
-  font-size: 13px;
-  cursor: pointer;
-}
-.cloud-app .history-text-button:hover:not(:disabled),
 .cloud-app .history-filters button:hover {
   color: var(--ink);
   text-decoration: underline;
@@ -1913,11 +1879,14 @@
 }
 .cloud-app .history-filters button[aria-pressed='true'] {
   color: var(--ink);
-  font-weight: 650;
+  font-weight: 600;
 }
 .cloud-app .history-list {
   display: grid;
   gap: 24px;
+}
+.cloud-app .history-list:empty {
+  display: none;
 }
 .cloud-app .history-entry {
   display: grid;
@@ -1951,7 +1920,7 @@
 .cloud-app .history-entry-top h4 {
   margin: 0;
   font-size: 13px;
-  font-weight: 650;
+  font-weight: 600;
 }
 .cloud-app .history-entry-top > span {
   color: var(--muted);
@@ -1960,7 +1929,7 @@
 .cloud-app .history-amount {
   margin-left: auto;
   font-size: 13px;
-  font-weight: 550;
+  font-weight: 500;
   white-space: nowrap;
 }
 .cloud-app .history-edit {
@@ -1979,7 +1948,8 @@
 .cloud-app .history-edit:hover {
   background: var(--hover);
 }
-.cloud-app .history-edit .history-icon {
+.cloud-app .history-edit .history-icon,
+.cloud-app .text-button .history-icon {
   width: 14px;
   height: 14px;
 }
@@ -2016,9 +1986,8 @@
 .cloud-app .history-unrecorded {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 15px;
-  margin-top: 20px;
+  gap: 12px;
+  margin-top: 16px;
   color: var(--muted);
   font-size: 12px;
 }
@@ -2071,7 +2040,7 @@
   padding: 26px 28px 5px;
 }
 .cloud-app .history-dialog .sheet-heading h2 {
-  font-size: 23px;
+  font-size: var(--text-dialog);
   margin: 5px 0;
 }
 .cloud-app .history-dialog .sheet-heading p {
@@ -2154,13 +2123,6 @@
   position: relative;
   display: block;
   cursor: pointer;
-}
-.cloud-app .history-dialog .method-options input {
-  position: absolute;
-  opacity: 0;
-  width: 1px;
-  height: 1px;
-  margin: 0;
 }
 .cloud-app .history-dialog .method-options label > span {
   display: flex;
@@ -2338,8 +2300,7 @@
 .cloud-app .binder-toolbar {
   margin-bottom: 12px;
 }
-.cloud-app .binder-format > span,
-.cloud-app .binder-format small {
+.cloud-app .binder-format > span {
   color: var(--muted);
   font-size: 12px;
 }
@@ -2471,7 +2432,7 @@
   color: #fff;
   background: #262625;
   font-size: 10px;
-  font-weight: 650;
+  font-weight: 600;
 }
 .cloud-app .binder-page-nav {
   justify-content: center;

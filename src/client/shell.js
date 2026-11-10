@@ -1,4 +1,5 @@
 import { avatarFace, showAvatar } from './profile.js';
+import { icon as uiIcon } from './ui.js';
 
 export function createShell(navigation) {
   const shell = document.createElement('div');
@@ -17,7 +18,7 @@ export function createShell(navigation) {
   panel.dataset.cloudUi = '';
   panel.className = 'utility-dialog';
   panel.setAttribute('aria-labelledby', 'account-title');
-  panel.innerHTML = `<div class="dialog-head"><h2 id="account-title">Sync and backups</h2><button id="account-close" class="icon-button" aria-label="Close sync and backups">×</button></div><p id="cloud-status" role="status" aria-live="polite"></p><div class="account-actions"><button class="secondary-button" id="cloud-import" hidden>Import old checkmarks</button><button class="primary-button" id="cloud-conflicts" hidden>Review changes</button><button class="secondary-button" id="cloud-retry">Sync now</button><button class="secondary-button" id="cloud-signin" hidden>Sign in again</button></div><h3>Files</h3><div class="account-tools"><button id="app-backup">Download backup <small>All cards, quantities, and collections</small></button><button id="app-restore">Restore from backup</button><button id="app-checklist">Download offline checklist <small>Pokédex ticks only</small></button><button id="app-share">List missing Pokémon</button><button id="app-print">Print Pokédex</button></div>`;
+  panel.innerHTML = `<div class="dialog-head"><h2 id="account-title">Sync and backups</h2><button id="account-close" class="icon-button" aria-label="Close sync and backups">${uiIcon('close')}</button></div><p id="cloud-status" role="status" aria-live="polite"></p><div class="account-actions"><button class="secondary-button" id="cloud-import" hidden>Import old checkmarks</button><button class="primary-button" id="cloud-conflicts" hidden>Review changes</button><button class="secondary-button" id="cloud-retry">Sync now</button><button class="secondary-button" id="cloud-signin" hidden>Sign in again</button></div><h3>Files</h3><div class="account-tools"><button id="app-backup">Download backup <small>All cards, quantities, and collections</small></button><button id="app-restore">Restore from backup</button><button id="app-checklist">Download offline checklist <small>Pokédex ticks only</small></button><button id="app-share">List missing Pokémon</button><button id="app-print">Print Pokédex</button></div>`;
   document.body.append(panel);
   const about = document.createElement('div');
   about.className = 'account-about';
@@ -57,6 +58,11 @@ export function createShell(navigation) {
     $('percent-total'),
   );
   $('progress-track').before(progress);
+  const heading = document.createElement('header');
+  heading.className = 'view-heading pokedex-heading';
+  heading.dataset.cloudUi = '';
+  heading.innerHTML = '<div><h2>Pokédex</h2></div>';
+  document.querySelector('.hero').before(heading);
   const openAccount = () => {
     if (!panel.open) panel.showModal();
   };

@@ -1,3 +1,5 @@
+import { icon } from './ui.js';
+
 export function createShareControls({ api, canEdit, getState }) {
   const dialog = document.createElement('dialog');
   dialog.id = 'sharing-panel';
@@ -5,7 +7,9 @@ export function createShareControls({ api, canEdit, getState }) {
   dialog.dataset.cloudUi = '';
   dialog.setAttribute('aria-labelledby', 'sharing-panel-title');
   dialog.innerHTML =
-    '<div class="dialog-head"><h2 id="sharing-panel-title">Share a collection</h2><button id="sharing-close" class="icon-button" aria-label="Close sharing">×</button></div><p id="sharing-description"></p><p class="muted">Visitors cannot edit. They do not see your email, copy counts, or other collections. The page always shows your latest saved changes.</p><p id="sharing-pending" hidden>Changes that are not synced yet will appear after they are saved online.</p><p id="sharing-status" role="status">Checking sharing…</p><a id="sharing-preview" class="secondary-button sharing-preview-link" target="_blank" rel="noopener noreferrer" hidden>Preview page</a><div id="sharing-link-fields" hidden><label>Link<input id="sharing-url" type="url" readonly></label><div class="form-actions"><button id="sharing-copy" class="primary-button">Copy link</button><button id="sharing-send" class="secondary-button" hidden>Share…</button><a id="sharing-open" class="secondary-button" target="_blank" rel="noopener noreferrer">Open page</a></div></div><div class="sharing-switch"><button id="sharing-enable" class="primary-button" disabled>Create link</button><button id="sharing-stop" class="secondary-button" hidden>Stop sharing</button><button id="sharing-retry" class="secondary-button" hidden>Try again</button></div>';
+    '<div class="dialog-head"><h2 id="sharing-panel-title">Share a collection</h2><button id="sharing-close" class="icon-button" aria-label="Close sharing">' +
+    icon('close') +
+    '</button></div><p id="sharing-description"></p><p class="muted">Visitors cannot edit. They do not see your email, copy counts, or other collections. The page always shows your latest saved changes.</p><p id="sharing-pending" hidden>Changes that are not synced yet will appear after they are saved online.</p><p id="sharing-status" role="status">Checking sharing…</p><a id="sharing-preview" class="secondary-button sharing-preview-link" target="_blank" rel="noopener noreferrer" hidden>Preview page</a><div id="sharing-link-fields" hidden><label>Link<input id="sharing-url" type="url" readonly></label><div class="form-actions"><button id="sharing-copy" class="primary-button">Copy link</button><button id="sharing-send" class="secondary-button" hidden>Share…</button><a id="sharing-open" class="secondary-button" target="_blank" rel="noopener noreferrer">Open page</a></div></div><div class="sharing-switch"><button id="sharing-enable" class="primary-button" disabled>Create link</button><button id="sharing-stop" class="secondary-button" hidden>Stop sharing</button><button id="sharing-retry" class="secondary-button" hidden>Try again</button></div>';
   document.body.append(dialog);
   const $ = (id) => dialog.querySelector(`#${id}`);
   let target,
@@ -21,7 +25,7 @@ export function createShareControls({ api, canEdit, getState }) {
     $('sharing-stop').disabled = busy || !canEdit();
     $('sharing-copy').disabled = busy;
     $('sharing-send').hidden = !navigator.share;
-    $('sharing-preview').hidden = !state?.previewUrl;
+    $('sharing-preview').hidden = enabled || !state?.previewUrl;
     if (state?.previewUrl) $('sharing-preview').href = state.previewUrl;
     $('sharing-url').value = state?.share.url || '';
     $('sharing-open').href = state?.share.url || '#';

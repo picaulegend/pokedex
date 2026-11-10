@@ -7,8 +7,8 @@ const trayBatch = 24;
 export function createCollectionBinder({ root, getCard, save, onError }) {
   root.innerHTML = `<div class="binder-toolbar">
       <div class="binder-format"><span>Pockets per page</span><div class="binder-buttons" role="group" aria-label="Pockets per page">
-        <button type="button" class="filter" data-binder-size="4" aria-pressed="false">4 <small>2 × 2</small></button>
-        <button type="button" class="filter" data-binder-size="9" aria-pressed="true">9 <small>3 × 3</small></button>
+        <button type="button" class="filter" data-binder-size="4" aria-pressed="false">4</button>
+        <button type="button" class="filter" data-binder-size="9" aria-pressed="true">9</button>
       </div></div>
       <div class="binder-buttons">
         <button type="button" class="secondary-button" id="binder-undo">Undo</button>

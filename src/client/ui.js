@@ -3,6 +3,13 @@ export const escape = (value) =>
     /[&<>"']/g,
     (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char],
   );
+const iconPaths = {
+  close: 'm6 6 12 12M18 6 6 18',
+  minus: 'M5 12h14',
+  plus: 'M12 5v14M5 12h14',
+};
+export const icon = (name) =>
+  `<svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${iconPaths[name]}"/></svg>`;
 export const plural = (count, word, words = `${word}s`) =>
   `${count.toLocaleString('en-US')} ${count === 1 ? word : words}`;
 export const languageName = (value) => (value === 'ja' ? 'Japanese' : 'English');

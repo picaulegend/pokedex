@@ -60,7 +60,7 @@
 }
 #invite h2 {
   margin: 0 0 8px;
-  font-size: 20px;
+  font-size: var(--text-section);
   line-height: 1.2;
 }
 #invite p {
