@@ -2402,9 +2402,6 @@
   }
 }
 
-.cloud-app #binder-manage {
-  margin-inline-start: auto;
-}
 .cloud-app .binder-format,
 .cloud-app .binder-buttons {
   display: flex;
@@ -2414,8 +2411,7 @@
 .cloud-app #binder-manage > div {
   width: min(264px, calc(100vw - 32px));
 }
-.cloud-app .binder-format,
-.cloud-app .binder-settings label {
+.cloud-app .binder-format {
   justify-content: space-between;
   padding-inline: 12px;
 }
@@ -2427,34 +2423,42 @@
 .cloud-app .binder-format > span {
   font-size: var(--text-ui);
 }
-.cloud-app .binder-settings label {
-  display: flex;
-  align-items: center;
-  min-height: var(--control);
-  color: var(--ink);
-  cursor: pointer;
-}
 .cloud-app .binder-buttons .filter {
   margin: 0;
 }
 .cloud-app .binder-stage {
+  --binder-top: 12px;
+  --binder-cover-width: 4px;
+  --binder-tool-gap: 8px;
   position: relative;
-  padding: 12px 8px 8px;
+  padding: var(--binder-top) 8px 8px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--mat);
 }
-.cloud-app #binder-expand,
-.cloud-app #binder-zoom-close {
-  inset-block-start: 8px;
-  inset-inline-end: 8px;
-}
-.cloud-app #binder-expand {
+.cloud-app .binder-tools {
   position: absolute;
+  inset-block-start: calc(var(--binder-top) + var(--binder-cover-width));
+  inset-inline-end: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--binder-tool-gap);
 }
 .cloud-app #binder-zoom-close {
   position: fixed;
+  inset-block-start: 8px;
+  inset-inline-end: 8px;
   z-index: 1;
+}
+.cloud-app .binder-dialog .binder-tools {
+  position: fixed;
+  inset-block-start: 8px;
+  inset-inline-end: calc(var(--control) + var(--binder-tool-gap) + 8px);
+  flex-direction: row;
+  z-index: 2;
+}
+.cloud-app .binder-dialog #binder-manage > div {
+  right: calc(-1 * (var(--control) + var(--binder-tool-gap)));
 }
 .cloud-app .binder-dialog {
   inset: 0;
@@ -2506,6 +2510,14 @@
 .cloud-app #binder-next {
   grid-area: next;
 }
+.cloud-app .binder-stage:not(.binder-dialog *) :is(#binder-previous, #binder-next) {
+  position: relative;
+  align-self: start;
+  inset-block-start: max(
+    calc(var(--binder-cover-width) + 3 * (var(--control) + var(--binder-tool-gap))),
+    calc((100% - var(--control)) / 2)
+  );
+}
 .cloud-app .binder-book {
   grid-area: book;
   --binder-columns: 3;
@@ -2518,7 +2530,7 @@
   min-width: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  border: 4px solid var(--binder-cover);
+  border: var(--binder-cover-width) solid var(--binder-cover);
   border-radius: 9px;
   background: var(--binder-cover);
   box-shadow: 0 4px 8px #0003;
@@ -2681,8 +2693,8 @@
 }
 @media (max-width: 700px) {
   .cloud-app .binder-stage {
+    --binder-top: 8px;
     margin-inline: -8px;
-    padding: 8px;
   }
   .cloud-app .binder-page-nav {
     --binder-book-width: 360px;

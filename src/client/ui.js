@@ -8,7 +8,11 @@ const iconPaths = {
   expand: 'M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6',
   heart: 'M20 5a4.5 4.5 0 0 0-6.4 0L12 6.6 10.4 5A4.5 4.5 0 0 0 4 11.4l8 8 8-8A4.5 4.5 0 0 0 20 5Z',
   minus: 'M5 12h14',
+  palette:
+    'M12 3a9 9 0 1 0 0 18h1.5a1.5 1.5 0 0 0 1.16-2.45 1.5 1.5 0 0 1 1.16-2.45H18a3 3 0 0 0 3-3v-1a9 9 0 0 0-9-9ZM7.5 12h.01M10 7.5h.01M15 7.5h.01M17.5 11.5h.01',
   plus: 'M12 5v14M5 12h14',
+  settings:
+    'M10 3h4l.6 2.6 1.8 1.1L19 6l2 3.5-1.9 1.9v2.2l1.9 1.9-2 3.5-2.6-.7-1.8 1.1L14 22h-4l-.6-2.6-1.8-1.1L5 19l-2-3.5 1.9-1.9v-2.2L3 9.5 5 6l2.6.7 1.8-1.1ZM15 12.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z',
 };
 export const icon = (name) =>
   `<svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${iconPaths[name]}"/></svg>`;

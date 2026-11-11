@@ -49,7 +49,6 @@ export function createCardLibrary({
         </div>
         <div id="card-name-search" class="search-box" role="search" aria-label="Saved cards" hidden><svg aria-hidden="true"><use href="#i-search"/></svg><input id="card-name" type="search" aria-label="Search cards by name" placeholder="Search cards" maxlength="100" autocomplete="off" spellcheck="false"><button class="search-clear" id="library-clear-search" type="button" aria-label="Clear card search" hidden>${icon('close')}</button></div>
         <button class="secondary-button" id="library-filter-toggle" type="button" aria-expanded="false" aria-controls="library-filter-panel">Filters <span id="library-filter-count" hidden></span></button>
-        <details id="binder-manage" class="view-menu" hidden><summary class="secondary-button">Manage binder</summary></details>
       </div>
       <div id="library-filter-panel" class="filter-panel" hidden>
         <div id="library-filter-options">
@@ -199,7 +198,6 @@ export function createCardLibrary({
   const sharing = createShareControls({ api, canEdit, getState });
   const binder = createCollectionBinder({
     root: $('collection-binder'),
-    manageMenu: $('binder-manage'),
     getCard: (id) => byVariant.get(id),
     save: (id, layout, previous) => {
       $('library-message').textContent = '';
@@ -384,7 +382,6 @@ export function createCardLibrary({
     $('collection-view-controls').hidden = !showCollection;
     $('collection-list-view').setAttribute('aria-pressed', String(!showBinder));
     $('collection-binder-view').setAttribute('aria-pressed', String(showBinder));
-    $('binder-manage').hidden = !showBinder;
     $('collection-binder').hidden = !showBinder;
     $('library-content').hidden = showBinder;
     shareButton.hidden = !(isWishlist || (isGoal && current));

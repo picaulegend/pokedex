@@ -4,23 +4,25 @@ import { bindImages, escape, icon, picture, updateMarkup, variantName } from './
 const firstLayout = emptyBinder();
 const trayBatch = 24;
 
-export function createCollectionBinder({ root, manageMenu, getCard, save, onError }) {
-  manageMenu.insertAdjacentHTML(
-    'beforeend',
-    `<div class="binder-settings" id="binder-settings">
-      <div class="binder-format"><span>Pockets per page</span><div class="binder-buttons" role="group" aria-label="Pockets per page">
-        <button type="button" class="filter" data-binder-size="4" aria-pressed="false">4</button>
-        <button type="button" class="filter" data-binder-size="9" aria-pressed="true">9</button>
-      </div></div>
-      <button type="button" id="binder-add-pages">Add pages</button>
-      <button type="button" id="binder-remove-pages" aria-describedby="binder-remove-help">Remove current pages</button>
-      <span id="binder-remove-help" hidden>Cards on removed pages return to the tray. The binder keeps at least two pages.</span>
-      <label>Show missing in color <input type="checkbox" id="binder-missing-color"></label>
-    </div>`,
-  );
+export function createCollectionBinder({ root, getCard, save, onError }) {
   root.innerHTML = `<div id="binder-view">
       <div class="binder-stage">
-        <button type="button" class="icon-button" id="binder-expand" aria-label="Enlarge binder" title="Enlarge binder" aria-haspopup="dialog">${icon('expand')}</button>
+        <div class="binder-tools" role="group" aria-label="Binder controls">
+          <button type="button" class="icon-button" id="binder-expand" aria-label="Enlarge binder" title="Enlarge binder" aria-haspopup="dialog">${icon('expand')}</button>
+          <button type="button" class="icon-button" id="binder-missing-color" aria-label="Show missing cards in color" title="Show missing cards in color" aria-pressed="false">${icon('palette')}</button>
+          <details id="binder-manage" class="view-menu">
+            <summary class="icon-button" aria-label="Manage binder" title="Manage binder">${icon('settings')}</summary>
+            <div>
+              <div class="binder-format"><span>Pockets per page</span><div class="binder-buttons" role="group" aria-label="Pockets per page">
+                <button type="button" class="filter" data-binder-size="4" aria-pressed="false">4</button>
+                <button type="button" class="filter" data-binder-size="9" aria-pressed="true">9</button>
+              </div></div>
+              <button type="button" id="binder-add-pages">Add pages</button>
+              <button type="button" id="binder-remove-pages" aria-describedby="binder-remove-help">Remove current pages</button>
+              <span id="binder-remove-help" hidden>Cards on removed pages return to the tray. The binder keeps at least two pages.</span>
+            </div>
+          </details>
+        </div>
         <div class="binder-page-nav" role="group" aria-label="Binder pages">
           <button type="button" class="icon-button" id="binder-previous" aria-label="Previous pages"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
           <div class="binder-book" id="binder-book" aria-label="Binder pockets"></div>
@@ -40,11 +42,12 @@ export function createCollectionBinder({ root, manageMenu, getCard, save, onErro
       <button type="button" class="icon-button" id="binder-zoom-close" aria-label="Close enlarged binder" title="Close enlarged binder" autofocus>${icon('close')}</button>
     </dialog>`;
   const $ = (id) => root.querySelector(`#binder-${id}`);
+  const manageMenu = $('manage');
   const manageSummary = manageMenu.querySelector('summary');
-  const addPages = manageMenu.querySelector('#binder-add-pages');
-  const removePages = manageMenu.querySelector('#binder-remove-pages');
+  const addPages = $('add-pages');
+  const removePages = $('remove-pages');
   const sizeButtons = manageMenu.querySelectorAll('[data-binder-size]');
-  const missingColor = manageMenu.querySelector('#binder-missing-color');
+  const missingColor = $('missing-color');
   const book = $('book'),
     tray = $('tray'),
     view = $('view'),
@@ -58,9 +61,14 @@ export function createCollectionBinder({ root, manageMenu, getCard, save, onErro
   };
   $('zoom-close').onclick = () => zoom.close();
   zoom.addEventListener('close', () => {
+    manageMenu.open = false;
     zoom.before(view);
     if (expand.getClientRects().length) expand.focus({ preventScroll: true });
   });
+  missingColor.onclick = () => {
+    const enabled = view.classList.toggle('binder-color-missing');
+    missingColor.setAttribute('aria-pressed', String(enabled));
+  };
   const compact = matchMedia('(max-width: 700px)');
   let group, rows, editable, pending;
   let selected = null,
@@ -82,15 +90,10 @@ export function createCollectionBinder({ root, manageMenu, getCard, save, onErro
   document.addEventListener('pointerdown', (event) => {
     if (manageMenu.open && !manageMenu.contains(event.target)) manageMenu.open = false;
   });
-  manageMenu.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape' || !manageMenu.open) return;
-    dismissManage();
-  });
   function dismissManage() {
     manageMenu.open = false;
     manageSummary.focus({ preventScroll: true });
   }
-  missingColor.onchange = () => view.classList.toggle('binder-color-missing', missingColor.checked);
 
   function cardInfo(id) {
     const card = getCard(id);
@@ -303,7 +306,13 @@ export function createCollectionBinder({ root, manageMenu, getCard, save, onErro
     if (group && !root.hidden) renderTray();
   });
   root.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && !zoom.open && selected && !pending) select(selected);
+    if (event.key !== 'Escape') return;
+    if (manageMenu.open) {
+      event.preventDefault();
+      dismissManage();
+    } else if (!zoom.open && selected && !pending) {
+      select(selected);
+    }
   });
 
   book.addEventListener('click', (event) => {

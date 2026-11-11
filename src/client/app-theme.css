@@ -170,6 +170,14 @@
 .cloud-app .icon-button:hover:not(:disabled) {
   background: var(--hover);
 }
+.cloud-app .icon-button[aria-pressed='true'] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--on-ink);
+}
+.cloud-app .icon-button[aria-pressed='true']:hover:not(:disabled) {
+  background: var(--ink-hover);
+}
 .cloud-app .choice-input,
 .cloud-app .history-dialog .method-options input,
 .cloud-app .profile-avatar-option input {
