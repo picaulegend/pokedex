@@ -5,6 +5,7 @@ export const escape = (value) =>
   );
 const iconPaths = {
   close: 'm6 6 12 12M18 6 6 18',
+  expand: 'M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6',
   heart: 'M20 5a4.5 4.5 0 0 0-6.4 0L12 6.6 10.4 5A4.5 4.5 0 0 0 4 11.4l8 8 8-8A4.5 4.5 0 0 0 20 5Z',
   minus: 'M5 12h14',
   plus: 'M12 5v14M5 12h14',

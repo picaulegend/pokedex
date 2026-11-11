@@ -706,6 +706,7 @@ export function createCardLibrary({
     screen.hidden = !['pokemon', 'cards', 'collections', 'collection', 'wishlist'].includes(
       next.screen,
     );
+    if (screen.hidden) binder.closeZoom();
     search.screen.hidden = next.screen !== 'search';
     detail.screen.hidden = next.screen !== 'card';
     if (next.screen !== 'card') detail.leave();

@@ -2429,20 +2429,76 @@
   margin: 0;
 }
 .cloud-app .binder-stage {
+  position: relative;
   padding: 12px 8px 8px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--mat);
 }
+.cloud-app #binder-expand,
+.cloud-app #binder-zoom-close {
+  inset-block-start: 8px;
+  inset-inline-end: 8px;
+}
+.cloud-app #binder-expand {
+  position: absolute;
+}
+.cloud-app #binder-zoom-close {
+  position: fixed;
+  z-index: 1;
+}
+.cloud-app .binder-dialog {
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overscroll-behavior: contain;
+  background: var(--mat);
+  color: var(--ink);
+}
+.cloud-app .binder-dialog #binder-expand {
+  display: none;
+}
+.cloud-app .binder-dialog .binder-stage {
+  display: grid;
+  align-content: center;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 56px 8px 12px;
+  border: 0;
+}
+.cloud-app .binder-dialog .binder-page-nav {
+  --binder-book-width: clamp(460px, calc((100dvh - 140px) * 1.4), 1200px);
+}
+.cloud-app .binder-dialog .binder-pocket-grid {
+  grid-template-columns: repeat(var(--binder-columns), minmax(0, 1fr));
+}
+.cloud-app .binder-dialog :is(.binder-tray, #binder-status) {
+  margin-inline: 12px;
+}
 .cloud-app .binder-page-nav {
   --binder-book-width: 740px;
   display: grid;
   grid-template-columns: var(--control) minmax(0, var(--binder-book-width)) var(--control);
+  grid-template-areas:
+    'previous book next'
+    '. count .';
   align-items: center;
   justify-content: center;
   gap: 8px;
 }
+.cloud-app #binder-previous {
+  grid-area: previous;
+}
+.cloud-app #binder-next {
+  grid-area: next;
+}
 .cloud-app .binder-book {
+  grid-area: book;
   --binder-columns: 3;
   --pocket-base: 86px;
   --pocket-width: var(--pocket-base);
@@ -2555,9 +2611,12 @@
   font-weight: 600;
 }
 .cloud-app #binder-page-count {
-  margin: 8px 0 0;
+  grid-area: count;
+  justify-self: center;
+  margin: 0;
   text-align: center;
   font: 12px var(--mono);
+  white-space: nowrap;
 }
 .cloud-app .binder-tray {
   margin-top: 12px;
@@ -2626,11 +2685,20 @@
 @media (max-width: 700px) {
   .cloud-app .binder-stage {
     margin-inline: -8px;
-    padding: 8px 0;
+    padding: 8px;
   }
   .cloud-app .binder-page-nav {
     --binder-book-width: 360px;
-    gap: 2px;
+    column-gap: 2px;
+  }
+  .cloud-app .binder-dialog .binder-page-nav {
+    width: min(100%, clamp(270px, calc((100dvh - 152px) * 0.7), 480px));
+    margin-inline: auto;
+    grid-template-columns: var(--control) minmax(0, 1fr) var(--control);
+    grid-template-areas:
+      'book book book'
+      'previous count next';
+    column-gap: 8px;
   }
   .cloud-app .binder-book {
     grid-template-columns: minmax(0, 1fr);

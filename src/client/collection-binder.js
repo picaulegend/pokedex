@@ -1,5 +1,5 @@
 import { emptyBinder, maxSpreads } from './binder-model.js';
-import { bindImages, escape, picture, updateMarkup, variantName } from './ui.js';
+import { bindImages, escape, icon, picture, updateMarkup, variantName } from './ui.js';
 
 const firstLayout = emptyBinder();
 const trayBatch = 24;
@@ -17,24 +17,43 @@ export function createCollectionBinder({ root, manageButton, getCard, save, onEr
       </div>
       <p id="binder-remove-help">Cards on removed pages return to the tray. The binder keeps at least two pages.</p>
     </div>
-    <div class="binder-stage">
-      <div class="binder-page-nav" role="group" aria-label="Binder pages">
-        <button type="button" class="icon-button" id="binder-previous" aria-label="Previous pages"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
-        <div class="binder-book" id="binder-book" aria-label="Binder pockets"></div>
-        <button type="button" class="icon-button" id="binder-next" aria-label="Next pages"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+    <div id="binder-view">
+      <div class="binder-stage">
+        <button type="button" class="icon-button" id="binder-expand" aria-label="Enlarge binder" title="Enlarge binder" aria-haspopup="dialog">${icon('expand')}</button>
+        <div class="binder-page-nav" role="group" aria-label="Binder pages">
+          <button type="button" class="icon-button" id="binder-previous" aria-label="Previous pages"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+          <div class="binder-book" id="binder-book" aria-label="Binder pockets"></div>
+          <button type="button" class="icon-button" id="binder-next" aria-label="Next pages"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+          <p id="binder-page-count" aria-live="polite"></p>
+        </div>
       </div>
-      <p id="binder-page-count" aria-live="polite"></p>
+      <section class="binder-tray" id="binder-tray" aria-label="Unplaced cards">
+        <button type="button" class="secondary-button" id="binder-return" hidden>Return to tray</button>
+        <label id="binder-filter-label" hidden>Search cards<input id="binder-filter" type="search" autocomplete="off"></label>
+        <div class="binder-tray-cards" id="binder-tray-cards"></div>
+        <button type="button" class="secondary-button" id="binder-more" hidden>Show more cards</button>
+      </section>
+      <p id="binder-status" role="status"></p>
     </div>
-    <section class="binder-tray" id="binder-tray" aria-label="Unplaced cards">
-      <button type="button" class="secondary-button" id="binder-return" hidden>Return to tray</button>
-      <label id="binder-filter-label" hidden>Search cards<input id="binder-filter" type="search" autocomplete="off"></label>
-      <div class="binder-tray-cards" id="binder-tray-cards"></div>
-      <button type="button" class="secondary-button" id="binder-more" hidden>Show more cards</button>
-    </section>
-    <p id="binder-status" role="status"></p>`;
+    <dialog class="binder-dialog" id="binder-zoom" aria-label="Enlarged binder">
+      <button type="button" class="icon-button" id="binder-zoom-close" aria-label="Close enlarged binder" title="Close enlarged binder" autofocus>${icon('close')}</button>
+    </dialog>`;
   const $ = (id) => root.querySelector(`#binder-${id}`);
   const book = $('book'),
-    tray = $('tray');
+    tray = $('tray'),
+    view = $('view'),
+    zoom = $('zoom'),
+    expand = $('expand');
+  expand.onclick = () => {
+    zoom.append(view);
+    zoom.showModal();
+    zoom.scrollTop = 0;
+  };
+  $('zoom-close').onclick = () => zoom.close();
+  zoom.addEventListener('close', () => {
+    zoom.before(view);
+    if (expand.getClientRects().length) expand.focus({ preventScroll: true });
+  });
   const compact = matchMedia('(max-width: 700px)');
   let group, rows, editable, pending;
   let selected = null,
@@ -272,7 +291,7 @@ export function createCollectionBinder({ root, manageButton, getCard, save, onEr
     if (group && !root.hidden) renderTray();
   });
   root.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && selected && !pending) select(selected);
+    if (event.key === 'Escape' && !zoom.open && selected && !pending) select(selected);
   });
 
   book.addEventListener('click', (event) => {
@@ -340,7 +359,11 @@ export function createCollectionBinder({ root, manageButton, getCard, save, onEr
     };
 
   return {
+    closeZoom() {
+      zoom.close();
+    },
     update(next, inventory, canEdit) {
+      if (root.hidden || group?.id !== next?.id) zoom.close();
       if (group?.id !== next?.id) {
         selected = null;
         dragged = null;

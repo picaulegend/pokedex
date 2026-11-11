@@ -335,6 +335,16 @@ test('collection binder places and swaps cards and syncs separate layouts after 
   await expect(page.locator('.binder-pocket')).toHaveCount(9);
   await expect(slot(0)).toHaveAttribute('data-binder-card', en);
   await expect(slot(1)).toHaveAttribute('data-binder-card', ja);
+  const expand = page.getByRole('button', { name: 'Enlarge binder' });
+  const enlarged = page.getByRole('dialog', { name: 'Enlarged binder' });
+  await expand.click();
+  await expect(enlarged.getByRole('button', { name: 'Close enlarged binder' })).toBeFocused();
+  await enlarged.getByRole('button', { name: 'Next page', exact: true }).click();
+  await expect(enlarged.locator('#binder-page-count')).toHaveText('Page 2 of 2');
+  await page.keyboard.press('Escape');
+  await expect(enlarged).toBeHidden();
+  await expect(expand).toBeFocused();
+  await expect(page.locator('#binder-page-count')).toHaveText('Page 2 of 2');
   await page.getByRole('button', { name: 'List', exact: true }).click();
   await expect(page.locator('#library-content')).toBeVisible();
   await expect(page.locator('#collection-binder')).toBeHidden();
