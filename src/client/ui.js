@@ -15,6 +15,12 @@ export const icon = (name) =>
 export const plural = (count, word, words = `${word}s`) =>
   `${count.toLocaleString('en-US')} ${count === 1 ? word : words}`;
 export const languageName = (value) => (value === 'ja' ? 'Japanese' : 'English');
+export function cardTypeName({ category, trainerType, energyType }) {
+  if (category === 'Pokemon') return 'Pokémon';
+  if (category === 'Trainer') return trainerType ? `Trainer · ${trainerType}` : 'Trainer';
+  if (category === 'Energy') return energyType ? `Energy · ${energyType}` : 'Energy';
+  return '';
+}
 export function variantName(variant) {
   const label = (value) =>
     ({

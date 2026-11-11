@@ -5,6 +5,22 @@ const encoder = new TextEncoder();
 const hex = (bytes) =>
   [...new Uint8Array(bytes)].map((b) => b.toString(16).padStart(2, '0')).join('');
 
+export const cardCategories = ['Pokemon', 'Trainer', 'Energy'];
+
+export function cardTypeFields({ category, trainerType, energyType }) {
+  return {
+    category,
+    trainerType:
+      category === 'Trainer' && typeof trainerType === 'string' ? trainerType : undefined,
+    energyType:
+      category === 'Energy' && typeof energyType === 'string'
+        ? energyType === 'Normal'
+          ? 'Basic'
+          : energyType
+        : undefined,
+  };
+}
+
 export function sourceLocation(language, id) {
   if (
     !['en', 'ja'].includes(language) ||
@@ -43,8 +59,10 @@ export async function sourceRead(env, request, url) {
     else {
       let result = records.filter(
         (c) =>
+          (!target.searchParams.has('category') ||
+            target.searchParams.get('category') === `eq:${c.category}`) &&
           (!target.searchParams.has('dexId') ||
-            c.dexId.includes(Number(target.searchParams.get('dexId').replace('eq:', '')))) &&
+            c.dexId?.includes(Number(target.searchParams.get('dexId').replace('eq:', '')))) &&
           (!target.searchParams.get('name') ||
             c.name.toLowerCase().includes(target.searchParams.get('name').toLowerCase())) &&
           (!target.searchParams.get('localId') ||
@@ -94,16 +112,18 @@ export async function sourceRead(env, request, url) {
 export async function cardDetails(env, request, language, sourceId) {
   const sourceUrl = sourceLocation(language, sourceId);
   const raw = await sourceRead(env, request, sourceUrl);
+  const pokemonIds = raw?.category === 'Pokemon' ? raw.dexId : [];
   if (
     raw?.id !== sourceId ||
-    raw.category !== 'Pokemon' ||
+    !cardCategories.includes(raw.category) ||
     typeof raw.name !== 'string' ||
     !raw.set?.id ||
-    !Array.isArray(raw.dexId) ||
-    !raw.dexId.length ||
-    !raw.dexId.every((n) => Number.isInteger(n) && n >= 1 && n <= 1025)
+    (raw.category === 'Pokemon' &&
+      (!Array.isArray(pokemonIds) ||
+        !pokemonIds.length ||
+        !pokemonIds.every((n) => Number.isInteger(n) && n >= 1 && n <= 1025)))
   )
-    throw new HttpError(422, 'This source record is not a supported Pokémon card.');
+    throw new HttpError(422, 'This source record is not a supported card.');
   if ((await pocketSetIds(env, request)).has(raw.set.id))
     throw new HttpError(422, 'This is a digital Pocket card. This app records physical cards.');
   const id = await identifier('card', language, sourceId),
@@ -146,7 +166,8 @@ export async function cardDetails(env, request, language, sourceId) {
     setSourceId: raw.set.id,
     setName: raw.set.name || raw.set.id,
     officialCount: raw.set.cardCount?.official ?? null,
-    pokemonIds: [...new Set(raw.dexId)],
+    ...cardTypeFields(raw),
+    pokemonIds: [...new Set(pokemonIds)],
     variants: result,
     raw,
   };

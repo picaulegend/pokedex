@@ -1,7 +1,22 @@
-import { escape, picture, bindImages, languageName, credits, plural, icon } from './ui.js';
+import {
+  escape,
+  picture,
+  bindImages,
+  languageName,
+  cardTypeName,
+  credits,
+  plural,
+  icon,
+} from './ui.js';
 import { createSetPicker } from './set-picker.js';
 
 const filterPrompt = 'Enter a name, set, or card number to filter saved cards.';
+const cardTypeChoices = [
+  ['', 'All types'],
+  ['Pokemon', 'Pokémon'],
+  ['Trainer', 'Trainer'],
+  ['Energy', 'Energy'],
+];
 
 export function createCardSearch({
   app,
@@ -18,7 +33,8 @@ export function createCardSearch({
   screen.dataset.cloudUi = '';
   screen.hidden = true;
   screen.innerHTML = `<div class="screen-intro"><h2 id="card-search-title">Add a card</h2><p id="search-context"></p></div>
-    <form id="card-search-form" aria-label="Filter saved cards"><div class="search-main-fields"><label>Filter saved cards<input id="card-search-name" type="search" maxlength="100" placeholder="Pokémon or card name" autocomplete="off"></label><label>Language<select id="card-search-language"><option value="en">English</option><option value="ja">Japanese</option></select></label></div>
+    <form id="card-search-form" aria-label="Filter saved cards"><div class="search-main-fields"><label>Filter saved cards<input id="card-search-name" type="search" maxlength="100" placeholder="Card name" autocomplete="off"></label><label>Language<select id="card-search-language"><option value="en">English</option><option value="ja">Japanese</option></select></label></div>
+    <div id="search-card-types" class="search-card-types" role="group" aria-label="Card type">${cardTypeChoices.map(([value, label]) => `<button class="filter" type="button" data-category="${value}" aria-pressed="${!value}">${label}</button>`).join('')}</div>
     <details id="search-by-number" class="filter-panel"><summary>Set and card number <span id="search-set-chip"></span></summary><div class="search-number-fields"><div class="search-set-field"><span class="field-label">Set</span><div class="selected-set"><button class="secondary-button" id="choose-search-set" type="button">Choose a set</button><button class="icon-button" id="clear-search-set" type="button" aria-label="Clear selected set" hidden>${icon('close')}</button></div><input id="card-search-set" type="hidden"><small id="selected-set-detail"></small></div><label>Card number<input id="card-search-number" maxlength="20" placeholder="For example, 001/165"></label></div></details></form>
     <div class="search-results-heading"><h2 id="search-scope" tabindex="-1">Saved cards</h2><button class="secondary-button" id="search-external"><svg aria-hidden="true"><use href="#i-search"/></svg>Search TCGdex</button><button class="secondary-button" id="filter-saved" hidden>Back to saved cards</button></div><p id="card-search-status" role="status"></p><button class="secondary-button" id="search-retry" hidden>Try again</button><div id="card-search-results" class="search-results"></div><div class="search-pages"><button class="secondary-button" id="search-previous" hidden>Previous</button><span id="search-page"></span><button class="secondary-button" id="search-next" hidden>Next</button></div>${credits}`;
   document.body.append(screen);
@@ -31,6 +47,7 @@ export function createCardSearch({
     lastRequest,
     busy = false,
     locked = false,
+    category = '',
     filterTimer,
     controller;
   const cardsByKey = new Map();
@@ -43,6 +60,7 @@ export function createCardSearch({
       route.language || '',
       route.set || '',
       route.number || '',
+      route.category || '',
       route.mode || '',
       String(route.page || 1),
     ]);
@@ -56,6 +74,7 @@ export function createCardSearch({
       set: $('card-search-set').value,
       setName: $('card-search-set').value ? $('choose-search-set').textContent : undefined,
       number: $('card-search-number').value,
+      category,
       mode,
       page: mode ? requestedPage : undefined,
     };
@@ -109,10 +128,16 @@ export function createCardSearch({
     return Boolean(
       context.pokemon ||
       context.collection ||
+      category ||
       $('card-search-name').value.trim() ||
       $('card-search-set').value ||
       $('card-search-number').value.trim(),
     );
+  }
+  function selectCategory(value) {
+    category = cardTypeChoices.some(([choice]) => choice === value) ? value : '';
+    for (const button of $('search-card-types').querySelectorAll('[data-category]'))
+      button.setAttribute('aria-pressed', String(button.dataset.category === category));
   }
   function filterSaved(delay = 0) {
     const hasInput = hasFilters();
@@ -163,8 +188,9 @@ export function createCardSearch({
       set: $('card-search-set').value,
       number: $('card-search-number').value.trim(),
     });
-    const pokemon = context.pokemon || app.findPokemon?.(name);
+    const pokemon = context.pokemon || (category === 'Pokemon' && app.findPokemon?.(name));
     if (pokemon) query.set('pokemon', pokemon);
+    if (category) query.set('category', category);
     query.set(all ? 'q' : 'search', pokemon && !context.pokemon ? '' : name);
     try {
       const referenceRequest = picker.getSets(language).catch(() => null);
@@ -179,7 +205,8 @@ export function createCardSearch({
           const card = setDetails(brief, reference);
           const key = String(index);
           cardsByKey.set(key, card);
-          return `<article class="search-card" data-source-id="${escape(card.sourceId)}"><button class="card-open" id="search-card-${index}" data-preview="${key}">${picture(card)}<span class="card-caption"><strong>${escape(card.name)}</strong><span class="card-meta"><span data-set-name>${escape(card.setName || 'Set not recorded')}</span> · <span data-card-number>${escape(card.number)}${card.officialCount ? `/${card.officialCount}` : ''}</span> · ${languageName(card.language)}</span>${ownership(card)}</span></button></article>`;
+          const type = cardTypeName(card);
+          return `<article class="search-card" data-source-id="${escape(card.sourceId)}"><button class="card-open" id="search-card-${index}" data-preview="${key}">${picture(card)}<span class="card-caption"><strong>${escape(card.name)}</strong>${type ? `<span class="card-type">${escape(type)}</span>` : ''}<span class="card-meta"><span data-set-name>${escape(card.setName || 'Set not recorded')}</span> · <span data-card-number>${escape(card.number)}${card.officialCount ? `/${card.officialCount}` : ''}</span> · ${languageName(card.language)}</span>${ownership(card)}</span></button></article>`;
         })
         .join('');
       bindImages(screen);
@@ -237,6 +264,17 @@ export function createCardSearch({
   $('search-retry').onclick = () => void runSearch(lastRequest.all, lastRequest.page);
   $('search-previous').onclick = () => void runSearch(external, page - 1);
   $('search-next').onclick = () => void runSearch(external, page + 1);
+  $('search-card-types').onclick = (event) => {
+    const button = event.target.closest('[data-category]');
+    if (!button || button.dataset.category === category) return;
+    selectCategory(button.dataset.category);
+    if (
+      external &&
+      (category || $('card-search-name').value.trim().length >= 2 || $('card-search-set').value)
+    )
+      void runSearch(true);
+    else filterSaved();
+  };
   for (const id of ['card-search-name', 'card-search-number'])
     $(id).oninput = () => filterSaved(250);
   $('card-search-language').onchange = () => {
@@ -260,6 +298,8 @@ export function createCardSearch({
       if (nextKey === contextKey) return;
       contextKey = nextKey;
       context = { pokemon: route.pokemon, collection: route.collection, from: 'search' };
+      $('search-card-types').hidden = Boolean(route.pokemon);
+      selectCategory(route.pokemon ? '' : route.category);
       $('card-search-name').value = route.term || '';
       $('card-search-number').value = route.number || '';
       if (['en', 'ja'].includes(route.language)) $('card-search-language').value = route.language;

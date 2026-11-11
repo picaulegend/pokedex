@@ -25,7 +25,7 @@ Workers is on Free, D1 uses the free allowance, and the app has no R2 binding. T
 - Create a collection with **New collection**, then use **Add cards** from that collection. Adding an owned or wanted card keeps that collection as its destination. **Add to [collection name]** can add a goal card without a separate wanted flag. Collection membership is also available in card details. Rename and Delete are in **Manage**. Collections use variants selected by hand. Missing members appear in the wishlist. Each required variant counts once per collection; one owned variant can count towards several collections. Removing membership or deleting a collection keeps ownership.
 - Old or simple checkmarks mean that the exact card is unknown. They stay separate from exact quantities. The card view can remove an old checkmark. Unchecking a Pokémon does not erase recorded cards.
 
-The current scope is English and Japanese physical Pokémon cards. Trainer, Energy, and digital Pocket cards are excluded. Collections based on rules and complete-set checklist goals remain planned work.
+The app supports physical Pokémon, Trainer, and Energy cards in English and Japanese. Search and save all three types from **Add card**. Pokédex progress uses Pokémon species links. Digital Pocket cards are outside the physical catalogue. Collections based on rules and complete-set checklist goals remain planned work.
 
 ## Private profile
 

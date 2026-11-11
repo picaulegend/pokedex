@@ -875,6 +875,12 @@
   gap: 14px;
   margin-bottom: 16px;
 }
+.cloud-app .search-card-types:not([hidden]) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
 .cloud-app .search-number-fields {
   grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
 }

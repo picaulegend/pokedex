@@ -4,6 +4,7 @@ import {
   imageUrl,
   bindImages,
   languageName,
+  cardTypeName,
   variantName,
   updateMarkup,
   credits,
@@ -162,11 +163,12 @@ export function createCardDetail({
       featured = isFeatured(selected),
       disabled = busy || !canEdit(),
       savingWishlist = busy && pendingAction.control === 'detail-want',
-      wishlistAction = own.wanted ? 'Remove from wishlist' : 'Add to wishlist';
+      wishlistAction = own.wanted ? 'Remove from wishlist' : 'Add to wishlist',
+      type = cardTypeName(card);
     updateMarkup(
       screen,
       `<div class="card-detail-layout"><h2 id="detail-title">${escape(card.name)}</h2><div class="detail-art"><button id="detail-image" class="image-open" aria-label="Enlarge ${escape(card.name)} card image">${picture(card, 'high')}</button></div><div class="detail-info">
-      <dl class="detail-record"><div><dt>Set</dt><dd>${escape(card.setName || 'Not recorded')}</dd></div><div><dt>Card number</dt><dd>${escape(card.number)}${card.officialCount ? `/${escape(card.officialCount)}` : ''}</dd></div><div><dt>Language</dt><dd>${languageName(card.language)}</dd></div><div><dt>Illustrator</dt><dd>${escape(card.artist || 'Not recorded')}</dd></div></dl>
+      <dl class="detail-record"><div><dt>Set</dt><dd>${escape(card.setName || 'Not recorded')}</dd></div><div><dt>Card number</dt><dd>${escape(card.number)}${card.officialCount ? `/${escape(card.officialCount)}` : ''}</dd></div>${type ? `<div><dt>Card type</dt><dd>${escape(type)}</dd></div>` : ''}<div><dt>Language</dt><dd>${languageName(card.language)}</dd></div><div><dt>Illustrator</dt><dd>${escape(card.artist || 'Not recorded')}</dd></div></dl>
       <div class="finish-field"><label>Finish<select id="detail-finish" ${disabled ? 'disabled' : ''}>${card.variants.map((v) => `<option value="${v.id}" ${v.id === selected ? 'selected' : ''}>${escape(variantName(v))}</option>`).join('')}</select></label><button id="detail-check-price" class="secondary-button" type="button" ${!canEdit() ? 'disabled' : ''} aria-disabled="${checkingPrice}" aria-busy="${checkingPrice}">${checkingPrice ? 'Checking…' : 'Check price'}</button></div>
       ${cardPrice.markup(card, variant, record.saved)}
       ${linkedGoal ? `<div class="goal-context"><button id="detail-add-goal" class="primary-button" aria-pressed="${linkedGoal.variantIds.includes(selected)}" aria-disabled="${disabled || linkedGoal.variantIds.includes(selected)}" aria-busy="${busy && pendingAction.control === 'detail-add-goal'}">${busy && pendingAction.control === 'detail-add-goal' ? 'Adding…' : linkedGoal.variantIds.includes(selected) ? `In ${escape(linkedGoal.name)}` : `Add to ${escape(linkedGoal.name)}`}</button></div>` : ''}

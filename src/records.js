@@ -1,6 +1,6 @@
 import { HttpError } from './auth.js';
 import { isId, json, progressState, readBody } from './api.js';
-import { cardDetails, cardStatements } from './card-source.js';
+import { cardCategories, cardDetails, cardStatements, cardTypeFields } from './card-source.js';
 import { emptyHistory, inventoryChange, validateHistory } from './client/card-history-model.js';
 import { pruneBinder, validateBinder } from './client/binder-model.js';
 import { showcaseQuery } from './showcase.js';
@@ -153,6 +153,14 @@ export async function catalogue(env, url, user) {
     condition += ' AND c.language=?';
     parameters.push(url.searchParams.get('language'));
   }
+  const category = url.searchParams.get('category');
+  // Older catalogue records were all Pokémon.
+  const savedCategory = "COALESCE(json_extract(c.source_json,'$.category'),'Pokemon')";
+  if (category) {
+    if (!cardCategories.includes(category)) throw new HttpError(400, 'Choose a valid card type.');
+    condition += ` AND ${savedCategory}=?`;
+    parameters.push(category);
+  }
   if (url.searchParams.get('set')) {
     condition += ' AND s.source_id=?';
     parameters.push(url.searchParams.get('set').slice(0, 60));
@@ -170,7 +178,10 @@ export async function catalogue(env, url, user) {
   const paged = url.searchParams.has('search');
   const { results: cards } = await env.DB.prepare(
     `SELECT c.id,c.language,c.source_id,c.local_number,c.name,c.artist,c.image_url,c.source_url,
-    c.set_id,s.source_id AS set_source_id,s.name AS set_name,s.official_count,(SELECT json_group_array(pokedex_number) FROM catalogue_card_pokemon WHERE card_id=c.id) AS pokemon_ids
+    c.set_id,s.source_id AS set_source_id,s.name AS set_name,s.official_count,
+    ${savedCategory} AS category,json_extract(c.source_json,'$.trainerType') AS trainerType,
+    json_extract(c.source_json,'$.energyType') AS energyType,
+    (SELECT json_group_array(pokedex_number) FROM catalogue_card_pokemon WHERE card_id=c.id) AS pokemon_ids
     FROM catalogue_cards c JOIN catalogue_sets s ON s.id=c.set_id WHERE ${condition} ORDER BY c.language,s.name,c.local_number ${paged ? 'LIMIT 24 OFFSET ?' : ''}`,
   )
     .bind(...parameters, ...(paged ? [(page - 1) * 24] : []))
@@ -208,6 +219,7 @@ export async function catalogue(env, url, user) {
       setSourceId: c.set_source_id,
       setName: c.set_name,
       officialCount: c.official_count,
+      ...cardTypeFields(c),
       pokemonIds: JSON.parse(c.pokemon_ids),
       variants: byCard.get(c.id) || [],
     })),

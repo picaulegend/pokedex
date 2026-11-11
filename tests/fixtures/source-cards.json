@@ -1867,5 +1867,32 @@
         "tcgplayer": null
       }
     }
+  },
+  {
+    "language": "en",
+    "card": {
+      "id": "sv03.5-160",
+      "localId": "160",
+      "name": "Erika's Invitation",
+      "category": "Trainer",
+      "trainerType": "Supporter",
+      "set": { "id": "sv03.5", "name": "151", "cardCount": { "official": 165 } },
+      "variants_detailed": [
+        { "variantId": "fixture-normal", "type": "normal" },
+        { "variantId": "fixture-reverse", "type": "reverse" }
+      ]
+    }
+  },
+  {
+    "language": "ja",
+    "card": {
+      "id": "SV2P-071",
+      "localId": "071",
+      "name": "リバーサルエネルギー",
+      "category": "Energy",
+      "energyType": "Special",
+      "set": { "id": "SV2P", "name": "スノーハザード", "cardCount": { "official": 71 } },
+      "variants_detailed": [{ "variantId": "fixture-normal", "type": "normal" }]
+    }
   }
 ]

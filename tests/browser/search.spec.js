@@ -177,3 +177,74 @@ test('a backup restores only its referenced missing cards without a catalogue pr
   await expect(page.locator('#cloud-status')).toHaveText('All changes saved online.');
   expect((await known(request, 7)).filter((c) => c.sourceId === card.sourceId)).toHaveLength(1);
 });
+
+test('physical Trainers and Energy can enter collections without adding Pokédex progress', async ({
+  page,
+  request,
+}) => {
+  const h = await headers(request);
+  const sync = async () => (await request.get('/api/sync', { headers: h })).json();
+  const progress = (await sync()).progress;
+  const cards = async (path) => {
+    const response = await request.get(path, { headers: h });
+    expect(response.ok(), await response.text()).toBeTruthy();
+    return (await response.json()).cards;
+  };
+  expect(await cards('/api/catalogue?language=en&category=Trainer&search=Erika')).toEqual([]);
+  expect(await cards('/api/cards/search?language=en&q=Erika')).toEqual([
+    expect.objectContaining({ sourceId: 'sv03.5-160' }),
+  ]);
+  const energy = await cards('/api/cards/search?language=ja&category=Energy&set=SV2P&number=071');
+  expect(energy).toEqual([
+    expect.objectContaining({ sourceId: 'SV2P-071', category: 'Energy', energyType: 'Special' }),
+  ]);
+
+  await page.goto('/#/collections');
+  await expect(page.locator('#cloud-status')).toHaveText('All changes saved online.');
+  await page.locator('#new-collection').click();
+  await page.locator('#collection-name').fill('Physical card types');
+  await page.getByRole('button', { name: 'Save collection' }).click();
+  await expect(page.locator('#library-title')).toHaveText('Physical card types');
+  await page.locator('#library-add').click();
+  await page.getByRole('button', { name: 'Trainer', exact: true }).click();
+  await page.locator('#card-search-name').fill('Erika');
+  await page.locator('#search-external').click();
+  await page.locator('[data-source-id="sv03.5-160"] button').click();
+  await expect(page.locator('.detail-record')).toContainText('Trainer · Supporter');
+  await page.locator('#detail-finish').selectOption({ label: 'Reverse holo' });
+  await page.getByRole('button', { name: 'Add one owned copy' }).click();
+  await expect(page.locator('#detail-message')).toContainText('saved as owned');
+  const saved = await cards('/api/catalogue?language=en&category=Trainer&search=Erika');
+  expect(saved).toEqual([
+    expect.objectContaining({ sourceId: 'sv03.5-160', trainerType: 'Supporter', pokemonIds: [] }),
+  ]);
+  expect(await cards('/api/catalogue?language=en&category=Pokemon&search=Erika')).toEqual([]);
+
+  const snapshot = await sync();
+  const collection = snapshot.collections.find((item) => item.name === 'Physical card types');
+  const energyPreview = await (
+    await request.get('/api/cards/detail?language=ja&sourceId=SV2P-071', { headers: h })
+  ).json();
+  expect(energyPreview).toMatchObject({ saved: false, card: { pokemonIds: [] } });
+  const variantId = energyPreview.card.variants[0].id;
+  const added = await request.post('/api/cards/add', {
+    headers: h,
+    data: {
+      language: 'ja',
+      sourceId: 'SV2P-071',
+      variantId,
+      quantity: 0,
+      wanted: false,
+      baseRevision: 0,
+      mutationId: randomUUID(),
+      collectionId: collection.id,
+      collectionRevision: collection.revision,
+      goalOnly: true,
+    },
+  });
+  expect(added.ok(), await added.text()).toBeTruthy();
+  expect((await added.json()).collection.variantIds).toEqual(
+    expect.arrayContaining([...collection.variantIds, variantId]),
+  );
+  expect((await sync()).progress).toEqual(progress);
+});

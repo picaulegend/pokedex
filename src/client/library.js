@@ -11,6 +11,7 @@ import {
   picture,
   bindImages,
   languageName,
+  cardTypeName,
   preserveFocus,
   updateMarkup,
   credits,
@@ -559,7 +560,8 @@ export function createCardLibrary({
           const members = memberships.length
             ? `<span class="tcg-members">${memberships.map((c) => escape(c.name)).join(' · ')}</span>`
             : '';
-          return `<article class="tcg-card" data-card-id="${card.id}"><button id="card-${card.id}" class="card-open" data-open-card="${card.language}:${card.sourceId}" data-variant="${selected}">${picture(card)}<span class="card-caption"><strong>${escape(card.name)}</strong><span class="card-meta">${escape(card.setName)} · <span data-card-number>${number}</span> · <span class="tcg-language">${languageName(card.language)}</span></span>${badges(variants, { missing: true, showWanted: !isCards && !isWishlist, hideSingleOwned: isCards })}${members}</span></button>${isWishlist ? `<button id="acquire-${selected}" data-acquire="${selected}" class="text-button" ${locked || (rows[selected]?.quantity || 0) >= 999 ? 'disabled' : ''}>${rows[selected]?.quantity ? 'Add one copy' : 'Mark as owned'}</button>` : ''}</article>`;
+          const type = cardTypeName(card);
+          return `<article class="tcg-card" data-card-id="${card.id}"><button id="card-${card.id}" class="card-open" data-open-card="${card.language}:${card.sourceId}" data-variant="${selected}">${picture(card)}<span class="card-caption"><strong>${escape(card.name)}</strong>${type ? `<span class="card-type">${escape(type)}</span>` : ''}<span class="card-meta">${escape(card.setName)} · <span data-card-number>${number}</span> · <span class="tcg-language">${languageName(card.language)}</span></span>${badges(variants, { missing: true, showWanted: !isCards && !isWishlist, hideSingleOwned: isCards })}${members}</span></button>${isWishlist ? `<button id="acquire-${selected}" data-acquire="${selected}" class="text-button" ${locked || (rows[selected]?.quantity || 0) >= 999 ? 'disabled' : ''}>${rows[selected]?.quantity ? 'Add one copy' : 'Mark as owned'}</button>` : ''}</article>`;
         })
         .join('');
       updateMarkup(

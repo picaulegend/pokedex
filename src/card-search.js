@@ -2,6 +2,8 @@ import { HttpError } from './auth.js';
 import { json, readBody, isId } from './api.js';
 import {
   cardDetails,
+  cardCategories,
+  cardTypeFields,
   publicCard,
   sourceLocation,
   sourceRead,
@@ -17,7 +19,11 @@ export async function searchCards(request, env, url) {
   const set = (url.searchParams.get('set') || '').trim();
   const number = (url.searchParams.get('number') || '').split('/')[0].trim();
   const pokemon = url.searchParams.get('pokemon'),
+    category = url.searchParams.get('category'),
     page = Number(url.searchParams.get('page') || 1);
+  if (category && (!cardCategories.includes(category) || (pokemon && category !== 'Pokemon')))
+    throw new HttpError(400, 'Choose a valid card type.');
+  const selectedCategory = pokemon ? 'Pokemon' : category;
   if (
     !['en', 'ja'].includes(language) ||
     q.length > 100 ||
@@ -27,11 +33,11 @@ export async function searchCards(request, env, url) {
     page < 1 ||
     page > 1000 ||
     (pokemon && (!/^\d+$/.test(pokemon) || Number(pokemon) < 1 || Number(pokemon) > 1025)) ||
-    (!pokemon && q.length < 2 && set.length < 2)
+    (!pokemon && !category && q.length < 2 && set.length < 2)
   )
-    throw new HttpError(400, 'Enter a card name or set, or search from a Pokémon.');
+    throw new HttpError(400, 'Enter a card name or set, or choose a card type.');
   const target = new URL(`https://api.tcgdex.net/v2/${language}/cards`);
-  target.searchParams.set('category', 'eq:Pokemon');
+  if (selectedCategory) target.searchParams.set('category', `eq:${selectedCategory}`);
   target.searchParams.set('pagination:page', page);
   target.searchParams.set('pagination:itemsPerPage', '24');
   if (pokemon) target.searchParams.set('dexId', `eq:${pokemon}`);
@@ -48,10 +54,11 @@ export async function searchCards(request, env, url) {
         `https://api.tcgdex.net/v2/${language}/sets/${encodeURIComponent(set)}/${encodeURIComponent(number)}`,
       );
       result =
-        card.category === 'Pokemon' &&
+        cardCategories.includes(card.category) &&
+        (!selectedCategory || card.category === selectedCategory) &&
         (!q || card.name.toLowerCase().includes(q.toLowerCase())) &&
         (!pokemon || card.dexId?.includes(Number(pokemon)))
-          ? [{ id: card.id, name: card.name, localId: card.localId, image: card.image }]
+          ? [card]
           : [];
     } catch (error) {
       if (error.status !== 404) throw error;
@@ -88,6 +95,8 @@ export async function searchCards(request, env, url) {
         name: c.name,
         number: String(c.localId || ''),
         image: c.image || null,
+        // The list endpoint omits card types. The exact lookup returns full details.
+        ...cardTypeFields({ ...c, category: c.category || selectedCategory || undefined }),
       })),
     page,
     hasMore,

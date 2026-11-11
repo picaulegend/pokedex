@@ -18,7 +18,7 @@ The [cloud app](https://collect.postwork.tech) uses Cloudflare Workers and D1. T
 
 The shared card catalogue starts empty. A card is saved when someone owns it, wants it, or selects it for a collection goal. Search results and previews are temporary. Set details are saved separately, without card lists. Images use source URLs.
 
-The current scope is physical Pokémon cards in English and Japanese. Trainer cards, Energy cards, and digital Pocket cards are excluded. Collections based on rules and complete-set checklists remain planned work.
+The app supports physical Pokémon, Trainer, and Energy cards in English and Japanese. Use the card type filter in **Add card**. Pokédex progress uses Pokémon species links. Digital Pocket cards are outside the physical catalogue. Collections based on rules and complete-set checklists remain planned work.
 
 The app has a $0 monthly operating budget. It uses Workers Free and D1 Free. It has no R2 binding. Read [AGENTS.md](AGENTS.md) for the project rules and [the cloud guide](docs/cloud-preview.md) for setup, current limits, and operation.
 
