@@ -4,20 +4,21 @@ import { bindImages, escape, icon, picture, updateMarkup, variantName } from './
 const firstLayout = emptyBinder();
 const trayBatch = 24;
 
-export function createCollectionBinder({ root, manageButton, getCard, save, onError }) {
-  root.innerHTML = `<div class="binder-settings" id="binder-settings" hidden>
+export function createCollectionBinder({ root, manageMenu, getCard, save, onError }) {
+  manageMenu.insertAdjacentHTML(
+    'beforeend',
+    `<div class="binder-settings" id="binder-settings">
       <div class="binder-format"><span>Pockets per page</span><div class="binder-buttons" role="group" aria-label="Pockets per page">
         <button type="button" class="filter" data-binder-size="4" aria-pressed="false">4</button>
         <button type="button" class="filter" data-binder-size="9" aria-pressed="true">9</button>
       </div></div>
-      <p>Each pocket size has its own layout.</p>
-      <div class="binder-buttons binder-page-actions">
-        <button type="button" class="secondary-button" id="binder-add-pages">Add pages</button>
-        <button type="button" class="secondary-button" id="binder-remove-pages" aria-describedby="binder-remove-help">Remove pages</button>
-      </div>
-      <p id="binder-remove-help">Cards on removed pages return to the tray. The binder keeps at least two pages.</p>
-    </div>
-    <div id="binder-view">
+      <button type="button" id="binder-add-pages">Add pages</button>
+      <button type="button" id="binder-remove-pages" aria-describedby="binder-remove-help">Remove current pages</button>
+      <span id="binder-remove-help" hidden>Cards on removed pages return to the tray. The binder keeps at least two pages.</span>
+      <label>Show missing in color <input type="checkbox" id="binder-missing-color"></label>
+    </div>`,
+  );
+  root.innerHTML = `<div id="binder-view">
       <div class="binder-stage">
         <button type="button" class="icon-button" id="binder-expand" aria-label="Enlarge binder" title="Enlarge binder" aria-haspopup="dialog">${icon('expand')}</button>
         <div class="binder-page-nav" role="group" aria-label="Binder pages">
@@ -39,12 +40,18 @@ export function createCollectionBinder({ root, manageButton, getCard, save, onEr
       <button type="button" class="icon-button" id="binder-zoom-close" aria-label="Close enlarged binder" title="Close enlarged binder" autofocus>${icon('close')}</button>
     </dialog>`;
   const $ = (id) => root.querySelector(`#binder-${id}`);
+  const manageSummary = manageMenu.querySelector('summary');
+  const addPages = manageMenu.querySelector('#binder-add-pages');
+  const removePages = manageMenu.querySelector('#binder-remove-pages');
+  const sizeButtons = manageMenu.querySelectorAll('[data-binder-size]');
+  const missingColor = manageMenu.querySelector('#binder-missing-color');
   const book = $('book'),
     tray = $('tray'),
     view = $('view'),
     zoom = $('zoom'),
     expand = $('expand');
   expand.onclick = () => {
+    manageMenu.open = false;
     zoom.append(view);
     zoom.showModal();
     zoom.scrollTop = 0;
@@ -68,10 +75,22 @@ export function createCollectionBinder({ root, manageButton, getCard, save, onEr
   const spreadStart = () => pages[layout().size] - (pages[layout().size] % 2);
   const canChange = () => Boolean(group && editable && !pending);
   const setStatus = (message) => ($('status').textContent = message);
-  const showSettings = (open) => {
-    $('settings').hidden = !open;
-    manageButton.setAttribute('aria-expanded', String(open));
-  };
+  function closeOverlays() {
+    manageMenu.open = false;
+    zoom.close();
+  }
+  document.addEventListener('pointerdown', (event) => {
+    if (manageMenu.open && !manageMenu.contains(event.target)) manageMenu.open = false;
+  });
+  manageMenu.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || !manageMenu.open) return;
+    dismissManage();
+  });
+  function dismissManage() {
+    manageMenu.open = false;
+    manageSummary.focus({ preventScroll: true });
+  }
+  missingColor.onchange = () => view.classList.toggle('binder-color-missing', missingColor.checked);
 
   function cardInfo(id) {
     const card = getCard(id);
@@ -88,10 +107,7 @@ export function createCollectionBinder({ root, manageButton, getCard, save, onEr
   }
 
   function cardFace({ card, missing }) {
-    return `<span class="binder-card-face${missing ? ' binder-missing' : ''}" aria-hidden="true">
-      ${card ? picture(card) : '<span class="tcg-picture">Card details unavailable</span>'}
-      ${missing ? '<span class="binder-missing-label">Missing</span>' : ''}
-    </span>`;
+    return `<span class="binder-card-face${missing ? ' binder-missing' : ''}" aria-hidden="true">${card ? picture(card) : '<span class="tcg-picture">Card details unavailable</span>'}</span>`;
   }
 
   function normalizePage(index) {
@@ -133,8 +149,7 @@ export function createCollectionBinder({ root, manageButton, getCard, save, onEr
     $('next').disabled = first + visiblePages() >= pageCount();
     $('previous').setAttribute('aria-label', compact.matches ? 'Previous page' : 'Previous pages');
     $('next').setAttribute('aria-label', compact.matches ? 'Next page' : 'Next pages');
-    const removeLabel = `Remove pages ${spreadStart() + 1}–${spreadStart() + 2}`;
-    if ($('remove-pages').textContent !== removeLabel) $('remove-pages').textContent = removeLabel;
+    removePages.title = `Remove pages ${spreadStart() + 1}–${spreadStart() + 2}`;
     bindImages(book);
   }
 
@@ -172,17 +187,14 @@ export function createCollectionBinder({ root, manageButton, getCard, save, onEr
     renderBook();
     renderTray();
     const { size } = layout();
-    for (const button of root.querySelectorAll('[data-binder-size]')) {
+    for (const button of sizeButtons) {
       button.setAttribute('aria-pressed', String(Number(button.dataset.binderSize) === size));
       button.setAttribute('aria-disabled', String(!canChange()));
     }
-    $('add-pages').disabled = pageCount() >= maxSpreads * 2 || !editable;
-    $('add-pages').setAttribute('aria-disabled', String(!canChange() || $('add-pages').disabled));
-    $('remove-pages').disabled = pageCount() <= 2 || !editable;
-    $('remove-pages').setAttribute(
-      'aria-disabled',
-      String(!canChange() || $('remove-pages').disabled),
-    );
+    addPages.disabled = pageCount() >= maxSpreads * 2 || !editable;
+    addPages.setAttribute('aria-disabled', String(!canChange() || addPages.disabled));
+    removePages.disabled = pageCount() <= 2 || !editable;
+    removePages.setAttribute('aria-disabled', String(!canChange() || removePages.disabled));
   }
 
   async function commit(next, message, finish) {
@@ -335,39 +347,38 @@ export function createCollectionBinder({ root, manageButton, getCard, save, onEr
   compact.addEventListener('change', () => {
     if (!root.hidden && group) renderBook();
   });
-  manageButton.onclick = () => showSettings($('settings').hidden);
-  $('add-pages').onclick = () => {
-    if (!canChange() || $('add-pages').disabled) return;
+  addPages.onclick = () => {
+    if (!canChange() || addPages.disabled) return;
+    dismissManage();
     const next = [...slots(), ...Array(layout().size * 2).fill(null)];
     void changeSlots(next, pageCount(), 'Two empty pages added.');
   };
-  $('remove-pages').onclick = () => {
-    if (!canChange() || $('remove-pages').disabled) return;
+  removePages.onclick = () => {
+    if (!canChange() || removePages.disabled) return;
+    dismissManage();
     const { size } = layout();
     const first = spreadStart();
     const next = [...slots()];
     next.splice(first * size, size * 2);
     void changeSlots(next, first, `Pages ${first + 1}–${first + 2} removed.`);
   };
-  for (const button of root.querySelectorAll('[data-binder-size]'))
+  for (const button of sizeButtons)
     button.onclick = () => {
       const size = Number(button.dataset.binderSize);
-      if (size === layout().size) return;
+      if (!canChange() || size === layout().size) return;
+      dismissManage();
       void commit({ ...layout(), size }, `Showing the ${size}-pocket layout.`, () => {
         selected = null;
       });
     };
 
   return {
-    closeZoom() {
-      zoom.close();
-    },
+    closeOverlays,
     update(next, inventory, canEdit) {
-      if (root.hidden || group?.id !== next?.id) zoom.close();
+      if (root.hidden || group?.id !== next?.id) closeOverlays();
       if (group?.id !== next?.id) {
         selected = null;
         dragged = null;
-        showSettings(false);
         limit = trayBatch;
         $('filter').value = '';
         pages = { 4: 0, 9: 0 };

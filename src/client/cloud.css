@@ -2405,25 +2405,28 @@
   align-items: center;
   gap: 8px;
 }
-.cloud-app .binder-settings {
-  margin-bottom: 12px;
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
+.cloud-app #binder-manage > div {
+  width: min(264px, calc(100vw - 32px));
 }
-.cloud-app .binder-settings p {
-  margin: 4px 0 0;
-  color: var(--muted);
-  font-size: var(--text-meta);
+.cloud-app .binder-format,
+.cloud-app .binder-settings label {
+  justify-content: space-between;
+  padding-inline: 12px;
 }
-.cloud-app .binder-page-actions {
-  flex-wrap: wrap;
-  margin-top: 12px;
+.cloud-app .binder-format .filter {
+  width: var(--control);
+  padding: 0;
+  text-align: center;
 }
 .cloud-app .binder-format > span {
-  color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-ui);
+}
+.cloud-app .binder-settings label {
+  display: flex;
+  align-items: center;
+  min-height: var(--control);
+  color: var(--ink);
+  cursor: pointer;
 }
 .cloud-app .binder-buttons .filter {
   margin: 0;
@@ -2595,20 +2598,8 @@
   user-select: none;
   -webkit-user-drag: none;
 }
-.cloud-app .binder-missing .tcg-picture {
+.cloud-app #binder-view:not(.binder-color-missing) .binder-missing .tcg-picture {
   filter: grayscale(1) brightness(0.72);
-}
-.cloud-app .binder-missing-label {
-  position: absolute;
-  left: 50%;
-  bottom: 8%;
-  transform: translateX(-50%);
-  padding: 1px 4px;
-  border-radius: var(--radius);
-  color: #fff;
-  background: #262625;
-  font-size: 10px;
-  font-weight: 600;
 }
 .cloud-app #binder-page-count {
   grid-area: count;
