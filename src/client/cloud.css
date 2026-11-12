@@ -730,7 +730,7 @@
   border-radius: var(--radius);
   background: var(--mat);
 }
-.cloud-app .ownership-badges .owned-badge {
+.cloud-app .ownership-badges :is(.owned-badge, .ordered-badge) {
   background: var(--mat);
   color: var(--ink);
 }
@@ -746,11 +746,6 @@
 }
 .cloud-app .view-heading:not(:has(.library-sprite:not([hidden]))) .view-actions {
   align-self: center;
-}
-.cloud-app [data-acquire] {
-  align-self: start;
-  margin-top: auto;
-  padding-top: 4px;
 }
 .cloud-app .library-empty {
   grid-column: 1/-1;
@@ -1141,6 +1136,12 @@
 .cloud-app .detail-actions > button {
   flex: 0 1 auto;
   min-width: 0;
+}
+.cloud-app .detail-add > div {
+  z-index: 26;
+}
+.cloud-app .detail-add > summary {
+  white-space: nowrap;
 }
 .cloud-app .want-button .ui-icon {
   display: none;
@@ -1908,6 +1909,10 @@
     flex: 1;
     padding-inline: 12px;
   }
+  .cloud-app .detail-add > div {
+    top: auto;
+    bottom: calc(100% + 8px);
+  }
   .cloud-app #detail-title {
     font-size: var(--text-page-phone);
   }
@@ -1923,7 +1928,7 @@
     align-items: start;
   }
 }
-@media (max-width: 400px) {
+@media (max-width: 480px) {
   .cloud-app .detail-actions .want-button {
     display: grid;
     place-items: center;
@@ -2032,6 +2037,11 @@
 }
 .cloud-app .history-entry-main {
   min-width: 0;
+}
+.cloud-app .history-order-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 16px;
 }
 .cloud-app .history-entry-top {
   display: flex;
@@ -2214,27 +2224,11 @@
   font-size: 12px;
   margin-bottom: 11px;
 }
-.cloud-app .history-dialog .purpose-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 22px;
-}
-.cloud-app .history-dialog .purpose-options label {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 12px;
-  min-height: 30px;
-}
-.cloud-app .history-dialog .purpose-options input,
 .cloud-app .history-dialog .checkbox-label input {
   width: 16px;
   height: 16px;
   margin: 0;
   accent-color: var(--ink);
-}
-.cloud-app .history-dialog .purpose-options input:disabled + span {
-  opacity: 0.4;
 }
 .cloud-app .history-dialog .method-options {
   display: grid;
@@ -2598,6 +2592,15 @@
   overflow: hidden;
   border-radius: var(--radius);
   pointer-events: none;
+}
+.cloud-app .binder-order {
+  position: absolute;
+  inset: auto 2px 2px;
+  justify-content: center;
+}
+.cloud-app .binder-order > span {
+  max-width: 100%;
+  padding-inline: 3px;
 }
 .cloud-app .binder-pocket .binder-card-face {
   height: 100%;

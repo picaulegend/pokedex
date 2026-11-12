@@ -303,7 +303,7 @@ export async function saveRecord(request, env, user, kind, id, preparedCard) {
         .bind(id)
         .first();
       if (!locator) throw new HttpError(404, 'This card variant is not in the catalogue.');
-      if (!body.quantity && !body.wanted)
+      if (!body.quantity && !body.wanted && !body.history?.orders?.length)
         return json({ state: inventoryState(null, id), progress: [], mutationId: body.mutationId });
       preparedCard = await cardDetails(env, request, locator.language, locator.source_id);
     }

@@ -11,7 +11,7 @@ import {
   icon,
 } from './ui.js';
 import { createCardHistory } from './card-history-ui.js';
-import { hasHistory, unrecordedCount } from './card-history-model.js';
+import { hasHistory, hasOrderHistory } from './card-history-model.js';
 import { createCardPrice } from './card-price-ui.js';
 
 export function createCardDetail({
@@ -34,6 +34,10 @@ export function createCardDetail({
   screen.dataset.cloudUi = '';
   screen.hidden = true;
   document.body.append(screen);
+  document.addEventListener('click', (event) => {
+    const menu = screen.querySelector('#detail-add-menu[open]');
+    if (menu && !menu.contains(event.target)) menu.open = false;
+  });
   const zoom = document.createElement('dialog');
   zoom.id = 'card-image';
   zoom.dataset.cloudUi = '';
@@ -63,11 +67,19 @@ export function createCardDetail({
       image: imageUrl(record.card),
     }),
     canEdit: () => canEdit() && !busy,
-    commit: (data, deleting) =>
+    commit: (data, deleting, message) =>
       action(
-        () => (deleting ? save('inventory', selected, data) : saveInventory(data)),
-        deleting ? 'History entry deleted.' : 'Card history saved.',
+        async () => {
+          if (deleting) await save('inventory', selected, data);
+          else if (record.saved) await saveInventory(data);
+          else {
+            await admit(record.card, selected, goal(), data(inventory()));
+            record.saved = true;
+          }
+        },
+        message || (deleting ? 'History entry deleted.' : 'Card history saved.'),
       ),
+    getSaveError: () => (messageError ? message : ''),
     refresh: () => render(),
   });
   const currentVariant = () => record?.card.variants.find((v) => v.id === selected);
@@ -80,7 +92,7 @@ export function createCardDetail({
       throw new Error(
         'Connect to the internet to add this card. Your existing cards can still be edited offline.',
       );
-    await admit(record.card, selected, null, group);
+    await admit(record.card, selected, group);
     record.saved = true;
   }
   async function setMembership(group, included) {
@@ -172,9 +184,9 @@ export function createCardDetail({
       <div class="finish-field"><label>Finish<select id="detail-finish" ${disabled ? 'disabled' : ''}>${card.variants.map((v) => `<option value="${v.id}" ${v.id === selected ? 'selected' : ''}>${escape(variantName(v))}</option>`).join('')}</select></label><button id="detail-check-price" class="secondary-button" type="button" ${!canEdit() ? 'disabled' : ''} aria-disabled="${checkingPrice}" aria-busy="${checkingPrice}">${checkingPrice ? 'Checking…' : 'Check price'}</button></div>
       ${cardPrice.markup(card, variant, record.saved)}
       ${linkedGoal ? `<div class="goal-context"><button id="detail-add-goal" class="primary-button" aria-pressed="${linkedGoal.variantIds.includes(selected)}" aria-disabled="${disabled || linkedGoal.variantIds.includes(selected)}" aria-busy="${busy && pendingAction.control === 'detail-add-goal'}">${busy && pendingAction.control === 'detail-add-goal' ? 'Adding…' : linkedGoal.variantIds.includes(selected) ? `In ${escape(linkedGoal.name)}` : `Add to ${escape(linkedGoal.name)}`}</button></div>` : ''}
-      <div class="detail-actions"><div class="detail-owned"><span class="field-label" id="detail-owned-label">Owned</span><div class="quantity-stepper"><button id="detail-minus" class="icon-button" aria-label="Remove one owned copy" ${disabled || !own.quantity ? 'disabled' : ''}>${icon('minus')}</button><input id="detail-quantity" data-quantity="${selected}" aria-label="Owned copies of ${escape(card.name)}" type="number" inputmode="numeric" min="0" max="999" step="1" value="${escape(draft ?? own.quantity)}" ${disabled || !record.saved ? 'disabled' : ''}><button id="detail-plus" class="icon-button" aria-label="Add one owned copy" aria-busy="${busy && pendingAction.control === 'detail-plus'}" ${disabled || own.quantity >= 999 ? 'disabled' : ''}>${icon('plus')}</button></div></div><button id="detail-want" class="secondary-button want-button${own.wanted ? ' is-wanted' : ''}" data-want="${selected}" aria-label="${wishlistAction}" title="${wishlistAction}" aria-busy="${savingWishlist}" ${disabled ? 'disabled' : ''}>${icon('heart')}<span>${savingWishlist ? 'Saving…' : wishlistAction}</span></button></div>
+      <div class="detail-actions"><div class="detail-owned"><span class="field-label" id="detail-owned-label">Owned</span><div class="quantity-stepper"><button id="detail-minus" class="icon-button" aria-label="Remove one owned copy" ${disabled || !own.quantity ? 'disabled' : ''}>${icon('minus')}</button><input id="detail-quantity" data-quantity="${selected}" aria-label="Owned copies of ${escape(card.name)}" type="number" inputmode="numeric" min="0" max="999" step="1" value="${escape(draft ?? own.quantity)}" ${disabled || !record.saved ? 'disabled' : ''}></div></div><details id="detail-add-menu" class="view-menu detail-add"><summary id="detail-add-copy" class="secondary-button" aria-disabled="${disabled}">Add copy</summary><div><button type="button" id="detail-plus" class="text-button" ${disabled || own.quantity >= 999 ? 'disabled' : ''}>Add owned copy</button><button type="button" id="detail-order-add" class="text-button" ${disabled ? 'disabled' : ''}>Add ordered copy</button></div></details><button id="detail-want" class="secondary-button want-button${own.wanted ? ' is-wanted' : ''}" data-want="${selected}" aria-label="${wishlistAction}" title="${wishlistAction}" aria-busy="${savingWishlist}" ${disabled ? 'disabled' : ''}>${icon('heart')}<span>${savingWishlist ? 'Saving…' : wishlistAction}</span></button></div>
       ${own.quantity ? `<button id="detail-feature" class="text-button detail-feature" ${disabled ? 'disabled' : ''}>${busy && pendingAction.control === 'detail-feature' ? 'Saving…' : featured ? 'Remove from Trainer Card' : 'Feature on Trainer Card'}</button>` : ''}
-      <div class="detail-save-state"><p id="detail-message" role="status" class="${messageError ? 'is-error' : ''}">${escape(message)}</p>${message && !messageError && own.quantity && unrecordedCount(own) > 0 ? `<button id="detail-record-history" class="text-button" ${disabled ? 'disabled' : ''}>Add details</button>` : ''}</div>
+      <div class="detail-save-state"><p id="detail-message" role="status" class="${messageError ? 'is-error' : ''}">${escape(message)}</p></div>
       ${historyControls.markup(own, record.saved)}
       <details id="detail-collections" class="filter-panel"><summary>Collections <span>${groups.filter((g) => g.variantIds.includes(selected)).length}</span></summary><div class="membership-list">${groups.length ? groups.map((group) => `<label><input id="member-${group.id}" type="checkbox" data-membership="${group.id}" ${(busy && pendingAction.membership?.id === group.id ? pendingAction.membership.included : group.variantIds.includes(selected)) ? 'checked' : ''} ${disabled ? 'disabled' : ''}><span>${escape(group.name)}</span></label>`).join('') : '<p>Create a collection to give these cards a goal.</p>'}</div></details>
       <details id="detail-reference" class="card-source-details"><summary>Card reference</summary><p>${escape(card.sourceId)} · ${escape(variantName(currentVariant()))}</p></details></div></div>${credits}`,
@@ -183,6 +195,7 @@ export function createCardDetail({
     const $ = (id) => screen.querySelector(`#${id}`);
     $('detail-check-price').onclick = () => void cardPrice.check(card, variant);
     $('detail-finish').onchange = (event) => {
+      $('detail-add-menu').open = false;
       historyControls.close();
       draft = undefined;
       const { screen: ignored, ...params } = route;
@@ -234,17 +247,29 @@ export function createCardDetail({
       };
       $('detail-minus').onclick = () => historyControls.remove(1);
     }
-    $('detail-plus').onclick = () =>
-      record.saved
-        ? void changeQuantity(Math.min(999, own.quantity + 1))
-        : void action(
-            async () => {
-              await admit(card, selected, true, linkedGoal);
-              record.saved = true;
-              await attachGoal();
-            },
-            `${card.name} saved as owned${linkedGoal ? ` in ${linkedGoal.name}` : ''}.`,
-          );
+    const addMenu = $('detail-add-menu');
+    const addCopy = $('detail-add-copy');
+    const closeAddMenu = () => {
+      addMenu.open = false;
+      addCopy.focus({ preventScroll: true });
+    };
+    addCopy.onclick = (event) => {
+      if (addCopy.getAttribute('aria-disabled') === 'true') event.preventDefault();
+    };
+    addMenu.onkeydown = (event) => {
+      if (event.key === 'Escape' && addMenu.open) {
+        event.preventDefault();
+        closeAddMenu();
+      }
+    };
+    $('detail-plus').onclick = () => {
+      closeAddMenu();
+      historyControls.add('owned');
+    };
+    $('detail-order-add').onclick = () => {
+      closeAddMenu();
+      historyControls.add('order');
+    };
     $('detail-want').onclick = () =>
       void action(
         async () => {
@@ -254,7 +279,10 @@ export function createCardDetail({
               wanted: !inventory().wanted,
             });
           else {
-            await admit(card, selected, false, linkedGoal);
+            await admit(card, selected, linkedGoal, {
+              quantity: inventory().quantity,
+              wanted: true,
+            });
             record.saved = true;
           }
           await attachGoal();
@@ -334,7 +362,9 @@ export function createCardDetail({
       ? id
       : card.variants.find((v) => getInventory()[v.id]?.quantity || getInventory()[v.id]?.wanted)
           ?.id ||
-          card.variants.find((v) => hasHistory(getInventory()[v.id]))?.id ||
+          card.variants.find(
+            (v) => hasHistory(getInventory()[v.id]) || hasOrderHistory(getInventory()[v.id]),
+          )?.id ||
           card.variants[0].id;
   }
 }

@@ -7,6 +7,7 @@ The [cloud app](https://collect.postwork.tech) uses Cloudflare Workers and D1. T
 ## Cloud app
 
 - Track exact cards, quantities, and wanted cards for each Pokémon.
+- Add ordered copies in card details. The private card lists show an **Ordered** label. Card history records when you add, receive, or cancel an ordered copy.
 - Record when and where you bought, pulled, received, or traded for a card, with optional prices and private notes.
 - Keep card history after selling, trading, giving away, or losing a copy. Use **Previously owned** in the Pokémon card filters to find cards with no copies left.
 - Create named collections and select their cards by hand. One owned card can count towards several collections.
@@ -24,7 +25,7 @@ The app has a $0 monthly operating budget. It uses Workers Free and D1 Free. It 
 
 Use the main navigation for **Pokédex**, **Cards**, **Collections**, and **Wishlist**. **Cards** shows all the cards you own. **Add card** starts a search. Open a card image for its details, finish, quantity, and collection membership. The Back button returns to the previous view. Select the header avatar to open your private **Profile**, choose an avatar, or manage your account. Select the save status in the header to open sync and backup tools.
 
-In card details, **+** adds a copy quickly. **Add details** records how you got copies already counted. **Add entry** can also record new copies. **−** lets you choose the copy and record what happened; it lowers the owned count and keeps its history. Each finish has separate quantities, history, and wishlist notes. Dates, places, people, prices, and notes are optional and stay private on shared pages.
+In card details, **Add copy** lets you add owned copies or record an order for one copy. Each order has its own entry in card history. Use **Edit order** to change its details or **Mark received** when a copy arrives. **Add details** records how you got owned copies already counted. **−** lets you choose the copy and record what happened. It lowers the owned count and keeps its history. Each finish has separate owned and ordered quantities, history, and wishlist notes. Order quantities, dates, places, people, prices, and notes stay private on shared pages.
 
 Cloud JSON backups use version 3 and include zero-owned cards with saved history. Version 2 cloud backups are still accepted. Restoring an older backup keeps saved later changes and does not count those past copies as owned again.
 

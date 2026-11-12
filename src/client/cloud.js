@@ -21,6 +21,7 @@ import {
   validateHistory,
   mergeInventory,
   pastCount,
+  pendingOrders,
 } from './card-history-model.js';
 
 const app = window.carddex;
@@ -79,7 +80,12 @@ const library = createCardLibrary({
           state.variantLinks ||= {};
           state.variantLinks[id] = library.pokemonIds(id);
         }
-        queueRecord(state, kind, id, data);
+        queueRecord(
+          state,
+          kind,
+          id,
+          typeof data === 'function' ? data(visibleRecords(state, kind)[id]) : data,
+        );
       }
     });
     show(next);
@@ -112,7 +118,7 @@ const library = createCardLibrary({
     announce();
     void flush();
   },
-  admit: async (card, variantId, owned, collection) => {
+  admit: async (card, variantId, collection, inventory) => {
     if (
       collection &&
       saved.recordPending.some(
@@ -139,18 +145,12 @@ const library = createCardLibrary({
         language: card.language,
         sourceId: card.sourceId,
         variantId,
-        quantity:
-          owned === null
-            ? 0
-            : owned
-              ? Math.min(999, (current?.quantity || 0) + 1)
-              : current?.quantity || 0,
-        wanted: owned === null ? false : owned ? Boolean(current?.wanted) : true,
+        ...(inventory || { quantity: 0, wanted: false }),
         ...(collection
           ? {
               collectionId: collection.id,
               collectionRevision: collection.revision,
-              goalOnly: owned === null,
+              goalOnly: !inventory,
             }
           : {}),
         baseRevision: current?.revision || 0,
@@ -610,7 +610,7 @@ $('cloud-conflicts').onclick = () => {
       item.kind === 'collection' ? item.data.name || remote?.name || 'Binder' : 'Card ownership';
     detail.textContent =
       item.kind === 'inventory'
-        ? `This device: ${item.data.quantity} owned, ${item.data.wanted ? 'wanted' : 'not wanted'}, ${pastCount(historyOf(item.data))} past copies. Online: ${remote?.quantity || 0} owned, ${remote?.wanted ? 'wanted' : 'not wanted'}, ${pastCount(historyOf(remote))} past copies. The selected record keeps its card history and notes.`
+        ? `This device: ${item.data.quantity} owned, ${pendingOrders(item.data.history ? item.data : remote)} ordered, ${item.data.wanted ? 'on wishlist' : 'off wishlist'}, ${pastCount(historyOf(item.data))} past copies. Online: ${remote?.quantity || 0} owned, ${pendingOrders(remote)} ordered, ${remote?.wanted ? 'on wishlist' : 'off wishlist'}, ${pastCount(historyOf(remote))} past copies.`
         : binderOnly
           ? remote && !remote.deleted
             ? 'Keep the binder layout from this device or use the online layout. Cards removed online stay out of the binder.'
@@ -833,7 +833,12 @@ window.addEventListener('carddex:restore', async (event) => {
           variantId,
           quantity: record?.quantity || 0,
           wanted: Boolean(record?.wanted || !record?.quantity),
-          ...(record ? { wanted: record.wanted, history: record.history } : {}),
+          ...(record
+            ? {
+                wanted: record.wanted,
+                history: record.history,
+              }
+            : {}),
           baseRevision: 0,
           mutationId: crypto.randomUUID(),
         }),

@@ -134,8 +134,10 @@ test('a card can be added directly to a collection goal without an unwanted owne
       Boolean((await state(request)).inventory.find((r) => r.variantId === selected)?.wanted),
     )
     .toBe(false);
+  await page.locator('#detail-add-copy').click();
   await page.locator('#detail-plus').click();
-  await expect(page.locator('#detail-message')).toContainText('saved as owned');
+  await page.locator('#save-entry').click();
+  await expect(page.locator('#detail-message')).toContainText('Card history saved.');
   await page.locator('#open-collections').click();
   await page.locator(`[data-open-collection="${id}"]`).click();
   await expect(page.locator('#library-summary')).toHaveText('1 of 1 owned · 100%');
@@ -181,7 +183,9 @@ test('wanted edits keep keyboard focus and show offline save status in card deta
     ),
   ).toBe(true);
   await context.setOffline(true);
+  await page.locator('#detail-add-copy').click();
   await page.locator('#detail-plus').click();
+  await page.locator('#save-entry').click();
   await expect(page.locator('#app-save-state')).toHaveText('Saved on device');
   await expect(page.locator('#app-save-state')).toBeVisible();
   await context.setOffline(false);

@@ -4,7 +4,11 @@ export const currencies = { EUR: '€', USD: '$', GBP: '£', JPY: '¥' };
 export const emptyHistory = () => ({ entries: [], changes: [], plan: null });
 export const historyOf = (row) => row?.history || emptyHistory();
 export const hasHistory = (row) => Boolean(historyOf(row).entries.length);
-export const hasDetails = (row) => hasHistory(row) || Boolean(historyOf(row).plan);
+export const ordersOf = (row) => historyOf(row).orders || [];
+export const pendingOrders = (row) => ordersOf(row).filter((order) => !order.outcome).length;
+export const hasOrderHistory = (row) => ordersOf(row).length > 0;
+export const hasDetails = (row) =>
+  hasHistory(row) || Boolean(historyOf(row).plan) || hasOrderHistory(row);
 const isId = (value) =>
   typeof value === 'string' &&
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
@@ -33,6 +37,16 @@ function date(value) {
       new Date(`${value}T12:00:00Z`).toISOString().slice(0, 10) !== value)
   )
     fail('Use a valid date.');
+  return value;
+}
+function timestamp(value) {
+  if (
+    typeof value !== 'string' ||
+    !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value) ||
+    !Number.isFinite(Date.parse(value)) ||
+    new Date(value).toISOString() !== value
+  )
+    fail('Use a valid order date.');
   return value;
 }
 function price(amount, currency) {
@@ -91,12 +105,15 @@ export function deleteHistoryEntry(row, entryId) {
 
 export function validateHistory(value, owned) {
   quantity(owned, true);
-  object(value, ['entries', 'changes', 'plan']);
+  object(value, ['entries', 'changes', 'plan', 'orders']);
+  const savedOrders = value.orders === undefined ? [] : value.orders;
   if (
     !Array.isArray(value.entries) ||
     !Array.isArray(value.changes) ||
     value.entries.length > 1000 ||
     value.changes.length > 1000 ||
+    !Array.isArray(savedOrders) ||
+    savedOrders.length > 1000 ||
     JSON.stringify(value).length > 240000
   )
     fail('This card has too much history for one saved record.');
@@ -111,6 +128,7 @@ export function validateHistory(value, owned) {
       'currency',
       'notes',
       'originUnknown',
+      'receivedAt',
     ]);
     if (
       !isId(entry.id) ||
@@ -128,6 +146,7 @@ export function validateHistory(value, owned) {
       currency: entry.currency,
       notes: text(entry.notes, 1000),
       originUnknown: Boolean(entry.originUnknown),
+      ...(entry.receivedAt === undefined ? {} : { receivedAt: timestamp(entry.receivedAt) }),
     };
   });
   const byId = new Map(entries.map((entry) => [entry.id, entry]));
@@ -199,7 +218,30 @@ export function validateHistory(value, owned) {
       notes: text(value.plan.notes, 1000),
     };
   }
-  const history = { entries, changes, plan };
+  const orders = savedOrders.map((order) => {
+    object(order, ['id', 'at', 'date', 'source', 'amount', 'currency', 'notes', 'outcome']);
+    if (!isId(order.id)) fail('Each order needs a valid ID.');
+    let outcome;
+    if (order.outcome !== undefined) {
+      object(order.outcome, ['action', 'at']);
+      if (!['received', 'canceled'].includes(order.outcome.action))
+        fail('Use a valid order outcome.');
+      outcome = { action: order.outcome.action, at: timestamp(order.outcome.at) };
+    }
+    return {
+      id: order.id.toLowerCase(),
+      at: timestamp(order.at),
+      date: date(order.date),
+      source: text(order.source, 160),
+      amount: price(order.amount, order.currency),
+      currency: order.currency,
+      notes: text(order.notes, 1000),
+      ...(outcome ? { outcome } : {}),
+    };
+  });
+  if (new Set(orders.map((order) => order.id)).size !== orders.length)
+    fail('Each order needs its own ID.');
+  const history = { entries, changes, plan, ...(orders.length ? { orders } : {}) };
   if (entries.some((entry) => remaining(entry, history) < 0) || describedCount(history) > owned)
     fail('The history does not match the owned count.');
   return history;
@@ -285,10 +327,18 @@ export function reconcileQuantity(row, nextQuantity, mutationId) {
 
 export function inventoryChange(row, data, mutationId) {
   row ||= { quantity: 0, wanted: false, history: emptyHistory() };
-  const history =
+  let history =
     data.history === undefined
       ? reconcileQuantity(row, data.quantity, mutationId)
       : validateHistory(data.history, data.quantity);
+  if (data.history !== undefined && !data.historyChoice && ordersOf(row).length) {
+    const orders = new Map(ordersOf(row).map((order) => [order.id, order]));
+    for (const order of ordersOf({ history })) {
+      const outcome = orders.get(order.id)?.outcome;
+      orders.set(order.id, outcome ? { ...order, outcome } : order);
+    }
+    history = validateHistory({ ...history, orders: [...orders.values()] }, data.quantity);
+  }
   if (!data.historyChoice) {
     retainHistory(historyOf(row), history);
     if (row.quantity - data.quantity > pastCount(history) - pastCount(historyOf(row)))
@@ -325,13 +375,20 @@ export function mergeInventory(existing, incoming) {
     changes: [...changes.values()],
     plan: a.plan || b.plan || null,
   };
+  const orders = new Map(ordersOf(incoming).map((order) => [order.id, order]));
+  for (const order of ordersOf(existing)) {
+    const outcome = order.outcome || orders.get(order.id)?.outcome;
+    orders.set(order.id, outcome ? { ...order, outcome } : order);
+  }
+  if (orders.size) history.orders = [...orders.values()];
   const importedUnknown = b.entries.length
     ? unrecordedCount(incoming)
     : Math.max(0, incoming.quantity - a.entries.reduce((sum, entry) => sum + entry.quantity, 0));
-  const quantity = describedCount(history) + Math.max(unrecordedCount(existing), importedUnknown);
+  const ownedQuantity =
+    describedCount(history) + Math.max(unrecordedCount(existing), importedUnknown);
   return {
-    quantity,
+    quantity: ownedQuantity,
     wanted: Boolean(existing.wanted || incoming.wanted),
-    history: validateHistory(history, quantity),
+    history: validateHistory(history, ownedQuantity),
   };
 }

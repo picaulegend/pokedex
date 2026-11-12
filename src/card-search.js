@@ -165,7 +165,11 @@ export async function addCard(request, env, user) {
     body.quantity < 0 ||
     body.quantity > 999 ||
     typeof body.wanted !== 'boolean' ||
-    (!body.quantity && !body.wanted && !body.goalOnly && !body.history?.entries?.length) ||
+    (!body.quantity &&
+      !body.wanted &&
+      !body.goalOnly &&
+      !body.history?.entries?.length &&
+      !body.history?.orders?.length) ||
     (body.goalOnly !== undefined && typeof body.goalOnly !== 'boolean') ||
     (body.goalOnly && (!body.collectionId || body.quantity || body.wanted)) ||
     (body.goalOnly && body.history !== undefined) ||
@@ -177,7 +181,7 @@ export async function addCard(request, env, user) {
     !Number.isSafeInteger(body.baseRevision) ||
     body.baseRevision < 0
   )
-    throw new HttpError(400, 'Choose an owned quantity or mark the card as wanted.');
+    throw new HttpError(400, 'Add a copy, add an order, or mark the card as wanted.');
   sourceLocation(body.language, body.sourceId);
   if (
     body.collectionId &&

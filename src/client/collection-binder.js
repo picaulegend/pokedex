@@ -1,3 +1,4 @@
+import { pendingOrders } from './card-history-model.js';
 import { emptyBinder, maxSpreads } from './binder-model.js';
 import { bindImages, escape, icon, picture, updateMarkup, variantName } from './ui.js';
 
@@ -9,7 +10,7 @@ export function createCollectionBinder({ root, getCard, save, onError }) {
       <div class="binder-stage">
         <div class="binder-tools" role="group" aria-label="Binder controls">
           <button type="button" class="icon-button" id="binder-expand" aria-label="Enlarge binder" title="Enlarge binder" aria-haspopup="dialog">${icon('expand')}</button>
-          <button type="button" class="icon-button" id="binder-missing-color" aria-label="Show missing cards in color" title="Show missing cards in color" aria-pressed="false">${icon('palette')}</button>
+          <button type="button" class="icon-button" id="binder-missing-color" aria-label="Show unowned cards in color" title="Show unowned cards in color" aria-pressed="false">${icon('palette')}</button>
           <details id="binder-manage" class="view-menu">
             <summary class="icon-button" aria-label="Manage binder" title="Manage binder">${icon('settings')}</summary>
             <div>
@@ -106,11 +107,16 @@ export function createCollectionBinder({ root, getCard, save, onError }) {
       finish,
       label: [name, card?.setName, card?.number, finish].filter(Boolean).join(', '),
       missing: !rows[id]?.quantity,
+      ordered: pendingOrders(rows[id]),
     };
   }
 
-  function cardFace({ card, missing }) {
-    return `<span class="binder-card-face${missing ? ' binder-missing' : ''}" aria-hidden="true">${card ? picture(card) : '<span class="tcg-picture">Card details unavailable</span>'}</span>`;
+  function cardFace({ card, missing, ordered }) {
+    return `<span class="binder-card-face${missing ? ' binder-missing' : ''}" aria-hidden="true">${card ? picture(card) : '<span class="tcg-picture">Card details unavailable</span>'}${ordered ? '<span class="ownership-badges binder-order"><span class="ordered-badge">Ordered</span></span>' : ''}</span>`;
+  }
+
+  function cardLabel(info) {
+    return info.label + (info.ordered ? ', ordered' : info.missing ? ', not owned' : '');
   }
 
   function normalizePage(index) {
@@ -133,7 +139,7 @@ export function createCollectionBinder({ root, getCard, save, onError }) {
           .map((id, position) => {
             const index = start + position;
             const info = id && cardInfo(id);
-            const label = `Page ${page + 1}, pocket ${position + 1}, ${info ? info.label + (info.missing ? ', missing' : '') : 'empty'}`;
+            const label = `Page ${page + 1}, pocket ${position + 1}, ${info ? cardLabel(info) : 'empty'}`;
             const card = info
               ? `data-binder-card="${escape(id)}" draggable="${canChange()}" aria-pressed="${selected === id}"`
               : '';
@@ -176,7 +182,7 @@ export function createCollectionBinder({ root, getCard, save, onError }) {
           const info = cardInfo(id);
           return `<button type="button" class="binder-tray-card" id="binder-card-${escape(id)}"
           data-binder-card="${escape(id)}" draggable="${canChange()}" aria-pressed="${selected === id}" aria-disabled="${!canChange()}"
-          aria-label="${escape(info.label + (info.missing ? ', missing' : ''))}">
+          aria-label="${escape(cardLabel(info))}">
           ${cardFace(info)}<span>${escape(info.name)}</span><small>${escape(info.finish)}</small></button>`;
         })
         .join('') || (unplaced.length ? '<p>No matching cards.</p>' : ''),

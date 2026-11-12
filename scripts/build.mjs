@@ -66,6 +66,7 @@ const appModules = [
   'ui.js',
   'card-search-ui.js',
   'card-detail.js',
+  'card-orders.js',
   'card-price-ui.js',
   'card-history-ui.js',
   'card-history-model.js',

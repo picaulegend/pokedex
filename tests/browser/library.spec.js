@@ -1,3 +1,4 @@
+import { pendingOrders } from '../../src/client/card-history-model.js';
 import { openAccount, syncNow, openOwnedCard } from './helpers.js';
 import { test, expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
@@ -51,6 +52,75 @@ async function legacy(request, id, owned) {
   });
   expect(response.ok(), await response.text()).toBeTruthy();
 }
+
+test('each ordered copy has its own details and outcome', async ({ page, request }) => {
+  const id = await variant(request, 'ja');
+  const group = randomUUID();
+  await save(request, 'inventory', id, { quantity: 0, wanted: true });
+  await save(request, 'collections', group, {
+    name: 'Order check',
+    variantIds: [id],
+    deleted: false,
+  });
+  const collectionUrl = `/#/collection?collection=${group}`;
+  const card = page.locator('[data-open-card="ja:SV2a-001"]');
+  const saved = async () => {
+    const row = (await sync(request)).inventory.find((item) => item.variantId === id);
+    return { owned: row.quantity, pending: pendingOrders(row) };
+  };
+  const addOrder = async (seller) => {
+    await page.locator('#detail-add-copy').click();
+    await page.getByRole('button', { name: 'Add ordered copy' }).click();
+    await expect(page.locator('#entry-quantity')).toBeHidden();
+    await page.locator('#entry-source').fill(seller);
+    await page.locator('#entry-price').fill('6.25');
+    await page.locator('#entry-notes').fill('Keep the invoice');
+    await page.getByRole('button', { name: 'Save order' }).click();
+    await expect(page.locator('#entry-dialog')).toBeHidden();
+  };
+  const orders = page.locator('article[id^="history-order-"]');
+  await page.goto('/#/wishlist');
+  await card.click();
+  await addOrder('First seller');
+  await addOrder('Second seller');
+  await expect.poll(saved).toEqual({ owned: 0, pending: 2 });
+  await page.goto(collectionUrl);
+  await expect(card.locator('.ordered-badge')).toHaveText('Ordered');
+  await expect(page.locator('#library-summary')).toContainText('0 of 1 owned');
+  await card.click();
+
+  await orders
+    .filter({ hasText: 'First seller' })
+    .getByRole('button', { name: 'Edit order' })
+    .click();
+  await page.locator('#entry-source').fill('Updated seller');
+  await page.getByRole('button', { name: 'Save changes' }).click();
+  await orders
+    .filter({ hasText: 'Updated seller' })
+    .getByRole('button', { name: 'Mark received' })
+    .click();
+  const receipt = page.locator('.history-entry').filter({
+    has: page.getByRole('heading', { name: 'Received', exact: true }),
+  });
+  await expect(receipt).toContainText('Updated seller');
+  await expect(receipt).toContainText('€6.25');
+  await expect(receipt).toContainText('Keep the invoice');
+  await expect.poll(saved).toEqual({ owned: 1, pending: 1 });
+
+  await page.reload();
+  await expect(receipt).toContainText('Updated seller');
+  const second = orders.filter({ hasText: 'Second seller' });
+  await second.getByRole('button', { name: 'Cancel order' }).click();
+  await expect(second.getByRole('heading', { name: 'Order canceled' })).toBeVisible();
+  await expect(second).toContainText('€6.25');
+  await expect(second).toContainText('Keep the invoice');
+  await expect.poll(saved).toEqual({ owned: 1, pending: 0 });
+  await page.goto(collectionUrl);
+  await expect(page.locator('#library-summary')).toContainText('1 of 1 owned');
+  await expect(card.locator('.ordered-badge')).toHaveCount(0);
+  await save(request, 'inventory', id, { quantity: 0, wanted: false });
+  await save(request, 'collections', group, { name: 'Order check', variantIds: [], deleted: true });
+});
 
 test('a Pokémon card read can be limited to the requested saved variants', async ({ request }) => {
   const card = (await catalogue(request)).find(
@@ -294,7 +364,7 @@ test('collection binder places and swaps cards and syncs separate layouts after 
   await page.keyboard.press('Tab');
   await page.keyboard.press('Enter');
   await expect(slot(1)).toHaveAttribute('data-binder-card', ja);
-  await expect(slot(1)).toHaveAccessibleName(/missing/);
+  await expect(slot(1)).toHaveAccessibleName(/not owned/);
   await expect(slot(1).getByText('Missing', { exact: true })).toHaveCount(0);
   await slot(1).dragTo(slot(0));
   await expect(slot(0)).toHaveAttribute('data-binder-card', ja);
@@ -302,7 +372,7 @@ test('collection binder places and swaps cards and syncs separate layouts after 
   await expect(slot(0)).toHaveAttribute('data-binder-card', en);
   const manage = page.locator('#binder-manage summary');
   await expect(manage).toHaveAccessibleName('Manage binder');
-  const missingColor = page.getByRole('button', { name: 'Show missing cards in color' });
+  const missingColor = page.getByRole('button', { name: 'Show unowned cards in color' });
   const missingArt = slot(1).locator('.tcg-picture');
   await expect(missingColor).toHaveAttribute('aria-pressed', 'false');
   await expect(missingArt).toHaveCSS('filter', /grayscale/);
@@ -364,7 +434,7 @@ test('collection binder places and swaps cards and syncs separate layouts after 
   const enlarged = page.getByRole('dialog', { name: 'Enlarged binder' });
   await expand.click();
   await expect(enlarged.getByRole('button', { name: 'Close enlarged binder' })).toBeFocused();
-  await enlarged.getByRole('button', { name: 'Show missing cards in color' }).click();
+  await enlarged.getByRole('button', { name: 'Show unowned cards in color' }).click();
   await expect(missingArt).toHaveCSS('filter', 'none');
   await manage.click();
   await expect(removePages).toBeVisible();

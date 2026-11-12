@@ -243,10 +243,6 @@ select {
   background: #e5eed7;
   color: #385333;
 }
-.missing {
-  background: #f6ecd5;
-  color: #775020;
-}
 .reference {
   color: #586c60;
   font-size: 12px;

@@ -128,7 +128,9 @@ test('an accidental owned copy can be removed and its history deleted', async ({
   await save(request, { quantity: 0, wanted: true, history: emptyHistory(), historyChoice: true });
   await page.goto(cardUrl());
   await expect(page.locator('#detail-quantity')).toHaveValue('0');
+  await page.locator('#detail-add-copy').click();
   await page.locator('#detail-plus').click();
+  await page.locator('#save-entry').click();
   await expect(page.locator('#detail-quantity')).toHaveValue('1');
   await page.locator('#detail-minus').click();
   await page.getByRole('button', { name: 'Remove from owned', exact: true }).click();

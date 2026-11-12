@@ -212,8 +212,10 @@ test('physical Trainers and Energy can enter collections without adding Pokédex
   await page.locator('[data-source-id="sv03.5-160"] button').click();
   await expect(page.locator('.detail-record')).toContainText('Trainer · Supporter');
   await page.locator('#detail-finish').selectOption({ label: 'Reverse holo' });
-  await page.getByRole('button', { name: 'Add one owned copy' }).click();
-  await expect(page.locator('#detail-message')).toContainText('saved as owned');
+  await page.locator('#detail-add-copy').click();
+  await page.getByRole('button', { name: 'Add owned copy' }).click();
+  await page.locator('#save-entry').click();
+  await expect(page.locator('#detail-message')).toContainText('Card history saved.');
   const saved = await cards('/api/catalogue?language=en&category=Trainer&search=Erika');
   expect(saved).toEqual([
     expect.objectContaining({ sourceId: 'sv03.5-160', trainerType: 'Supporter', pokemonIds: [] }),

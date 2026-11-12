@@ -3,6 +3,7 @@ import {
   emptyHistory,
   historyOf,
   hasHistory,
+  ordersOf,
   validateHistory,
   remaining,
   removedFrom,
@@ -13,6 +14,7 @@ import {
   deleteHistoryEntry,
   currencies,
 } from './card-history-model.js';
+import { resolveOrder, saveOrder } from './card-orders.js';
 
 const methodNames = {
   bought: 'Bought',
@@ -41,6 +43,11 @@ const dateLabel = (value) =>
         timeZone: 'UTC',
       }).format(new Date(`${value}T12:00:00Z`))
     : 'Date not recorded';
+const orderDate = new Intl.DateTimeFormat('en-GB', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+});
 const symbol = (name) =>
   `<svg class="history-icon" aria-hidden="true"><use href="#history-i-${name}"/></svg>`;
 const planTemplate = `<dialog id="history-plan-dialog" class="history-dialog" aria-labelledby="history-plan-title"><form id="history-plan-form"><header class="sheet-heading"><h2 id="history-plan-title">Wishlist notes</h2><button id="history-plan-close" class="icon-button" type="button" aria-label="Close wishlist notes">${symbol('close')}</button></header><div class="sheet-body"><p id="history-plan-card" class="muted"></p><div class="form-grid"><label>Target price <span class="money-input"><span id="plan-currency-symbol">€</span><input id="plan-amount" type="number" min="0" max="9999999" step="0.01" inputmode="decimal" placeholder="0.00"></span></label><label>Currency<select id="plan-currency"><option>EUR</option><option>USD</option><option>GBP</option><option>JPY</option></select></label></div><label>Shop or seller<input id="plan-shop" maxlength="160"></label><label>Link<input id="plan-link" type="url" maxlength="1000" placeholder="https://…"></label><label>Notes<textarea id="plan-notes" maxlength="1000" rows="4"></textarea></label><p class="muted">All details are optional and private.</p><p id="plan-error" class="history-error" role="alert" hidden></p></div><footer class="sheet-footer"><button id="history-plan-cancel" class="secondary-button" type="button">Cancel</button><button class="primary-button" type="submit">Save notes</button></footer></form></dialog>`;
@@ -116,21 +123,7 @@ const entryTemplate = `<dialog
             <div><strong id="entry-card-name"></strong><span id="entry-card-reference"></span></div>
             <span class="mini-finish" id="entry-card-finish"></span>
           </div>
-          <fieldset id="entry-purpose">
-            <legend>This entry is for</legend>
-            <div class="purpose-options">
-              <label
-                ><input name="purpose" type="radio" value="new" checked /><span
-                  >New copies</span
-                ></label
-              ><label id="existing-purpose-label"
-                ><input name="purpose" type="radio" value="existing" /><span
-                  >Copies I already own</span
-                ></label
-              >
-            </div>
-          </fieldset>
-          <fieldset class="method-field">
+          <fieldset id="entry-method" class="method-field">
             <legend>How did you get it?</legend>
             <div class="method-options">
               <label
@@ -158,9 +151,9 @@ const entryTemplate = `<dialog
           </fieldset>
           <div class="form-grid date-quantity">
             <label
-              ><span>Date <span class="optional">optional</span></span
+              ><span><span id="entry-date-label">Date</span> <span class="optional">optional</span></span
               ><input id="entry-date" type="date" /></label
-            ><label
+            ><label id="entry-copy-count"
               >Copies<input
                 id="entry-quantity"
                 type="number"
@@ -203,7 +196,7 @@ const entryTemplate = `<dialog
                 </select></label
               >
             </div>
-            <p class="field-hint">
+            <p id="entry-price-hint" class="field-hint">
               The total for the copies in this entry, including any delivery cost you want to
               record.
             </p>
@@ -333,7 +326,7 @@ const removalTemplate = `<dialog
       </form>
     </dialog>`;
 
-export function createCardHistory({ getContext, canEdit, commit, refresh }) {
+export function createCardHistory({ getContext, canEdit, commit, getSaveError, refresh }) {
   const host = document.createElement('div');
   host.dataset.cloudUi = '';
   host.innerHTML = icons + entryTemplate + removalTemplate + planTemplate;
@@ -341,6 +334,7 @@ export function createCardHistory({ getContext, canEdit, commit, refresh }) {
   const $ = (id) => host.querySelector(`#${id}`);
   let active,
     editing,
+    entryMode,
     requested = 1,
     filter = 'all',
     limit = 6,
@@ -372,12 +366,19 @@ export function createCardHistory({ getContext, canEdit, commit, refresh }) {
       assertCurrent();
       const data = makeChange();
       data.history = validateHistory(data.history, data.quantity);
+      const expected = active;
+      const change = (row) => {
+        const own = row || { quantity: 0, wanted: false };
+        if (expected.signature !== signature({ ...expected.context, own }))
+          throw new Error('This card changed. Close the form and open it again.');
+        return data;
+      };
       const button = deleteButton || form.querySelector('[type="submit"]');
       button.disabled = true;
       button.setAttribute('aria-busy', 'true');
       try {
-        if (await commit(data, Boolean(deleteButton))) form.closest('dialog').close();
-        else throw new Error('The change could not be saved. Try again.');
+        if (await commit(change, Boolean(deleteButton))) form.closest('dialog').close();
+        else throw new Error(getSaveError() || 'The change could not be saved. Try again.');
       } finally {
         button.disabled = false;
         button.setAttribute('aria-busy', 'false');
@@ -401,29 +402,54 @@ export function createCardHistory({ getContext, canEdit, commit, refresh }) {
   ])
     $(button).onclick = () => $(dialog).close();
 
-  function entryForm(purpose = 'existing', id = null) {
+  function entryForm(mode, id = null) {
     if (!begin()) return;
     const { card, variant, own } = active.context;
     const history = historyOf(own);
+    entryMode = mode;
     editing = id;
-    const entry = history.entries.find((item) => item.id === id);
+    const order = isOrderForm();
+    const entry = (order ? ordersOf(own) : history.entries).find((item) => item.id === id);
     $('entry-form').reset();
     $('entry-error').hidden = true;
-    $('entry-title').textContent = entry ? 'Edit entry' : 'Add entry';
-    $('entry-purpose').hidden = Boolean(entry);
-    $('existing-purpose-label').querySelector('input').disabled = !unrecordedCount(own);
-    $('entry-form').elements.purpose.value =
-      !entry && purpose === 'existing' && !unrecordedCount(own) ? 'new' : purpose;
-    $('entry-form').elements.method.value = entry?.method || 'bought';
+    $('entry-title').textContent = order
+      ? id
+        ? 'Edit order'
+        : 'Add ordered copy'
+      : id
+        ? 'Edit entry'
+        : mode === 'owned'
+          ? 'Add owned copies'
+          : 'Add details';
+    $('entry-description').textContent = order
+      ? ''
+      : mode === 'owned'
+        ? 'Add copies and record any details.'
+        : 'Record how you got this card.';
+    $('entry-description').hidden = order;
+    $('entry-method').hidden = order;
+    $('entry-date-label').textContent = order ? 'Order date' : 'Date';
+    $('entry-form').elements.method.value =
+      entry?.method || (mode === 'owned' ? 'other' : 'bought');
     $('entry-date').value = entry?.date || '';
-    $('entry-quantity').value = entry?.quantity || 1;
+    $('entry-copy-count').hidden = order;
+    $('entry-quantity').disabled = order;
+    $('entry-quantity').value = order ? 1 : entry?.quantity || 1;
+    $('entry-quantity').readOnly = Boolean(entry?.receivedAt);
     $('entry-source').value = entry?.source || '';
     $('entry-price').value = entry?.amount ?? '';
     $('entry-currency').value = entry?.currency || history.plan?.currency || 'EUR';
     $('entry-notes').value = entry?.notes || '';
-    $('remove-wanted-label').hidden = Boolean(entry) || !own.wanted;
-    $('delete-entry').hidden = !entry;
-    $('save-entry').querySelector('span').textContent = entry ? 'Save changes' : 'Save entry';
+    $('remove-wanted-label').hidden = mode !== 'owned' || !own.wanted;
+    $('remove-wanted').checked = false;
+    $('delete-entry').hidden = order || !entry;
+    $('save-entry').querySelector('span').textContent = id
+      ? 'Save changes'
+      : order
+        ? 'Save order'
+        : mode === 'owned'
+          ? 'Add copies'
+          : 'Save details';
     $('entry-card-name').textContent = card.name;
     $('entry-card-reference').textContent = `${card.setName} · ${card.number}`;
     $('entry-card-finish').textContent = variant;
@@ -434,13 +460,15 @@ export function createCardHistory({ getContext, canEdit, commit, refresh }) {
     updateEntryForm();
     $('entry-dialog').showModal();
   }
+  const isOrderForm = () => entryMode === 'order';
+
   function updateEntryForm() {
     if (!active) return;
-    const form = $('entry-form'),
-      own = active.context.own,
-      history = historyOf(own);
-    const entry = history.entries.find((item) => item.id === editing);
-    const method = form.elements.method.value;
+    const own = active.context.own;
+    const history = historyOf(own);
+    const order = isOrderForm();
+    const entry = (order ? ordersOf(own) : history.entries).find((item) => item.id === editing);
+    const method = $('entry-form').elements.method.value;
     const source = {
       bought: 'Shop or seller',
       pulled: 'Pack, box, or place',
@@ -448,56 +476,75 @@ export function createCardHistory({ getContext, canEdit, commit, refresh }) {
       trade: 'Person or place',
       other: 'Person or place',
     };
-    $('source-label').textContent = source[method];
+    const hasPrice = order || ['bought', 'trade'].includes(method);
+    $('source-label').textContent = order ? 'Shop or seller' : source[method];
     $('entry-source').placeholder = '';
-    $('price-fields').hidden = !['bought', 'trade'].includes(method);
-    $('entry-price').disabled = $('price-fields').hidden;
-    $('entry-currency').disabled = $('price-fields').hidden;
-    $('pull-hint').hidden = method !== 'pulled';
-    $('price-label').textContent = method === 'trade' ? 'Extra cash paid' : 'Total paid';
+    $('price-fields').hidden = !hasPrice;
+    $('entry-price').disabled = !hasPrice;
+    $('entry-currency').disabled = !hasPrice;
+    $('pull-hint').hidden = order || method !== 'pulled';
+    $('price-label').textContent = order
+      ? 'Price'
+      : method === 'trade'
+        ? 'Extra cash paid'
+        : 'Total paid';
+    $('entry-price-hint').hidden = order;
     $('entry-currency-label').textContent = currencies[$('entry-currency').value];
     $('entry-price').step = $('entry-currency').value === 'JPY' ? '1' : '0.01';
-    const purpose = form.elements.purpose.value;
-    $('entry-quantity').min = entry ? Math.max(1, removedFrom(entry, history)) : 1;
-    $('entry-quantity').max = entry
-      ? unrecordedCount(own) + entry.quantity
-      : purpose === 'new'
-        ? 999 - own.quantity
-        : unrecordedCount(own);
+    if (!order) {
+      $('entry-quantity').min = entry ? Math.max(1, removedFrom(entry, history)) : 1;
+      $('entry-quantity').max = entry
+        ? unrecordedCount(own) + entry.quantity
+        : entryMode === 'owned'
+          ? 999 - own.quantity
+          : unrecordedCount(own);
+    }
     const quantity = Number($('entry-quantity').value);
     $('count-preview').textContent =
-      entry || purpose === 'existing'
-        ? `Your total stays at ${copies(own.quantity)}.`
-        : `Adds ${copies(quantity)}. Your total will be ${copies(own.quantity + quantity)}.`;
+      entryMode === 'owned' ? `Your total will be ${copies(own.quantity + quantity)}.` : '';
+    $('count-preview').hidden = !$('count-preview').textContent;
   }
   $('entry-form').oninput = $('entry-form').onchange = updateEntryForm;
   $('entry-form').onsubmit = (event) => {
     event.preventDefault();
     void submit(event.currentTarget, 'entry-error', () => {
-      const own = current().own,
-        history = structuredClone(historyOf(own)),
-        form = $('entry-form');
-      const old = history.entries.find((item) => item.id === editing);
-      const quantity = Number($('entry-quantity').value);
-      const method = form.elements.method.value;
-      const entry = {
-        id: editing || crypto.randomUUID(),
-        method,
-        quantity,
+      const own = current().own;
+      const fields = {
         date: $('entry-date').value,
         source: $('entry-source').value,
-        amount: ['bought', 'trade'].includes(method) ? $('entry-price').value : '',
+        amount: $('entry-price').disabled ? '' : $('entry-price').value,
         currency: $('entry-currency').value,
         notes: $('entry-notes').value,
-        originUnknown: false,
       };
-      if (old) history.entries[history.entries.indexOf(old)] = entry;
-      else history.entries.push(entry);
+      if (isOrderForm()) return saveOrder(own, fields, editing);
+
+      const quantity = Number($('entry-quantity').value);
+
+      const history = structuredClone(historyOf(own));
+      const old = history.entries.find((item) => item.id === editing);
+      const method = $('entry-form').elements.method.value;
+      if (
+        old ||
+        entryMode !== 'owned' ||
+        method !== 'other' ||
+        fields.date ||
+        fields.source.trim() ||
+        fields.notes.trim()
+      ) {
+        const entry = {
+          ...old,
+          ...fields,
+          quantity,
+          id: editing || crypto.randomUUID(),
+          method,
+          originUnknown: false,
+        };
+        if (old) history.entries[history.entries.indexOf(old)] = entry;
+        else history.entries.push(entry);
+      }
       return {
-        quantity: own.quantity + (!old && form.elements.purpose.value === 'new' ? quantity : 0),
-        wanted:
-          own.wanted &&
-          (!own.wanted || $('remove-wanted-label').hidden || !$('remove-wanted').checked),
+        quantity: own.quantity + (entryMode === 'owned' ? quantity : 0),
+        wanted: own.wanted && ($('remove-wanted-label').hidden || !$('remove-wanted').checked),
         history,
       };
     });
@@ -678,13 +725,32 @@ export function createCardHistory({ getContext, canEdit, commit, refresh }) {
     if (!saved) return '';
     const history = historyOf(own),
       past = pastCount(history),
+      orders = ordersOf(own),
       disabled = !canEdit();
+    const orderRow = (order) => {
+      const canceled = order.outcome?.action === 'canceled';
+      const title = canceled ? 'Order canceled' : 'Ordered';
+      const when = canceled
+        ? orderDate.format(new Date(order.outcome.at))
+        : order.date
+          ? dateLabel(order.date)
+          : orderDate.format(new Date(order.at));
+      const details = [order.source, order.amount === '' ? '' : money(order.amount, order.currency)]
+        .filter(Boolean)
+        .join(' · ');
+      const actions = order.outcome
+        ? ''
+        : `<div class="history-order-actions"><button type="button" class="text-button" data-receive-order="${order.id}" ${disabled || own.quantity >= 999 ? 'disabled' : ''}>Mark received</button><button type="button" class="text-button" data-cancel-order="${order.id}" ${disabled ? 'disabled' : ''}>Cancel order</button></div>`;
+      return `<article class="history-entry" id="history-order-${order.id}"><span class="history-method">${symbol('clock')}</span><div class="history-entry-main"><div class="history-entry-top"><h4>${title}</h4><span>${escape(when)}</span><button data-edit-order="${order.id}" class="history-edit" aria-label="Edit order" ${disabled ? 'disabled' : ''}>${symbol('edit')}</button></div>${details ? `<p>${escape(details)}</p>` : ''}${order.notes ? `<p class="history-note">${escape(order.notes)}</p>` : ''}${actions}</div></article>`;
+    };
     const changesFor = (entry) =>
       history.changes.filter((change) =>
         change.allocations.some((part) => part.entryId === entry.id),
       );
     const latest = (entry) =>
-      [entry.date, ...changesFor(entry).map((change) => change.date)].sort().at(-1);
+      [entry.receivedAt || entry.date, ...changesFor(entry).map((change) => change.date)]
+        .sort()
+        .at(-1);
     const entries = history.entries
       .filter((entry) =>
         filter === 'owned'
@@ -693,13 +759,33 @@ export function createCardHistory({ getContext, canEdit, commit, refresh }) {
             ? removedFrom(entry, history) > 0
             : true,
       )
-      .sort((a, b) => latest(b).localeCompare(latest(a)));
+      .map((entry) => ({ entry, at: latest(entry) }));
+    if (filter === 'all') {
+      entries.push(
+        ...orders
+          .filter((order) => order.outcome)
+          .map((order) => ({
+            order,
+            at: order.outcome.action === 'canceled' ? order.outcome.at : order.date || order.at,
+          })),
+      );
+    }
     const rows = entries
+      .sort((a, b) => b.at.localeCompare(a.at))
       .slice(0, limit)
-      .map((entry) => {
+      .map(({ entry, order }) => {
+        if (order) return orderRow(order);
         const changes = changesFor(entry);
-        const title = entry.originUnknown ? 'Details not recorded' : methodNames[entry.method];
-        return `<article class="history-entry" id="history-entry-${entry.id}"><span class="history-method">${symbol(entry.method)}</span><div class="history-entry-main"><div class="history-entry-top"><h4>${escape(title)}</h4><span>${escape(dateLabel(entry.date))}</span><strong class="history-amount">${entry.amount !== '' ? escape(money(entry.amount, entry.currency)) : ''}</strong><button data-history-edit="${entry.id}" class="history-edit" aria-label="Edit ${escape(title.toLowerCase())} entry" ${disabled ? 'disabled' : ''}>${symbol('edit')}</button></div><p>${escape(entry.source || 'Place not recorded')} <small>· ${copies(entry.quantity)}</small></p>${entry.notes ? `<p class="history-note">${escape(entry.notes)}</p>` : ''}${changes.length ? `<p class="history-ownership">${remaining(entry, history) ? `${copies(remaining(entry, history))} still owned` : 'Previously owned'}</p>` : ''}${changes
+        const title = entry.receivedAt
+          ? 'Received'
+          : entry.originUnknown
+            ? 'Details not recorded'
+            : methodNames[entry.method];
+        const entryDate = entry.receivedAt
+          ? orderDate.format(new Date(entry.receivedAt))
+          : dateLabel(entry.date);
+        const source = entry.source || (entry.receivedAt ? '' : 'Place not recorded');
+        return `<article class="history-entry" id="history-entry-${entry.id}"><span class="history-method">${symbol(entry.receivedAt ? 'check' : entry.method)}</span><div class="history-entry-main"><div class="history-entry-top"><h4>${escape(title)}</h4><span>${escape(entryDate)}</span><strong class="history-amount">${entry.amount !== '' ? escape(money(entry.amount, entry.currency)) : ''}</strong><button data-history-edit="${entry.id}" class="history-edit" aria-label="Edit ${escape(title.toLowerCase())} entry" ${disabled ? 'disabled' : ''}>${symbol('edit')}</button></div><p>${source ? `${escape(source)} <small>· ${copies(entry.quantity)}</small>` : copies(entry.quantity)}</p>${entry.receivedAt && entry.date ? `<p>${methodNames[entry.method]} · ${escape(dateLabel(entry.date))}</p>` : ''}${entry.notes ? `<p class="history-note">${escape(entry.notes)}</p>` : ''}${changes.length ? `<p class="history-ownership">${remaining(entry, history) ? `${copies(remaining(entry, history))} still owned` : 'Previously owned'}</p>` : ''}${changes
           .slice(0, limit)
           .map((change) => {
             const part = change.allocations.find((allocation) => allocation.entryId === entry.id);
@@ -710,10 +796,15 @@ export function createCardHistory({ getContext, canEdit, commit, refresh }) {
           )}${changes.length > limit ? '<button data-history-expand class="text-button">Show more changes</button>' : ''}</div></article>`;
       })
       .join('');
+    const activeOrders = orders
+      .filter((order) => !order.outcome)
+      .sort((a, b) => (b.date || b.at).localeCompare(a.date || a.at))
+      .map(orderRow)
+      .join('');
     const plan = history.plan;
     return `${
-      own.quantity || hasHistory(own)
-        ? `<section id="card-history" class="card-history" aria-labelledby="card-history-title"><header class="history-heading"><div><h3 id="card-history-title">Card history</h3><p>${copies(own.quantity)} owned${past ? ` · ${copies(past)} previously owned` : ''}</p></div>${history.entries.length ? `<button id="history-add-entry" class="text-button" ${disabled || (!unrecordedCount(own) && own.quantity >= 999) ? 'disabled' : ''}>${symbol('plus')}Add entry</button>` : ''}</header>${
+      own.quantity || hasHistory(own) || orders.length
+        ? `<section id="card-history" class="card-history" aria-labelledby="card-history-title"><header class="history-heading"><div><h3 id="card-history-title">Card history</h3>${own.quantity || past ? `<p>${copies(own.quantity)} owned${past ? ` · ${copies(past)} previously owned` : ''}</p>` : ''}</div></header>${
             past
               ? `<div class="history-filters" role="group" aria-label="History filter">${[
                   ['all', 'All'],
@@ -726,7 +817,7 @@ export function createCardHistory({ getContext, canEdit, commit, refresh }) {
                   )
                   .join('')}</div>`
               : ''
-          }<div class="history-list">${rows}</div>${!entries.length && history.entries.length ? '<p class="history-note">No copies match this filter.</p>' : ''}${entries.length > limit ? '<button id="history-more" class="text-button">Show more entries</button>' : ''}${unrecordedCount(own) ? `<div class="history-unrecorded"><span>${copies(unrecordedCount(own))} without details</span><button id="history-describe" class="text-button" ${disabled ? 'disabled' : ''}>Add details</button></div>` : ''}</section>`
+          }<div class="history-list">${activeOrders}${rows}</div>${!entries.length && history.entries.length && filter !== 'all' ? '<p class="history-note">No copies match this filter.</p>' : ''}${entries.length > limit ? '<button id="history-more" class="text-button">Show more entries</button>' : ''}${unrecordedCount(own) ? `<div class="history-unrecorded"><span>${copies(unrecordedCount(own))} without details</span><button id="history-describe" class="text-button" ${disabled ? 'disabled' : ''}>Add details</button></div>` : ''}</section>`
         : ''
     }${own.wanted || plan ? `<section class="card-history-plan" aria-labelledby="history-plan-heading"><header class="history-heading"><h3 id="history-plan-heading">Wishlist notes</h3><button id="history-plan-edit" class="text-button" ${disabled ? 'disabled' : ''}>${plan ? 'Edit notes' : 'Add notes'}</button></header>${plan ? `<p>${plan.amount !== '' ? `Target: ${escape(money(plan.amount, plan.currency))}` : ''}${plan.amount !== '' && plan.shop ? ' · ' : ''}${escape(plan.shop)}</p>${plan.notes ? `<p class="history-note">${escape(plan.notes)}</p>` : ''}${plan.link ? `<a href="${escape(plan.link)}" target="_blank" rel="noopener noreferrer">Open shop link</a>` : ''}` : ''}</section>` : ''}${hasHistory(own) || own.wanted || plan ? `<p class="history-privacy">${symbol('lock')}Prices, places, people, and notes stay private.</p>` : ''}`;
   }
@@ -735,12 +826,24 @@ export function createCardHistory({ getContext, canEdit, commit, refresh }) {
       const button = screen.querySelector(`#${id}`);
       if (button) button.onclick = work;
     };
-    listen('history-add-entry', () =>
-      entryForm(unrecordedCount(current().own) ? 'existing' : 'new'),
-    );
     listen('history-describe', () => entryForm('existing'));
-    listen('detail-record-history', () => entryForm('existing'));
     listen('history-plan-edit', planForm);
+    for (const button of screen.querySelectorAll('[data-edit-order]'))
+      button.onclick = () => entryForm('order', button.dataset.editOrder);
+    for (const button of screen.querySelectorAll('[data-receive-order]'))
+      button.onclick = () =>
+        void commit(
+          (row) => resolveOrder(row, 'received', button.dataset.receiveOrder),
+          false,
+          'Copy received.',
+        );
+    for (const button of screen.querySelectorAll('[data-cancel-order]'))
+      button.onclick = () =>
+        void commit(
+          (row) => resolveOrder(row, 'canceled', button.dataset.cancelOrder),
+          false,
+          'Ordered copy canceled.',
+        );
     listen('history-more', () => {
       limit += 6;
       refresh();
@@ -761,5 +864,5 @@ export function createCardHistory({ getContext, canEdit, commit, refresh }) {
     for (const button of screen.querySelectorAll('[data-history-change]'))
       button.onclick = () => removalForm(0, button.dataset.historyChange);
   }
-  return { markup, bind, remove: removalForm, close };
+  return { markup, bind, add: entryForm, remove: removalForm, close };
 }
